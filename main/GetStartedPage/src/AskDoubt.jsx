@@ -18,6 +18,14 @@ export function AskDoubt({ currentUser, onDoubtSubmit, onCancel }) {
       setError("Question is required");
       return;
     }
+    if (!doubtData.details.trim()) {
+      setError("Details are required");
+      return;
+    }
+    if (!doubtData.category || doubtData.category === "") {
+      setError("Category is required");
+      return;
+    }
 
     setLoading(true);
     setError("");
@@ -25,9 +33,9 @@ export function AskDoubt({ currentUser, onDoubtSubmit, onCancel }) {
     try {
       const token = localStorage.getItem('token');
       const doubtPayload = {
-      question: doubtData.question,
-      details: doubtData.details,
-      category: doubtData.category,
+        title: doubtData.question,
+        content: doubtData.details,
+        category: doubtData.category,
         tags: doubtData.tags.split(',').map(tag => tag.trim()).filter(tag => tag)
       };
 

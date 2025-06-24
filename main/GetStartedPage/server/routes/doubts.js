@@ -26,7 +26,7 @@ const authenticateToken = (req, res, next) => {
 // Create a new doubt
 router.post('/', authenticateToken, async (req, res) => {
   try {
-    const { question, details, category, tags } = req.body;
+    const { title, content, category, tags } = req.body;
 
     // Handle tags field properly - it could be string or array
     let tagsArray = [];
@@ -40,8 +40,8 @@ router.post('/', authenticateToken, async (req, res) => {
 
     const doubt = new Doubt({
       user: req.user.userId,
-      title: question,
-      content: details,
+      title,
+      content,
       category,
       tags: tagsArray
     });

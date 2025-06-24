@@ -6,11 +6,54 @@ import { TrendingDoubts } from './TrendingDoubts.jsx';
 import { TopHelpers } from './TopHelpers.jsx';
 import { AskDoubt } from './AskDoubt.jsx';
 
+// DoubtCard styled like Top Helpers
+function DoubtCard({ doubt, onSolve, onCall, onVideoCall }) {
+  return (
+    <div className="helper-card doubt-card-carousel">
+      <div className="helper-header">
+        <div className="helper-avatar">
+          <span className="avatar-emoji">❓</span>
+        </div>
+        <div className="helper-info">
+          <h3 className="helper-name">{doubt.question}</h3>
+          <div className="helper-rating">
+            <span className="stars">Asked by: {doubt.user}</span>
+          </div>
+        </div>
+      </div>
+      <div className="helper-bio">
+        <p>{doubt.details}</p>
+      </div>
+      <div className="doubt-actions-carousel">
+        <button className="solve-btn" onClick={() => onSolve(doubt)}>Solve</button>
+        <button className="call-btn" onClick={() => onCall(doubt)}>Call</button>
+        <button className="video-btn" onClick={() => onVideoCall(doubt)}>Video Call</button>
+      </div>
+    </div>
+  );
+}
+
 export default function Doubts({ currentUser, onLogout }){
     const [doubts, setDoubts] = useState([]);
     const [topHelpers, setTopHelpers] = useState([]);
     const [showAskDoubt, setShowAskDoubt] = useState(false);
     const [error, setError] = useState('');
+
+    // Carousel for doubts
+    const [carouselIndex, setCarouselIndex] = useState(0);
+    const scrollDoubtsLeft = () => setCarouselIndex(i => Math.max(i - 1, 0));
+    const scrollDoubtsRight = () => setCarouselIndex(i => Math.min(i + 1, Math.max(0, mappedDoubts.length - 3)));
+
+    // Call/Video Call handlers
+    const handleCall = (doubt) => {
+      alert(`Calling the asker of: ${doubt.question}`);
+    };
+    const handleVideoCall = (doubt) => {
+      alert(`Starting video call for: ${doubt.question}`);
+    };
+    const handleSolve = (doubt) => {
+      alert(`You chose to solve: ${doubt.question}`);
+    };
 
     useEffect(() => {
         fetchDoubts();
@@ -121,13 +164,31 @@ export default function Doubts({ currentUser, onLogout }){
                             />
                         </div>
                     )}
-                    
-                    <TrendingDoubts 
-                        doubts={mappedDoubts}
-                        onDoubtUpdate={handleDoubtUpdate}
-                        currentUser={currentUser}
-                    />
-                    
+
+                    {/* Doubts Carousel */}
+                    <div className="carousel-wrapper">
+                      {carouselIndex > 0 && (
+                        <button className="scroll-btn scroll-left" onClick={scrollDoubtsLeft}>‹</button>
+                      )}
+                      <div className="carousel-container">
+                        <div className="carousel-track" style={{ transform: `translateX(-${carouselIndex * 350}px)` }}>
+                          {mappedDoubts.map((doubt, idx) => (
+                            <DoubtCard
+                              key={doubt.id || idx}
+                              doubt={doubt}
+                              onSolve={handleSolve}
+                              onCall={handleCall}
+                              onVideoCall={handleVideoCall}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      {carouselIndex < Math.max(0, mappedDoubts.length - 3) && (
+                        <button className="scroll-btn scroll-right" onClick={scrollDoubtsRight}>›</button>
+                      )}
+                    </div>
+
+                    {/* Top Helpers as before */}
                     <TopHelpers />
                 </div>
 
