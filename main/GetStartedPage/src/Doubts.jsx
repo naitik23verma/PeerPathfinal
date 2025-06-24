@@ -106,14 +106,14 @@ export default function Doubts({ currentUser, onLogout }){
       .filter(doubt => doubt && typeof doubt === 'object')
       .map(doubt => ({
         id: doubt._id || doubt.id,
-        question: typeof doubt.question === 'string' ? doubt.question : '',
+        question: doubt.title || doubt.question || '',
         user: typeof doubt.user === 'object' ? (doubt.user.username || doubt.user.name || 'Unknown') : (doubt.user || 'Unknown'),
+        details: doubt.content || doubt.details || '',
         time: doubt.time || doubt.createdAt || '',
         replies: doubt.replies || (doubt.answers ? doubt.answers.length : 0) || 0,
         likes: doubt.likes || 0,
         category: doubt.category || 'general',
         tags: Array.isArray(doubt.tags) ? doubt.tags.map(t => String(t)) : [],
-        details: doubt.details || doubt.content || '',
         isResolved: typeof doubt.isResolved === 'boolean' ? doubt.isResolved : false
       }))
       .filter(d => d.question && typeof d.question === 'string');
@@ -165,7 +165,7 @@ export default function Doubts({ currentUser, onLogout }){
                         </div>
                     )}
 
-                    {/* Doubts Carousel */}
+                    {/* Doubts Carousel - now above Top Helpers */}
                     <div className="carousel-wrapper">
                       {carouselIndex > 0 && (
                         <button className="scroll-btn scroll-left" onClick={scrollDoubtsLeft}>‹</button>
@@ -188,7 +188,7 @@ export default function Doubts({ currentUser, onLogout }){
                       )}
                     </div>
 
-                    {/* Top Helpers as before */}
+                    {/* Top Helpers section below doubts */}
                     <TopHelpers />
                 </div>
 
