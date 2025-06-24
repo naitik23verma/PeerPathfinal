@@ -193,7 +193,19 @@ const Profile = ({ onLogout }) => {
         <div className="profile-header">
           <div className="profile-avatar">
             {profileData.profilePhoto ? (
-              <img src={profileData.profilePhoto} alt="Profile" className="avatar-image" />
+              <>
+                <img src={profileData.profilePhoto} alt="Profile" className="avatar-image" />
+                <label className="camera-icon-overlay">
+                  <FaCamera size={22} />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={handleProfilePhotoChange}
+                    disabled={uploading}
+                  />
+                </label>
+              </>
             ) : (
               <>
                 <span className="avatar-text">{profileData.username.charAt(0)}</span>

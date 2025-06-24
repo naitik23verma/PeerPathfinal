@@ -2,8 +2,14 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import ChatMessage from '../models/ChatMessage.js';
+import multer from 'multer';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 const router = express.Router();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Middleware to verify JWT token
 const authenticateToken = (req, res, next) => {
@@ -22,6 +28,17 @@ const authenticateToken = (req, res, next) => {
     next();
   });
 };
+
+// Multer config for profile photo upload
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, '../uploads/'));
+  },
+  filename: function (req, file, cb) {
+    cb(null, 'profilePhoto-' + Date.now() + '-' + Math.round(Math.random() * 1E9) + path.extname(file.originalname));
+  }
+});
+const upload = multer({ storage });
 
 // Get all users
 router.get('/', async (req, res) => {
@@ -112,6 +129,46 @@ router.post('/chat', authenticateToken, async (req, res) => {
     res.status(201).json(message);
   } catch (error) {
     res.status(500).json({ message: 'Failed to send message', error: error.message });
+  }
+});
+
+// Upload profile photo endpoint
+router.post('/upload-profile-photo', authenticateToken, upload.single('profilePhoto'), async (req, res) => {
+  try {
+    console.log('Profile photo upload request received');
+    console.log('User ID from token:', req.user.userId);
+    console.log('File received:', req.file);
+    
+    const user = await User.findById(req.user.userId);
+    console.log('User found:', user ? 'Yes' : 'No');
+    if (user) {
+      console.log('User email:', user.email);
+      console.log('User has email:', !!user.email);
+    }
+    
+    if (!user) {
+      console.log('User not found error');
+      return res.status(404).json({ message: 'User not found' });
+    }
+    if (!req.file) {
+      console.log('No file uploaded error');
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+    // Defensive: check for required fields
+    if (!user.email) {
+      console.log('User email missing error');
+      return res.status(400).json({ message: 'User email is missing. Cannot update profile photo.' });
+    }
+    
+    console.log('Updating profile photo to:', `/uploads/${req.file.filename}`);
+    user.profilePhoto = `/uploads/${req.file.filename}`;
+    await user.save();
+    console.log('Profile photo updated successfully');
+    res.json({ profilePhoto: user.profilePhoto });
+  } catch (error) {
+    console.error('Profile photo upload error:', error);
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 
