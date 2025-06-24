@@ -322,21 +322,34 @@ const Location = ({ currentUser, onLogout }) => {
     }
   };
 
+  // Helper to open Google Maps directions
+  const openGoogleMapsRoute = (ride) => {
+    const origin = ride.currentLocation?.coordinates;
+    const destination = ride.destination?.coordinates;
+    if (
+      Array.isArray(origin) && origin.length === 2 &&
+      Array.isArray(destination) && destination.length === 2
+    ) {
+      const url = `https://www.google.com/maps/dir/?api=1&origin=${origin[0]},${origin[1]}&destination=${destination[0]},${destination[1]}`;
+      window.open(url, '_blank');
+    }
+  };
+
   const renderRideCards = () => {
     return rides.map((ride) => (
-      <div key={ride._id} className="ride-card">
+      <div
+        key={ride._id}
+        className="ride-card"
+      >
         <div className="ride-header">
           <div className="user-info">
             <img src={ride.user.profilePhoto || '/peerpath.png'} alt={ride.user.username} />
             <h3>{ride.user.username}</h3>
           </div>
           <div className="ride-status">
-            <span className={`status ${ride.isActive ? 'active' : 'inactive'}`}>
-              {ride.isActive ? 'Active' : 'Inactive'}
-            </span>
+            <span className={`status ${ride.isActive ? 'active' : 'inactive'}`}>{ride.isActive ? 'Active' : 'Inactive'}</span>
           </div>
         </div>
-
         <div className="ride-details">
           <div className="location-info">
             <p><strong>From:</strong> {ride.currentLocation.address}</p>
@@ -356,47 +369,23 @@ const Location = ({ currentUser, onLogout }) => {
             </div>
           )}
         </div>
-
         <div className="ride-actions">
+          <button className="route-btn" onClick={() => openGoogleMapsRoute(ride)}>
+            View Route
+          </button>
           {ride.user._id === currentUser._id ? (
-            <button
-              className="cancel-btn"
-              onClick={() => handleCancelRide(ride._id)}
-            >
-              Cancel Ride
-            </button>
+            <button className="cancel-btn" onClick={() => handleCancelRide(ride._id)}>Cancel Ride</button>
           ) : (
             <>
               {ride.passengers.some(p => p.user._id === currentUser._id) ? (
-                <button
-                  className="leave-btn"
-                  onClick={() => handleLeaveRide(ride._id)}
-                >
-                  Leave Ride
-                </button>
+                <button className="leave-btn" onClick={() => handleLeaveRide(ride._id)}>Leave Ride</button>
               ) : (
-                <button
-                  className="join-btn"
-                  onClick={() => handleJoinRide(ride._id)}
-                  disabled={ride.currentPassengers >= ride.maxPassengers}
-                >
-                  Join Ride
-                </button>
+                <button className="join-btn" onClick={() => handleJoinRide(ride._id)} disabled={ride.currentPassengers >= ride.maxPassengers}>Join Ride</button>
               )}
-              <button
-                className="contact-btn"
-                onClick={() => handleCommunication(ride)}
-              >
-                Contact
-              </button>
+              <button className="contact-btn" onClick={() => handleCommunication(ride)}>Contact</button>
             </>
           )}
-          <button
-            className="share-btn"
-            onClick={() => shareLocation(ride)}
-          >
-            Share
-          </button>
+          <button className="share-btn" onClick={() => shareLocation(ride)}>Share</button>
         </div>
       </div>
     ));

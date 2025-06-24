@@ -59,18 +59,21 @@ export default function Doubts({ currentUser, onLogout }){
     };
 
     // Map backend doubts to TrendingDoubts structure
-    const mappedDoubts = doubts.map(doubt => ({
+    const mappedDoubts = (doubts || [])
+      .filter(doubt => doubt && typeof doubt === 'object')
+      .map(doubt => ({
         id: doubt._id || doubt.id,
-        question: doubt.question,
-        user: typeof doubt.user === 'object' ? (doubt.user.username || doubt.user.name || 'Unknown') : doubt.user,
+        question: typeof doubt.question === 'string' ? doubt.question : '',
+        user: typeof doubt.user === 'object' ? (doubt.user.username || doubt.user.name || 'Unknown') : (doubt.user || 'Unknown'),
         time: doubt.time || doubt.createdAt || '',
         replies: doubt.replies || (doubt.answers ? doubt.answers.length : 0) || 0,
         likes: doubt.likes || 0,
         category: doubt.category || 'general',
-        tags: doubt.tags || [],
+        tags: Array.isArray(doubt.tags) ? doubt.tags.map(t => String(t)) : [],
         details: doubt.details || doubt.content || '',
         isResolved: typeof doubt.isResolved === 'boolean' ? doubt.isResolved : false
-    }));
+      }))
+      .filter(d => d.question && typeof d.question === 'string');
     console.log('mappedDoubts:', mappedDoubts);
 
     return(
