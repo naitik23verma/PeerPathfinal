@@ -1,0 +1,147 @@
+.search-results-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #f0f2f5;
+}
+
+.search-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.search-nav .nav-logo a {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: #333;
+}
+
+.search-nav .nav-logo img {
+  height: 40px;
+  margin-right: 10px;
+}
+
+.search-nav .nav-links a,
+.search-nav .nav-links .logout-btn {
+  margin-left: 1.5rem;
+  text-decoration: none;
+  color: #555;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+.search-nav .nav-links a:hover {
+  color: #8a2be2;
+}
+
+.logout-btn {
+  background-color: #8a2be2;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.logout-btn:hover {
+  background-color: #7b1fa2;
+}
+
+.search-results-content {
+  padding: 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.search-results-content h1 {
+  font-size: 2rem;
+  color: #333;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 1rem;
+}
+
+.loading-message,
+.error-message,
+.no-results-message {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #777;
+  margin-top: 4rem;
+}
+
+.results-list {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.result-card {
+  background-color: #ffffff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.result-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.result-card-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.result-card-header img {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  margin-right: 10px;
+  object-fit: cover;
+}
+
+.result-card-header span {
+  font-weight: 600;
+  color: #555;
+}
+
+.result-title a {
+  font-size: 1.4rem;
+  color: #333;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s;
+}
+
+.result-title a:hover {
+  color: #8a2be2;
+}
+
+.result-content {
+  color: #666;
+  margin: 0.5rem 0 1rem;
+  line-height: 1.6;
+}
+
+.result-tags .tag {
+  display: inline-block;
+  background-color: #e9e9e9;
+  color: #555;
+  padding: 0.3rem 0.7rem;
+  border-radius: 15px;
+  font-size: 0.8rem;
+  margin-right: 0.5rem;
+  margin-top: 0.5rem;
+} 
