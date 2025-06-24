@@ -1,6 +1,7 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
+import ChatMessage from '../models/ChatMessage.js';
 
 const router = express.Router();
 
@@ -81,6 +82,36 @@ router.get('/profile/:userId', async (req, res) => {
   } catch (error) {
     console.error('Get user profile error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get all chat messages for a room
+router.get('/chat/:roomId', authenticateToken, async (req, res) => {
+  try {
+    const messages = await ChatMessage.find({ roomId: req.params.roomId })
+      .sort({ createdAt: 1 })
+      .populate('sender', 'username profilePhoto');
+    res.json(messages);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch messages', error: error.message });
+  }
+});
+
+// Post a new chat message
+router.post('/chat', authenticateToken, async (req, res) => {
+  try {
+    const { roomId, content, receiver, time } = req.body;
+    const message = new ChatMessage({
+      roomId,
+      sender: req.user.userId,
+      receiver,
+      content,
+      time
+    });
+    await message.save();
+    res.status(201).json(message);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to send message', error: error.message });
   }
 });
 

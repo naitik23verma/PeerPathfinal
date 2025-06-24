@@ -16,6 +16,8 @@ import locationRoutes from './routes/location.js';
 
 // Load environment variables
 dotenv.config();
+console.log('MONGODB_URI:', process.env.MONGODB_URI);
+console.log('All env:', process.env);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

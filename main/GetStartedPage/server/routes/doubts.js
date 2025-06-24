@@ -2,6 +2,7 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 import Doubt from '../models/Doubt.js';
 import User from '../models/User.js';
+import mongoose from 'mongoose';
 
 const router = express.Router();
 
@@ -222,6 +223,98 @@ router.get('/user/:userId', async (req, res) => {
   } catch (error) {
     console.error('Get user doubts error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get weekly doubts count for a user
+router.get('/weekly/:userId', authenticateToken, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const weekAgo = new Date(today);
+    weekAgo.setDate(today.getDate() - 6); // 7 days including today
+
+    // Aggregate doubts by day for the past week
+    const result = await Doubt.aggregate([
+      {
+        $match: {
+          user: new mongoose.Types.ObjectId(userId),
+          createdAt: { $gte: weekAgo, $lte: today }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            $dateToString: { format: "%Y-%m-%d", date: "$createdAt" }
+          },
+          count: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { _id: 1 }
+      }
+    ]);
+
+    // Fill in days with 0 if no doubts were asked
+    const data = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(weekAgo);
+      date.setDate(weekAgo.getDate() + i);
+      const dateString = date.toISOString().slice(0, 10);
+      const found = result.find(r => r._id === dateString);
+      data.push({ date: dateString, count: found ? found.count : 0 });
+    }
+
+    res.json(data);
+  } catch (error) {
+    console.error('Error fetching weekly doubts:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Mark a doubt as solved
+router.put('/:id/solve', authenticateToken, async (req, res) => {
+  try {
+    const doubt = await Doubt.findById(req.params.id);
+    if (!doubt) {
+      return res.status(404).json({ message: 'Doubt not found' });
+    }
+    // Only the doubt creator or a solver can mark as solved
+    if (doubt.user.toString() !== req.user.userId) {
+      return res.status(403).json({ message: 'Only the doubt creator can mark as solved' });
+    }
+    doubt.isSolved = true;
+    await doubt.save();
+    // Increment the user's doubtsSolved count
+    await User.findByIdAndUpdate(req.user.userId, { $inc: { doubtsSolved: 1 } });
+    res.json({ message: 'Doubt marked as solved', doubt });
+  } catch (error) {
+    console.error('Mark as solved error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Like or unlike a doubt
+router.post('/:id/like', authenticateToken, async (req, res) => {
+  try {
+    const doubt = await Doubt.findById(req.params.id);
+    if (!doubt) {
+      return res.status(404).json({ message: 'Doubt not found' });
+    }
+    const userId = req.user.userId;
+    const index = doubt.likes.findIndex(id => id.toString() === userId);
+    if (index === -1) {
+      // Not liked yet, add like
+      doubt.likes.push(userId);
+    } else {
+      // Already liked, remove like
+      doubt.likes.splice(index, 1);
+    }
+    await doubt.save();
+    res.json({ likes: doubt.likes.length, doubt });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to like/unlike doubt', error: error.message });
   }
 });
 

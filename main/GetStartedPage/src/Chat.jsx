@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import io from 'socket.io-client';
 import axios from 'axios';
 import './Chat.css';
@@ -14,6 +14,7 @@ const Chat = ({ currentUser, onLogout }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const messagesEndRef = useRef(null);
   const [roomId, setRoomId] = useState(null);
+  const location = useLocation();
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -46,13 +47,32 @@ const Chat = ({ currentUser, onLogout }) => {
   }, []);
 
   useEffect(() => {
+    if (location.state && location.state.userId && users.length > 0) {
+      const userToSelect = users.find(u => u._id === location.state.userId);
+      if (userToSelect) setSelectedUser(userToSelect);
+    }
+  }, [location.state, users]);
+
+  useEffect(() => {
     if (selectedUser && currentUser) {
       const generateRoomId = (id1, id2) => [id1, id2].sort().join('_');
       const newRoomId = generateRoomId(currentUser._id, selectedUser._id);
       setRoomId(newRoomId);
       socket.emit('join-room', newRoomId);
       setMessages([]); // Clear previous messages
-      // Here you would fetch historical messages for the room
+      // Fetch historical messages for the room
+      const fetchMessages = async () => {
+        try {
+          const token = localStorage.getItem('token');
+          const response = await axios.get(`http://localhost:5000/api/users/chat/${newRoomId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          setMessages(response.data);
+        } catch (error) {
+          console.error('Error fetching chat history:', error);
+        }
+      };
+      fetchMessages();
     }
   }, [selectedUser, currentUser]);
 
@@ -62,18 +82,32 @@ const Chat = ({ currentUser, onLogout }) => {
 
   useEffect(scrollToBottom, [messages]);
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (message.trim() && selectedUser && roomId) {
       const messageData = {
         roomId,
         content: message.trim(),
         sender: { _id: currentUser._id, name: currentUser.name },
+        receiver: selectedUser._id,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
-      
       socket.emit('send-message', messageData);
       setMessages((prevMessages) => [...prevMessages, messageData]);
       setMessage('');
+      // Save to backend
+      try {
+        const token = localStorage.getItem('token');
+        await axios.post('http://localhost:5000/api/users/chat', {
+          roomId: messageData.roomId,
+          content: messageData.content,
+          receiver: messageData.receiver,
+          time: messageData.time
+        }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      } catch (error) {
+        console.error('Error saving chat message:', error);
+      }
     }
   };
   
@@ -84,10 +118,14 @@ const Chat = ({ currentUser, onLogout }) => {
     }
   };
 
-  const filteredUsers = users.filter(
-    user => user && (user.name || user.username) &&
-      (user.name || user.username).toLowerCase().includes(searchTerm.toLowerCase())
+  // Sort users: matching users first, then the rest
+  const matchingUsers = users.filter(
+    user => (user.name || user.username)?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  const nonMatchingUsers = users.filter(
+    user => !(user.name || user.username)?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  const sortedUsers = [...matchingUsers, ...nonMatchingUsers];
 
   return (
     <div className="chat-container">
@@ -124,19 +162,18 @@ const Chat = ({ currentUser, onLogout }) => {
           </div>
 
           <div className="users-list">
-            {filteredUsers.map((user) => (
+            {sortedUsers.map((user) => (
               <div
                 key={user._id}
                 className={`user-item ${selectedUser?._id === user._id ? 'active' : ''}`}
                 onClick={() => setSelectedUser(user)}
               >
                 <div className="user-avatar">
-                  <img src={user.profilePhoto || '/peerpath.png'} alt={user.name} className="avatar-img" />
+                  <img src={user.profilePhoto || '/peerpath.png'} alt={user.name || user.username} className="avatar-img" />
                   <span className={`status-indicator online`}></span>
                 </div>
                 <div className="user-info">
-                  <h4>{user.name}</h4>
-                  {/* <p>{user.lastMessage}</p> */}
+                  <h4>{user.name || user.username}</h4>
                 </div>
               </div>
             ))}
@@ -164,6 +201,14 @@ const Chat = ({ currentUser, onLogout }) => {
                     key={index}
                     className={`message ${msg.sender._id === currentUser._id ? 'own' : 'other'}`}
                   >
+                    <div className="message-sender-info">
+                      <img
+                        src={msg.sender.profilePhoto || '/peerpath.png'}
+                        alt={msg.sender.username}
+                        className="chat-message-avatar"
+                      />
+                      <span className="chat-message-username">{msg.sender.username}</span>
+                    </div>
                     <div className="message-content">
                       <p>{msg.content}</p>
                       <span className="message-time">{msg.time}</span>

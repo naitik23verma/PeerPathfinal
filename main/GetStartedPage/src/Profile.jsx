@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './Profile.css';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { motion } from 'framer-motion';
+import { FaCamera } from 'react-icons/fa';
 
 const Profile = ({ onLogout }) => {
   const navigate = useNavigate();
@@ -21,6 +24,8 @@ const Profile = ({ onLogout }) => {
 
   const [newSkill, setNewSkill] = useState('');
   const [newExpertise, setNewExpertise] = useState('');
+  const [weeklyDoubts, setWeeklyDoubts] = useState([]);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -33,6 +38,7 @@ const Profile = ({ onLogout }) => {
 
     setCurrentUser(user);
     fetchUserProfile(user._id);
+    fetchWeeklyDoubts(user._id, token);
   }, [navigate]);
 
   const fetchUserProfile = async (userId) => {
@@ -55,6 +61,18 @@ const Profile = ({ onLogout }) => {
       });
     } catch (error) {
       console.error('Error fetching profile:', error);
+    }
+  };
+
+  const fetchWeeklyDoubts = async (userId, token) => {
+    try {
+      const response = await axios.get(`http://localhost:5000/api/doubts/weekly/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      console.log('Weekly doubts data:', response.data);
+      setWeeklyDoubts(response.data);
+    } catch (error) {
+      console.error('Error fetching weekly doubts:', error);
     }
   };
 
@@ -131,6 +149,29 @@ const Profile = ({ onLogout }) => {
     { label: 'Days Active', value: Math.ceil((Date.now() - new Date(profileData.joinDate)) / (1000 * 60 * 60 * 24)) }
   ];
 
+  const handleProfilePhotoChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const formData = new FormData();
+      formData.append('profilePhoto', file);
+      const response = await axios.post('http://localhost:5000/api/users/upload-profile-photo', formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      setProfileData((prev) => ({ ...prev, profilePhoto: response.data.profilePhoto }));
+      alert('Profile photo updated!');
+    } catch (error) {
+      alert('Failed to upload profile photo.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <div className="profile-container">
       <nav className="profile-nav">
@@ -154,7 +195,19 @@ const Profile = ({ onLogout }) => {
             {profileData.profilePhoto ? (
               <img src={profileData.profilePhoto} alt="Profile" className="avatar-image" />
             ) : (
-              <span className="avatar-text">{profileData.username.charAt(0)}</span>
+              <>
+                <span className="avatar-text">{profileData.username.charAt(0)}</span>
+                <label className="camera-icon-overlay">
+                  <FaCamera size={22} />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={handleProfilePhotoChange}
+                    disabled={uploading}
+                  />
+                </label>
+              </>
             )}
           </div>
           <div className="profile-info">
@@ -290,6 +343,21 @@ const Profile = ({ onLogout }) => {
           </div>
         )}
       </div>
+
+      {weeklyDoubts && weeklyDoubts.length > 0 && (
+        <div className="profile-graph-section" style={{ width: '100%', maxWidth: 900, margin: '2rem auto 0', background: 'rgba(255,255,255,0.04)', borderRadius: 16, padding: '2rem 1rem' }}>
+          <h2 style={{ textAlign: 'center' }}>Doubts Asked This Week</h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={weeklyDoubts} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" tickFormatter={date => date.slice(5)} />
+              <YAxis allowDecimals={false} />
+              <Tooltip />
+              <Bar dataKey="count" fill="#8884d8" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./Doubts.css";
 import { TrendingDoubts } from './TrendingDoubts.jsx';
@@ -7,7 +7,7 @@ import { TopHelpers } from './TopHelpers.jsx';
 import { AskDoubt } from './AskDoubt.jsx';
 
 // DoubtCard styled like Top Helpers
-function DoubtCard({ doubt, onSolve, onCall, onVideoCall }) {
+function DoubtCard({ doubt, onSolve, onCall, onVideoCall, onChat, onLike, likedByCurrentUser, showMarkSolved, onMarkSolved, isAsker }) {
   return (
     <div className="helper-card doubt-card-carousel">
       <div className="helper-header">
@@ -17,17 +17,25 @@ function DoubtCard({ doubt, onSolve, onCall, onVideoCall }) {
         <div className="helper-info">
           <h3 className="helper-name">{doubt.question}</h3>
           <div className="helper-rating">
-            <span className="stars">Asked by: {doubt.user}</span>
+            <span className="stars">Asked by: {typeof doubt.user === 'object' ? doubt.user.username : doubt.user}</span>
           </div>
         </div>
+        <button
+          className="like-btn"
+          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', marginLeft: 'auto', color: likedByCurrentUser ? '#fbbf24' : '#a78bfa' }}
+          onClick={() => onLike(doubt)}
+          title={likedByCurrentUser ? 'Unlike' : 'Like'}
+        >
+          👍 {doubt.likes?.length || 0}
+        </button>
       </div>
       <div className="helper-bio">
         <p>{doubt.details}</p>
       </div>
-      <div className="doubt-actions-carousel">
-        <button className="solve-btn" onClick={() => onSolve(doubt)}>Solve</button>
-        <button className="call-btn" onClick={() => onCall(doubt)}>Call</button>
-        <button className="video-btn" onClick={() => onVideoCall(doubt)}>Video Call</button>
+      <div className="doubt-actions-carousel action-btn-row">
+        <button className="call-btn small-action-btn" onClick={() => onCall(doubt)}>📞</button>
+        {!isAsker && <button className="chat-btn small-action-btn" onClick={() => onChat(doubt)}>💬</button>}
+        {showMarkSolved && <button className="solve-btn small-action-btn" onClick={() => onMarkSolved(doubt)}>✔️</button>}
       </div>
     </div>
   );
@@ -46,13 +54,49 @@ export default function Doubts({ currentUser, onLogout }){
 
     // Call/Video Call handlers
     const handleCall = (doubt) => {
-      alert(`Calling the asker of: ${doubt.question}`);
+      alert(`Initiating call to the asker of: ${doubt.question}`);
     };
     const handleVideoCall = (doubt) => {
       alert(`Starting video call for: ${doubt.question}`);
     };
-    const handleSolve = (doubt) => {
-      alert(`You chose to solve: ${doubt.question}`);
+    const navigate = useNavigate();
+    const handleChat = (doubt) => {
+      // Always open chat with the asker
+      let askerId = null;
+      if (typeof doubt.user === 'object') {
+        askerId = doubt.user._id;
+      } else {
+        askerId = doubt.userId || doubt.user;
+      }
+      if (askerId && currentUser && askerId !== currentUser._id) {
+        navigate('/chat', { state: { userId: askerId } });
+      }
+    };
+    const handleSolve = async (doubt) => {
+      try {
+        // Mark the doubt as solved in the backend
+        const token = localStorage.getItem('token');
+        await axios.put(`http://localhost:5000/api/doubts/${doubt.id}/solve`, {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        // Remove the solved doubt from the list
+        setDoubts(prev => prev.filter(d => (d._id || d.id) !== doubt.id));
+        // Optionally, increment the solver's count (fetch profile or update state)
+      } catch (error) {
+        alert('Failed to mark as solved.');
+      }
+    };
+    const handleLike = async (doubt) => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.post(`http://localhost:5000/api/doubts/${doubt.id}/like`, {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        // Update the local state with the new like count
+        setDoubts(prev => prev.map(d => (d._id || d.id) === doubt.id ? { ...d, likes: response.data.doubt.likes } : d));
+      } catch (error) {
+        alert('Failed to like/unlike doubt.');
+      }
     };
 
     useEffect(() => {
@@ -88,11 +132,11 @@ export default function Doubts({ currentUser, onLogout }){
             const response = await axios.post('http://localhost:5000/api/doubts', newDoubt, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            
+            console.log('Doubt posted:', response.data);
             setDoubts(prevDoubts => [response.data.doubt, ...prevDoubts]);
             setShowAskDoubt(false);
         } catch (error) {
-            console.error('Error creating doubt:', error);
+            console.error('Error creating doubt:', error, error.response?.data);
             setError('Failed to create doubt');
         }
     };
@@ -118,6 +162,21 @@ export default function Doubts({ currentUser, onLogout }){
       }))
       .filter(d => d.question && typeof d.question === 'string');
     console.log('mappedDoubts:', mappedDoubts);
+
+    // Sort mappedDoubts by like count descending
+    const sortedDoubts = [...mappedDoubts].sort((a, b) => (b.likes?.length || 0) - (a.likes?.length || 0));
+
+    const handleMarkSolved = async (doubt) => {
+      try {
+        const token = localStorage.getItem('token');
+        await axios.put(`http://localhost:5000/api/doubts/${doubt.id}/solve`, {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setDoubts(prev => prev.filter(d => (d._id || d.id) !== doubt.id));
+      } catch (error) {
+        alert('Failed to mark as solved.');
+      }
+    };
 
     return(
         <div className="doubts-page-container">
@@ -172,13 +231,19 @@ export default function Doubts({ currentUser, onLogout }){
                       )}
                       <div className="carousel-container">
                         <div className="carousel-track" style={{ transform: `translateX(-${carouselIndex * 350}px)` }}>
-                          {mappedDoubts.map((doubt, idx) => (
+                          {sortedDoubts.map((doubt, idx) => (
                             <DoubtCard
                               key={doubt.id || idx}
                               doubt={doubt}
                               onSolve={handleSolve}
                               onCall={handleCall}
                               onVideoCall={handleVideoCall}
+                              onChat={handleChat}
+                              onLike={handleLike}
+                              likedByCurrentUser={Array.isArray(doubt.likes) && currentUser && doubt.likes.some(id => id === currentUser._id)}
+                              showMarkSolved={currentUser && (typeof doubt.user === 'object' ? doubt.user.username : doubt.user) === currentUser.username}
+                              onMarkSolved={handleMarkSolved}
+                              isAsker={currentUser && (typeof doubt.user === 'object' ? doubt.user._id : doubt.user) === currentUser._id}
                             />
                           ))}
                         </div>

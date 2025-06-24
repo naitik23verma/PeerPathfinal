@@ -250,17 +250,9 @@ const Location = ({ currentUser, onLogout }) => {
   };
 
   const shareLocation = (ride) => {
-    if (navigator.share) {
-      navigator.share({
-        title: 'Join my ride!',
-        text: `I'm going from ${ride.currentLocation.address} to ${ride.destination.address}`,
-        url: window.location.href
-      });
-    } else {
-      // Fallback: copy to clipboard
-      navigator.clipboard.writeText(`${ride.currentLocation.address} to ${ride.destination.address}`);
-      alert('Location copied to clipboard!');
-    }
+    // Only copy to clipboard, do not use navigator.share
+    navigator.clipboard.writeText(`${ride.currentLocation.address} to ${ride.destination.address}`);
+    alert('Location copied to clipboard!');
   };
 
   // Geocode destination address to coordinates
@@ -339,7 +331,8 @@ const Location = ({ currentUser, onLogout }) => {
     return rides.map((ride) => (
       <div
         key={ride._id}
-        className="ride-card"
+        className="doubt-card ride-card-carousel location-ride-card"
+        style={{ marginBottom: '2rem' }}
       >
         <div className="ride-header">
           <div className="user-info">
@@ -362,6 +355,16 @@ const Location = ({ currentUser, onLogout }) => {
           </div>
           <div className="passenger-info">
             <p><strong>Passengers:</strong> {ride.currentPassengers}/{ride.maxPassengers}</p>
+            {ride.passengers && ride.passengers.length > 0 && (
+              <div className="passenger-list">
+                {ride.passengers.map((p) => (
+                  <div className="passenger-list-item" key={p.user._id}>
+                    <img src={p.user.profilePhoto || '/peerpath.png'} alt={p.user.username} />
+                    <span>{p.user.username}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           {ride.notice && (
             <div className="notice">
@@ -385,7 +388,7 @@ const Location = ({ currentUser, onLogout }) => {
               <button className="contact-btn" onClick={() => handleCommunication(ride)}>Contact</button>
             </>
           )}
-          <button className="share-btn" onClick={() => shareLocation(ride)}>Share</button>
+          <button className="share-btn" onClick={() => { handleJoinRide(ride._id); shareLocation(ride); }}>Share</button>
         </div>
       </div>
     ));
@@ -596,20 +599,8 @@ const Location = ({ currentUser, onLogout }) => {
 
         {/* Rides Section */}
         {!mapView && (
-          <div className="rides-section">
-            <h2>Available Rides</h2>
-            {loading ? (
-              <div className="loading-message">Loading rides...</div>
-            ) : (
-              <div className="rides-grid">
-                {rides.length > 0 ? renderRideCards() : (
-                  <div className="no-rides">
-                    <p>No rides available at the moment.</p>
-                    <p>Why not create one?</p>
-                  </div>
-                )}
-              </div>
-            )}
+          <div className="rides-grid">
+            {renderRideCards()}
           </div>
         )}
       </div>

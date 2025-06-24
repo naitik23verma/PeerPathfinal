@@ -167,7 +167,12 @@ router.post('/:id/join', authenticateToken, async (req, res) => {
       return res.status(400).json({ message: 'This ride share is no longer active' });
     }
 
-    await location.addPassenger(req.user.userId);
+    try {
+      await location.addPassenger(req.user.userId);
+    } catch (err) {
+      // Return a 400 error for known issues (like already a passenger or ride full)
+      return res.status(400).json({ message: err.message });
+    }
 
     // Populate user info
     await location.populate('user', 'username profilePhoto');
