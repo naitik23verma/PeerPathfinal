@@ -59,8 +59,9 @@ router.get('/top-helpers', async (req, res) => {
     const topHelpers = await User.find()
       .sort({ doubtsSolved: -1 })
       .limit(10)
-      .select('username profilePhoto doubtsSolved expertise');
+      .select('username profilePhoto doubtsSolved expertise bio skills year');
 
+    console.log('Top helpers found:', topHelpers.length);
     res.json(topHelpers);
   } catch (error) {
     console.error('Get top helpers error:', error);
