@@ -230,10 +230,27 @@ router.get('/user/:userId', async (req, res) => {
 router.get('/weekly/:userId', authenticateToken, async (req, res) => {
   try {
     const { userId } = req.params;
+    console.log('Authenticated user ID:', req.user.userId);
+    console.log('Requested user ID:', userId);
+    
+    // Check if the authenticated user is requesting their own data
+    if (req.user.userId !== userId) {
+      console.log('User trying to access another user\'s data');
+      return res.status(403).json({ message: 'You can only view your own weekly doubts' });
+    }
+    
     const today = new Date();
-    today.setHours(0,0,0,0);
+    today.setHours(23, 59, 59, 999); // End of today
     const weekAgo = new Date(today);
     weekAgo.setDate(today.getDate() - 6); // 7 days including today
+    weekAgo.setHours(0, 0, 0, 0); // Start of 7 days ago
+
+    console.log('Fetching weekly doubts for user:', userId);
+    console.log('Date range:', { weekAgo, today });
+
+    // First, let's check if the user has any doubts at all
+    const totalDoubts = await Doubt.countDocuments({ user: new mongoose.Types.ObjectId(userId) });
+    console.log('Total doubts for user:', totalDoubts);
 
     // Aggregate doubts by day for the past week
     const result = await Doubt.aggregate([
@@ -256,6 +273,8 @@ router.get('/weekly/:userId', authenticateToken, async (req, res) => {
       }
     ]);
 
+    console.log('Aggregation result:', result);
+
     // Fill in days with 0 if no doubts were asked
     const data = [];
     for (let i = 0; i < 7; i++) {
@@ -263,9 +282,13 @@ router.get('/weekly/:userId', authenticateToken, async (req, res) => {
       date.setDate(weekAgo.getDate() + i);
       const dateString = date.toISOString().slice(0, 10);
       const found = result.find(r => r._id === dateString);
-      data.push({ date: dateString, count: found ? found.count : 0 });
+      data.push({ 
+        date: dateString, 
+        count: found ? found.count : 0 
+      });
     }
 
+    console.log('Final weekly data:', data);
     res.json(data);
   } catch (error) {
     console.error('Error fetching weekly doubts:', error);

@@ -29,14 +29,14 @@ const server = createServer(app);
 // Configure Socket.IO with CORS settings from env
 const io = new Server(server, {
   cors: {
-    origin: process.env.SOCKET_CORS_ORIGIN || "http://localhost:5173",
+    origin: process.env.SOCKET_CORS_ORIGIN ? process.env.SOCKET_CORS_ORIGIN.split(',') : ["http://localhost:5173", "http://localhost:5174"],
     methods: ["GET", "POST"]
   }
 });
 
 // Middleware
 const corsOptions = {
-  origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ["http://localhost:5173"],
+  origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ["http://localhost:5173", "http://localhost:5174"],
   credentials: true,
   optionsSuccessStatus: 200
 };
@@ -46,8 +46,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Configure static file serving
-const uploadPath = process.env.UPLOAD_PATH || './server/uploads';
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const mongoUri = process.env.MONGODB_URI;
 if (!mongoUri) {

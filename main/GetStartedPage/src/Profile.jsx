@@ -48,6 +48,9 @@ const Profile = ({ onLogout }) => {
         headers: { Authorization: `Bearer ${token}` }
       });
       
+      console.log('Fetched user profile data:', response.data);
+      console.log('Profile photo from server:', response.data.profilePhoto);
+      
       setProfileData({
         username: response.data.username || '',
         bio: response.data.bio || '',
@@ -56,7 +59,7 @@ const Profile = ({ onLogout }) => {
         skills: response.data.skills || [],
         doubtsSolved: response.data.doubtsSolved || 0,
         doubtsAsked: response.data.doubtsAsked || 0,
-        joinDate: new Date(response.data.joinDate).toLocaleDateString(),
+        joinDate: response.data.joinDate || new Date().toISOString(),
         profilePhoto: response.data.profilePhoto || ''
       });
     } catch (error) {
@@ -66,13 +69,23 @@ const Profile = ({ onLogout }) => {
 
   const fetchWeeklyDoubts = async (userId, token) => {
     try {
+      console.log('Fetching weekly doubts for user:', userId);
       const response = await axios.get(`http://localhost:5000/api/doubts/weekly/${userId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      console.log('Weekly doubts data:', response.data);
-      setWeeklyDoubts(response.data);
+      console.log('Weekly doubts response:', response.data);
+      
+      if (response.data && Array.isArray(response.data)) {
+        setWeeklyDoubts(response.data);
+        console.log('Weekly doubts set successfully:', response.data);
+      } else {
+        console.error('Invalid weekly doubts data format:', response.data);
+        setWeeklyDoubts([]);
+      }
     } catch (error) {
       console.error('Error fetching weekly doubts:', error);
+      console.error('Error response:', error.response?.data);
+      setWeeklyDoubts([]);
     }
   };
 
@@ -144,9 +157,18 @@ const Profile = ({ onLogout }) => {
   };
 
   const stats = [
-    { label: 'Doubts Solved', value: profileData.doubtsSolved },
-    { label: 'Doubts Asked', value: profileData.doubtsAsked },
-    { label: 'Days Active', value: Math.ceil((Date.now() - new Date(profileData.joinDate)) / (1000 * 60 * 60 * 24)) }
+    { label: 'Doubts Solved', value: profileData.doubtsSolved || 0 },
+    { label: 'Doubts Asked', value: profileData.doubtsAsked || 0 },
+    { label: 'Days Active', value: (() => {
+      try {
+        const joinDate = new Date(profileData.joinDate);
+        if (isNaN(joinDate.getTime())) return 0;
+        const daysDiff = Math.ceil((Date.now() - joinDate.getTime()) / (1000 * 60 * 60 * 24));
+        return daysDiff > 0 ? daysDiff : 0;
+      } catch (error) {
+        return 0;
+      }
+    })() }
   ];
 
   const handleProfilePhotoChange = async (e) => {
@@ -164,8 +186,17 @@ const Profile = ({ onLogout }) => {
         },
       });
       setProfileData((prev) => ({ ...prev, profilePhoto: response.data.profilePhoto }));
+      // Update the user in localStorage as well
+      const currentUserData = JSON.parse(localStorage.getItem('user'));
+      const updatedUserData = { ...currentUserData, profilePhoto: response.data.profilePhoto };
+      localStorage.setItem('user', JSON.stringify(updatedUserData));
+      // Refresh the profile data to ensure everything is up to date
+      if (currentUser) {
+        fetchUserProfile(currentUser._id);
+      }
       alert('Profile photo updated!');
     } catch (error) {
+      console.error('Error uploading profile photo:', error);
       alert('Failed to upload profile photo.');
     } finally {
       setUploading(false);
@@ -194,7 +225,11 @@ const Profile = ({ onLogout }) => {
           <div className="profile-avatar">
             {profileData.profilePhoto ? (
               <>
-                <img src={profileData.profilePhoto} alt="Profile" className="avatar-image" />
+                <img 
+                  src={`http://localhost:5000${profileData.profilePhoto}`} 
+                  alt="Profile" 
+                  className="avatar-image" 
+                />
                 <label className="camera-icon-overlay">
                   <FaCamera size={22} />
                   <input
@@ -356,18 +391,40 @@ const Profile = ({ onLogout }) => {
         )}
       </div>
 
-      {weeklyDoubts && weeklyDoubts.length > 0 && (
+      {weeklyDoubts && weeklyDoubts.length > 0 ? (
         <div className="profile-graph-section" style={{ width: '100%', maxWidth: 900, margin: '2rem auto 0', background: 'rgba(255,255,255,0.04)', borderRadius: 16, padding: '2rem 1rem' }}>
           <h2 style={{ textAlign: 'center' }}>Doubts Asked This Week</h2>
+          <div style={{ textAlign: 'center', marginBottom: '1rem', color: '#a78bfa' }}>
+            Total doubts this week: {weeklyDoubts.reduce((sum, day) => sum + (day.count || 0), 0)}
+          </div>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={weeklyDoubts} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" tickFormatter={date => date.slice(5)} />
+              <XAxis 
+                dataKey="date" 
+                tickFormatter={date => {
+                  const d = new Date(date);
+                  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                }} 
+              />
               <YAxis allowDecimals={false} />
-              <Tooltip />
+              <Tooltip 
+                labelFormatter={(date) => {
+                  const d = new Date(date);
+                  return d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                }}
+                formatter={(value) => [value, 'Doubts']}
+              />
               <Bar dataKey="count" fill="#8884d8" />
             </BarChart>
           </ResponsiveContainer>
+        </div>
+      ) : (
+        <div className="profile-graph-section" style={{ width: '100%', maxWidth: 900, margin: '2rem auto 0', background: 'rgba(255,255,255,0.04)', borderRadius: 16, padding: '2rem 1rem', textAlign: 'center' }}>
+          <h2 style={{ textAlign: 'center' }}>Doubts Asked This Week</h2>
+          <p style={{ color: '#a78bfa', fontSize: '1.1rem' }}>
+            No doubts asked this week. Start asking questions to see your activity here!
+          </p>
         </div>
       )}
     </div>

@@ -139,32 +139,27 @@ router.post('/upload-profile-photo', authenticateToken, upload.single('profilePh
     console.log('User ID from token:', req.user.userId);
     console.log('File received:', req.file);
     
-    const user = await User.findById(req.user.userId);
-    console.log('User found:', user ? 'Yes' : 'No');
-    if (user) {
-      console.log('User email:', user.email);
-      console.log('User has email:', !!user.email);
-    }
-    
-    if (!user) {
-      console.log('User not found error');
-      return res.status(404).json({ message: 'User not found' });
-    }
     if (!req.file) {
       console.log('No file uploaded error');
       return res.status(400).json({ message: 'No file uploaded' });
     }
-    // Defensive: check for required fields
-    if (!user.email) {
-      console.log('User email missing error');
-      return res.status(400).json({ message: 'User email is missing. Cannot update profile photo.' });
-    }
     
     console.log('Updating profile photo to:', `/uploads/${req.file.filename}`);
-    user.profilePhoto = `/uploads/${req.file.filename}`;
-    await user.save();
+    
+    // Use findByIdAndUpdate to update only the profilePhoto field
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user.userId,
+      { profilePhoto: `/uploads/${req.file.filename}` },
+      { new: true, runValidators: false }
+    );
+    
+    if (!updatedUser) {
+      console.log('User not found error');
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
     console.log('Profile photo updated successfully');
-    res.json({ profilePhoto: user.profilePhoto });
+    res.json({ profilePhoto: updatedUser.profilePhoto });
   } catch (error) {
     console.error('Profile photo upload error:', error);
     console.error('Error stack:', error.stack);
