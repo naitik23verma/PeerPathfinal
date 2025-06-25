@@ -370,17 +370,18 @@ const Resources = ({ currentUser, onLogout }) => {
 
   return (
     <div className="resources-container">
-      <nav className="resources-nav">
+      <nav className="collaboration-nav">
         <div className="nav-logo">
           <img src="/peerpath.png" alt="PeerPath" />
           <h1>PeerPath</h1>
         </div>
         <div className="nav-links">
           <Link to="/dashboard">Dashboard</Link>
-          <Link to="/mentorship">Mentorship</Link>
+          <Link to="/doubts">Doubts</Link>
           <Link to="/collaboration">Collaboration</Link>
           <Link to="/resources" className="active">Resources</Link>
           <Link to="/chat">Chat</Link>
+          <Link to="/location">Location</Link>
           <Link to="/profile">Profile</Link>
           <button onClick={onLogout} className="logout-btn">Logout</button>
         </div>

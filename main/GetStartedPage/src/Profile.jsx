@@ -205,16 +205,18 @@ const Profile = ({ onLogout }) => {
 
   return (
     <div className="profile-container">
-      <nav className="profile-nav">
+      <nav className="collaboration-nav">
         <div className="nav-logo">
           <img src="/peerpath.png" alt="PeerPath" />
           <h1>PeerPath</h1>
         </div>
         <div className="nav-links">
           <Link to="/dashboard">Dashboard</Link>
+          <Link to="/doubts">Doubts</Link>
           <Link to="/collaboration">Collaboration</Link>
           <Link to="/resources">Resources</Link>
           <Link to="/chat">Chat</Link>
+          <Link to="/location">Location</Link>
           <Link to="/profile" className="active">Profile</Link>
           <button onClick={handleLogout} className="logout-btn">Logout</button>
         </div>

@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 import './Collaboration.css';
 
 const projects = [
@@ -63,10 +64,31 @@ const Collaboration = ({ currentUser, onLogout }) => {
     description: '',
     skills: '',
     maxMembers: 5,
+    category: '',
     difficulty: 'Intermediate',
     duration: '3 months',
     mentor: currentUser?.name || 'You'
   });
+
+  // Fetch user's created projects from backend
+  useEffect(() => {
+    const fetchUserProjects = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get('http://localhost:5000/api/collaboration', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        // Only show projects where the creator is the current user
+        const myProjects = response.data.collaborations.filter(
+          (proj) => proj.creator && (proj.creator._id === currentUser?._id)
+        );
+        setUserProjects(myProjects);
+      } catch (error) {
+        console.error('Error fetching user projects:', error);
+      }
+    };
+    if (currentUser?._id) fetchUserProjects();
+  }, [currentUser]);
 
   const handleJoinProject = (project) => {
     setSelectedProject(project);
@@ -89,30 +111,40 @@ const Collaboration = ({ currentUser, onLogout }) => {
     setShowCreateForm(true);
   };
 
-  const handleFormSubmit = (e) => {
+  // Persist project to backend
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
-    
-    const newProject = {
-      id: Date.now(),
-      ...formData,
-      skills: formData.skills.split(',').map(skill => skill.trim()),
-      members: 1,
-      status: "Active",
-      createdBy: currentUser?.name || 'You'
-    };
-
-    setUserProjects([...userProjects, newProject]);
-    setFormData({
-      title: '',
-      description: '',
-      skills: '',
-      maxMembers: 5,
-      difficulty: 'Intermediate',
-      duration: '3 months',
-      mentor: currentUser?.name || 'You'
-    });
-    setShowCreateForm(false);
-    alert('Project created successfully!');
+    try {
+      const token = localStorage.getItem('token');
+      const payload = {
+        title: formData.title,
+        description: formData.description,
+        category: formData.category || 'General',
+        skills: formData.skills,
+        maxMembers: formData.maxMembers
+      };
+      const response = await axios.post('http://localhost:5000/api/collaboration', payload, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.data && response.data.collaboration) {
+        setUserProjects((prev) => [response.data.collaboration, ...prev]);
+        setFormData({
+          title: '',
+          description: '',
+          skills: '',
+          maxMembers: 5,
+          category: '',
+          difficulty: 'Intermediate',
+          duration: '3 months',
+          mentor: currentUser?.name || 'You'
+        });
+        setShowCreateForm(false);
+        alert('Project created successfully!');
+      }
+    } catch (error) {
+      alert('Failed to create project.');
+      console.error('Error creating project:', error);
+    }
   };
 
   const handleInputChange = (e) => {
@@ -154,31 +186,31 @@ const Collaboration = ({ currentUser, onLogout }) => {
             <h2>🎯 Your Projects</h2>
             <div className="projects-grid">
               {userProjects.map((project) => (
-                <div key={project.id} className="project-card user-project">
+                <div key={project._id || project.id} className="project-card user-project">
                   <div className="project-header">
                     <h3>{project.title}</h3>
-                    <span className={`difficulty ${project.difficulty.toLowerCase()}`}>
-                      {project.difficulty}
+                    <span className={`difficulty ${(project.difficulty || 'Intermediate').toLowerCase()}`}>
+                      {project.difficulty || 'Intermediate'}
                     </span>
                   </div>
                   
                   <p className="project-description">{project.description}</p>
                   
                   <div className="project-skills">
-                    {project.skills.map((skill, index) => (
+                    {(project.skills || []).map((skill, index) => (
                       <span key={index} className="skill-tag">{skill}</span>
                     ))}
                   </div>
                   
                   <div className="project-meta">
                     <div className="meta-item">
-                      <span>👥 {project.members}/{project.maxMembers} Members</span>
+                      <span>👥 {project.members?.length || 1}/{project.maxMembers || 5} Members</span>
                     </div>
                     <div className="meta-item">
-                      <span>⏱️ {project.duration}</span>
+                      <span>⏱️ {project.duration || '3 months'}</span>
                     </div>
                     <div className="meta-item">
-                      <span>👨‍🏫 {project.mentor}</span>
+                      <span>👨‍🏫 {project.mentor || (project.creator?.username || 'N/A')}</span>
                     </div>
                   </div>
                   
