@@ -32,6 +32,7 @@ const doubtSchema = new mongoose.Schema({
       ref: 'User'
     },
     content: String,
+    image: String,
     isAccepted: {
       type: Boolean,
       default: false

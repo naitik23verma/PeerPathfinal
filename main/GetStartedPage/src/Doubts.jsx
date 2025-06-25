@@ -1,15 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import Modal from 'react-modal';
 import "./Doubts.css";
 import { TrendingDoubts } from './TrendingDoubts.jsx';
 import { TopHelpers } from './TopHelpers.jsx';
 import { AskDoubt } from './AskDoubt.jsx';
 
 // DoubtCard styled like Top Helpers
-function DoubtCard({ doubt, onSolve, onCall, onVideoCall, onChat, onLike, likedByCurrentUser, showMarkSolved, onMarkSolved, isAsker }) {
+function DoubtCard({ doubt, onSolve, onCall, onVideoCall, onChat, onLike, likedByCurrentUser, showMarkSolved, onMarkSolved, isAsker, onImageSolution, onImageClick }) {
+  const fileInputRef = useRef();
   return (
-    <div className="helper-card doubt-card-carousel">
+    <div className={`doubt-card${Array.isArray(doubt.solutions) && doubt.solutions.length > 0 ? ' has-solutions' : ''}${doubt.isResolved ? ' resolved' : ''}`}>
       <div className="helper-header">
         <div className="helper-avatar">
           <span className="avatar-emoji">❓</span>
@@ -18,24 +20,98 @@ function DoubtCard({ doubt, onSolve, onCall, onVideoCall, onChat, onLike, likedB
           <h3 className="helper-name">{doubt.question}</h3>
           <div className="helper-rating">
             <span className="stars">Asked by: {typeof doubt.user === 'object' ? doubt.user.username : doubt.user}</span>
+            {doubt.isResolved && <span className="resolved-badge" style={{ marginLeft: 8 }}>✅ Solved</span>}
           </div>
         </div>
-        <button
-          className="like-btn"
-          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', marginLeft: 'auto', color: likedByCurrentUser ? '#fbbf24' : '#a78bfa' }}
-          onClick={() => onLike(doubt)}
-          title={likedByCurrentUser ? 'Unlike' : 'Like'}
-        >
-          👍 {doubt.likes?.length || 0}
-        </button>
       </div>
       <div className="helper-bio">
         <p>{doubt.details}</p>
       </div>
+      {/* Solutions list visible to all */}
+      {Array.isArray(doubt.solutions) && doubt.solutions.length > 0 && (
+        <div className="solutions-section">
+          <div className="solutions-header">Solutions ({doubt.solutions.length})</div>
+          {doubt.solutions.map((sol) => (
+            <div
+              key={sol._id}
+              className="solution-item"
+              onClick={() => {
+                console.log('Solution clicked:', sol);
+                console.log('Solution keys:', Object.keys(sol));
+                console.log('Solution image property:', sol.image);
+                console.log('Solution solutionImage property:', sol.solutionImage);
+                
+                // Check for image in different possible properties
+                const hasImage = sol.image || sol.solutionImage || sol.imageUrl;
+                
+                if (hasImage) {
+                  console.log('Image found, opening modal');
+                  onImageClick(sol);
+                } else {
+                  // For text-only solutions, maybe show a different modal or just log
+                  console.log('Text solution clicked:', sol.content);
+                  alert('This is a text-only solution. No image to display.');
+                }
+              }}
+              title={sol.image ? 'Click to view image' : 'View solution'}
+            >
+              {sol.user?.profilePhoto && (
+                <img 
+                  src={`http://localhost:5000${sol.user.profilePhoto}`} 
+                  alt={sol.user?.username} 
+                  className="solution-avatar"
+                />
+              )}
+              <div className="solution-content">
+                <div className="solution-username">{sol.user?.username || 'Unknown'}</div>
+                {sol.image && (
+                  <img 
+                    src={`http://localhost:5000${sol.image}`} 
+                    alt="solution" 
+                    className="solution-image"
+                  />
+                )}
+                {sol.content && <div className="solution-text">{sol.content}</div>}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
       <div className="doubt-actions-carousel action-btn-row">
         <button className="call-btn small-action-btn" onClick={() => onCall(doubt)}>📞</button>
         {!isAsker && <button className="chat-btn small-action-btn" onClick={() => onChat(doubt)}>💬</button>}
-        {showMarkSolved && <button className="solve-btn small-action-btn" onClick={() => onMarkSolved(doubt)}>✔️</button>}
+        <button
+          className="gallery-btn small-action-btn"
+          title="Post Image Solution"
+          onClick={() => fileInputRef.current && fileInputRef.current.click()}
+        >
+          <span role="img" aria-label="gallery">🖼️</span>
+        </button>
+        <button
+          className="like-btn small-action-btn"
+          style={{ fontSize: '1.2rem', color: likedByCurrentUser ? '#fbbf24' : '#a78bfa' }}
+          onClick={() => onLike(doubt)}
+          title={likedByCurrentUser ? 'Unlike' : 'Like'}
+        >
+          👍 {Array.isArray(doubt.likes) ? doubt.likes.length : 0}
+        </button>
+        <input
+          type="file"
+          accept="image/*"
+          style={{ display: 'none' }}
+          ref={fileInputRef}
+          onChange={e => {
+            if (e.target.files && e.target.files[0]) {
+              onImageSolution(doubt, e.target.files[0]);
+              e.target.value = '';
+            }
+          }}
+        />
+        {showMarkSolved && !doubt.isResolved && (
+          <button className="solve-btn" onClick={() => onMarkSolved(doubt)}>
+            ✔️ Mark as Solved
+          </button>
+        )}
       </div>
     </div>
   );
@@ -46,6 +122,12 @@ export default function Doubts({ currentUser, onLogout }){
     const [topHelpers, setTopHelpers] = useState([]);
     const [showAskDoubt, setShowAskDoubt] = useState(false);
     const [error, setError] = useState('');
+    const [showSolutionModal, setShowSolutionModal] = useState(false);
+    const [selectedDoubt, setSelectedDoubt] = useState(null);
+    const [solutions, setSolutions] = useState([]);
+    const [accepting, setAccepting] = useState(false);
+    const [toast, setToast] = useState({ message: '', type: '' });
+    const [imageModal, setImageModal] = useState({ open: false, image: '', solver: '', profilePhoto: '' });
 
     // Carousel for doubts
     const [carouselIndex, setCarouselIndex] = useState(0);
@@ -61,16 +143,8 @@ export default function Doubts({ currentUser, onLogout }){
     };
     const navigate = useNavigate();
     const handleChat = (doubt) => {
-      // Always open chat with the asker
-      let askerId = null;
-      if (typeof doubt.user === 'object') {
-        askerId = doubt.user._id;
-      } else {
-        askerId = doubt.userId || doubt.user;
-      }
-      if (askerId && currentUser && askerId !== currentUser._id) {
-        navigate('/chat', { state: { userId: askerId } });
-      }
+      // Open group chat for all users who liked the doubt
+      navigate(`/chat/doubt_${doubt.id || doubt._id}`);
     };
     const handleSolve = async (doubt) => {
       try {
@@ -151,14 +225,15 @@ export default function Doubts({ currentUser, onLogout }){
       .map(doubt => ({
         id: doubt._id || doubt.id,
         question: doubt.title || doubt.question || '',
-        user: typeof doubt.user === 'object' ? (doubt.user.username || doubt.user.name || 'Unknown') : (doubt.user || 'Unknown'),
+        user: doubt.user,
         details: doubt.content || doubt.details || '',
         time: doubt.time || doubt.createdAt || '',
         replies: doubt.replies || (doubt.answers ? doubt.answers.length : 0) || 0,
         likes: doubt.likes || 0,
         category: doubt.category || 'general',
         tags: Array.isArray(doubt.tags) ? doubt.tags.map(t => String(t)) : [],
-        isResolved: typeof doubt.isResolved === 'boolean' ? doubt.isResolved : false
+        isResolved: typeof doubt.isResolved === 'boolean' ? doubt.isResolved : false,
+        solutions: Array.isArray(doubt.solutions) ? doubt.solutions.map(sol => ({ ...sol })) : []
       }))
       .filter(d => d.question && typeof d.question === 'string');
     console.log('mappedDoubts:', mappedDoubts);
@@ -166,15 +241,80 @@ export default function Doubts({ currentUser, onLogout }){
     // Sort mappedDoubts by like count descending
     const sortedDoubts = [...mappedDoubts].sort((a, b) => (b.likes?.length || 0) - (a.likes?.length || 0));
 
-    const handleMarkSolved = async (doubt) => {
+    // Fetch solutions for a doubt
+    const fetchSolutions = async (doubtId) => {
       try {
         const token = localStorage.getItem('token');
-        await axios.put(`http://localhost:5000/api/doubts/${doubt.id}/solve`, {}, {
+        const response = await axios.get(`http://localhost:5000/api/doubts/${doubtId}`);
+        setSolutions(response.data.solutions || []);
+      } catch (error) {
+        setSolutions([]);
+      }
+    };
+
+    // Open modal to select solution
+    const handleOpenSolutionModal = async (doubt) => {
+      setSelectedDoubt(doubt);
+      await fetchSolutions(doubt.id);
+      setShowSolutionModal(true);
+    };
+
+    // Toast helper
+    const showToast = (message, type = 'success') => {
+      setToast({ message, type });
+      setTimeout(() => setToast({ message: '', type: '' }), 2500);
+    };
+
+    // Accept a solution
+    const handleAcceptSolution = async (solutionId) => {
+      if (!selectedDoubt) return;
+      setAccepting(true);
+      try {
+        const token = localStorage.getItem('token');
+        await axios.put(`http://localhost:5000/api/doubts/${selectedDoubt.id}/solutions/${solutionId}/accept`, {}, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        setDoubts(prev => prev.filter(d => (d._id || d.id) !== doubt.id));
+        setShowSolutionModal(false);
+        setAccepting(false);
+        setDoubts(prev => prev.filter(d => (d._id || d.id) !== selectedDoubt.id));
+        showToast('Doubt marked as solved! Solver credited.', 'success');
+        // Download the solution image if present
+        const acceptedSolution = (selectedDoubt.solutions || []).find(sol => (sol._id === solutionId || sol.id === solutionId) && sol.image);
+        if (acceptedSolution && acceptedSolution.image) {
+          const link = document.createElement('a');
+          link.href = `http://localhost:5000${acceptedSolution.image}`;
+          link.download = 'solution-image.jpg';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
       } catch (error) {
-        alert('Failed to mark as solved.');
+        setAccepting(false);
+        showToast('Failed to accept solution.', 'error');
+      }
+    };
+
+    // Image solution upload handler
+    const handleImageSolution = async (doubt, file) => {
+      if (!file) return;
+      try {
+        const token = localStorage.getItem('token');
+        const formData = new FormData();
+        formData.append('image', file);
+        await axios.post(`http://localhost:5000/api/doubts/${doubt.id}/solutions`, formData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+        await fetchDoubts();
+        showToast('Image solution posted!', 'success');
+        // If current user is the asker, open the solution modal for this doubt
+        if (currentUser && ((typeof doubt.user === 'object' ? doubt.user._id : doubt.user) === currentUser._id)) {
+          await handleOpenSolutionModal(doubt);
+        }
+      } catch (error) {
+        showToast('Failed to upload image solution.', 'error');
       }
     };
 
@@ -231,21 +371,51 @@ export default function Doubts({ currentUser, onLogout }){
                       )}
                       <div className="carousel-container">
                         <div className="carousel-track" style={{ transform: `translateX(-${carouselIndex * 350}px)` }}>
-                          {sortedDoubts.map((doubt, idx) => (
-                            <DoubtCard
-                              key={doubt.id || idx}
-                              doubt={doubt}
-                              onSolve={handleSolve}
-                              onCall={handleCall}
-                              onVideoCall={handleVideoCall}
-                              onChat={handleChat}
-                              onLike={handleLike}
-                              likedByCurrentUser={Array.isArray(doubt.likes) && currentUser && doubt.likes.some(id => id === currentUser._id)}
-                              showMarkSolved={currentUser && (typeof doubt.user === 'object' ? doubt.user.username : doubt.user) === currentUser.username}
-                              onMarkSolved={handleMarkSolved}
-                              isAsker={currentUser && (typeof doubt.user === 'object' ? doubt.user._id : doubt.user) === currentUser._id}
-                            />
-                          ))}
+                          {sortedDoubts.map((doubt, idx) => {
+                            // Debug logs
+                            console.log('Doubt:', doubt);
+                            console.log('Current user:', currentUser);
+                            const doubtUserId = typeof doubt.user === 'object' ? doubt.user._id : doubt.user;
+                            const currentUserId = currentUser && currentUser._id;
+                            console.log('doubt.user:', doubt.user, 'typeof:', typeof doubt.user);
+                            console.log('doubtUserId:', doubtUserId, 'currentUserId:', currentUserId);
+                            console.log('doubtUserId == currentUserId:', doubtUserId == currentUserId);
+                            console.log('doubtUserId === currentUserId:', doubtUserId === currentUserId);
+                            console.log('isAsker:', doubtUserId === currentUserId);
+                            console.log('showMarkSolved:', doubtUserId === currentUserId && !doubt.isResolved && (doubt.solutions && doubt.solutions.length > 0));
+                            return (
+                              <DoubtCard
+                                key={doubt.id || idx}
+                                doubt={doubt}
+                                onSolve={handleSolve}
+                                onCall={handleCall}
+                                onVideoCall={handleVideoCall}
+                                onChat={handleChat}
+                                onLike={handleLike}
+                                likedByCurrentUser={Array.isArray(doubt.likes) && currentUser && doubt.likes.some(id => id === currentUser._id)}
+                                showMarkSolved={doubtUserId === currentUserId && !doubt.isResolved && (doubt.solutions && doubt.solutions.length > 0)}
+                                onMarkSolved={() => handleOpenSolutionModal(doubt)}
+                                isAsker={doubtUserId === currentUserId}
+                                onImageSolution={handleImageSolution}
+                                onImageClick={(sol) => {
+                                  console.log('Image clicked:', sol);
+                                  console.log('Setting imageModal to:', { 
+                                    open: true, 
+                                    image: sol.image || sol.solutionImage || sol.imageUrl, 
+                                    solver: sol.user?.username || 'Unknown', 
+                                    profilePhoto: sol.user?.profilePhoto 
+                                  });
+                                  alert('Image clicked! Modal should open.'); // Temporary debug
+                                  setImageModal({ 
+                                    open: true, 
+                                    image: sol.image || sol.solutionImage || sol.imageUrl, 
+                                    solver: sol.user?.username || 'Unknown', 
+                                    profilePhoto: sol.user?.profilePhoto 
+                                  });
+                                }}
+                              />
+                            );
+                          })}
                         </div>
                       </div>
                       {carouselIndex < Math.max(0, mappedDoubts.length - 3) && (
@@ -292,6 +462,110 @@ export default function Doubts({ currentUser, onLogout }){
                     </div>
                 </div>
             </footer>
+
+            {/* Solution Accept Modal */}
+            <Modal
+              isOpen={showSolutionModal}
+              onRequestClose={() => setShowSolutionModal(false)}
+              contentLabel="Select Solution to Accept"
+              className="group-modal"
+              overlayClassName="group-modal-overlay"
+              ariaHideApp={false}
+            >
+              <h2>Select Solution to Accept</h2>
+              {solutions.length === 0 ? (
+                <div style={{ color: '#a78bfa', textAlign: 'center', margin: '1.5rem 0' }}>No solutions yet.</div>
+              ) : (
+                <div className="group-members-list" style={{ flexDirection: 'column', gap: '1.2rem' }}>
+                  {solutions.map((sol) => (
+                    <div key={sol._id} style={{ background: '#1a0a52', borderRadius: 12, padding: '1rem', border: '1.5px solid #a78bfa', marginBottom: 8 }}>
+                      <div style={{ fontWeight: 600, color: '#c4b5fd', marginBottom: 6 }}>By: {sol.user?.username || 'Unknown'}</div>
+                      {sol.image && (
+                        <img src={`http://localhost:5000${sol.image}`} alt="solution" style={{ maxWidth: '100%', maxHeight: 200, borderRadius: 8, marginBottom: 8 }} />
+                      )}
+                      <div style={{ color: '#a78bfa', marginBottom: 8 }}>{sol.content}</div>
+                      <button
+                        className="create-group-btn"
+                        style={{ margin: 0, minWidth: 120 }}
+                        disabled={accepting}
+                        onClick={() => handleAcceptSolution(sol._id)}
+                      >
+                        {accepting ? 'Accepting...' : 'Accept This Solution'}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <button className="close-modal-btn" onClick={() => setShowSolutionModal(false)}>Cancel</button>
+            </Modal>
+
+            {/* Toast notification */}
+            {toast.message && (
+              <div style={{
+                position: 'fixed',
+                top: 20,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                background: toast.type === 'success' ? 'linear-gradient(90deg,#10b981,#059669)' : 'linear-gradient(90deg,#ef4444,#dc2626)',
+                color: '#fff',
+                padding: '1rem 2rem',
+                borderRadius: 12,
+                fontWeight: 600,
+                zIndex: 9999,
+                boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+                fontSize: '1.1rem',
+                letterSpacing: 0.5
+              }}>
+                {toast.message}
+              </div>
+            )}
+
+            {/* Image Solution Modal */}
+            {imageModal.open && (
+              <div style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100vw',
+                height: '100vh',
+                background: 'rgba(0,0,0,0.7)',
+                zIndex: 9999,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }} onClick={() => {
+                console.log('Modal background clicked, closing modal');
+                setImageModal({ open: false, image: '', solver: '', profilePhoto: '' });
+              }}>
+                <div style={{ background: '#1a0a52', borderRadius: 16, padding: 24, position: 'relative', minWidth: 320, maxWidth: '90vw', maxHeight: '90vh', boxShadow: '0 8px 32px rgba(139,92,246,0.25)' }} onClick={e => e.stopPropagation()}>
+                  <button style={{ position: 'absolute', top: 12, right: 12, background: 'none', border: 'none', color: '#fff', fontSize: 24, cursor: 'pointer' }} onClick={() => {
+                    console.log('Close button clicked');
+                    setImageModal({ open: false, image: '', solver: '', profilePhoto: '' });
+                  }}>&times;</button>
+                  {imageModal.profilePhoto && (
+                    <img src={`http://localhost:5000${imageModal.profilePhoto}`} alt={imageModal.solver} style={{ width: 48, height: 48, borderRadius: '50%', objectFit: 'cover', marginBottom: 8 }} />
+                  )}
+                  <div style={{ color: '#c4b5fd', fontWeight: 600, fontSize: '1.1rem', marginBottom: 12 }}>{imageModal.solver}</div>
+                  <img src={`http://localhost:5000${imageModal.image}`} alt="solution" style={{ maxWidth: '70vw', maxHeight: '60vh', borderRadius: 10, display: 'block', margin: '0 auto' }} />
+                </div>
+              </div>
+            )}
+            
+            {/* Debug info */}
+            {imageModal.open && (
+              <div style={{
+                position: 'fixed',
+                top: 10,
+                right: 10,
+                background: 'red',
+                color: 'white',
+                padding: '10px',
+                zIndex: 10000,
+                fontSize: '12px'
+              }}>
+                Modal is open! Image: {imageModal.image}
+              </div>
+            )}
         </div>
     );
 }

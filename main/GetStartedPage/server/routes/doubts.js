@@ -3,6 +3,9 @@ import jwt from 'jsonwebtoken';
 import Doubt from '../models/Doubt.js';
 import User from '../models/User.js';
 import mongoose from 'mongoose';
+import multer from 'multer';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 const router = express.Router();
 
@@ -23,6 +26,23 @@ const authenticateToken = (req, res, next) => {
     next();
   });
 };
+
+// Multer setup for image uploads
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, '../uploads'));
+  },
+  filename: function (req, file, cb) {
+    const ext = path.extname(file.originalname);
+    cb(null, 'solution-' + Date.now() + '-' + Math.round(Math.random() * 1e9) + ext);
+  }
+});
+const upload = multer({ storage });
+
+// Serve uploaded images statically
+router.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Create a new doubt
 router.post('/', authenticateToken, async (req, res) => {
@@ -134,8 +154,8 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Add a solution to a doubt
-router.post('/:id/solutions', authenticateToken, async (req, res) => {
+// Add a solution to a doubt (with image upload support)
+router.post('/:id/solutions', authenticateToken, upload.single('image'), async (req, res) => {
   try {
     const { content } = req.body;
     const doubt = await Doubt.findById(req.params.id);
@@ -144,7 +164,19 @@ router.post('/:id/solutions', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'Doubt not found' });
     }
 
-    await doubt.addSolution(req.user.userId, content);
+    // Build solution object
+    const solutionObj = {
+      user: req.user.userId,
+      content: content || ''
+    };
+    console.log('req.file:', req.file); // Debug: log uploaded file
+    if (req.file) {
+      solutionObj.image = `/uploads/${req.file.filename}`;
+    }
+    console.log('solutionObj to be pushed:', solutionObj); // Debug: log solution object
+
+    doubt.solutions.push(solutionObj);
+    await doubt.save();
 
     // Populate the new solution
     await doubt.populate('solutions.user', 'username profilePhoto');
@@ -153,7 +185,6 @@ router.post('/:id/solutions', authenticateToken, async (req, res) => {
       message: 'Solution added successfully',
       doubt
     });
-
   } catch (error) {
     console.error('Add solution error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });

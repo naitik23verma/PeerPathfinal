@@ -2,7 +2,9 @@
   min-height: 100vh;
   background: linear-gradient(135deg, #0f0f23 0%, #1a0a52 25%, #3d20b3 50%, #7c3aed 75%, #a855f7 100%);
   color: #c4b5fd;
-  overflow: hidden;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .chat-nav {
@@ -100,8 +102,9 @@
 
 .chat-content {
   display: flex;
-  height: calc(100vh - 90px);
-  overflow: hidden;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .chat-sidebar {
@@ -279,12 +282,12 @@
 }
 
 .chat-main {
-  flex: 1;
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   background: rgba(15, 15, 35, 0.6);
-  overflow: hidden;
   min-width: 0;
+  overflow-y: auto;
 }
 
 .chat-header-main {
@@ -638,4 +641,195 @@
   text-align: left;
   margin-bottom: 0;
   margin-right: 0.2rem;
+}
+
+/* Group Modal at Bottom */
+.group-modal {
+  position: fixed !important;
+  left: 50% !important;
+  bottom: 0 !important;
+  transform: translate(-50%, 0) !important;
+  width: 100%;
+  max-width: 480px;
+  background: rgba(26, 10, 82, 0.98);
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -8px 32px rgba(139, 92, 246, 0.15);
+  padding: 2rem 1.5rem 1.5rem 1.5rem;
+  z-index: 2000;
+  border: 1.5px solid #a78bfa;
+  animation: slideUp 0.3s cubic-bezier(0.4,0,0.2,1);
+  overflow-y: auto;
+  max-height: 70vh;
+}
+
+@keyframes slideUp {
+  from { transform: translate(-50%, 100%); }
+  to { transform: translate(-50%, 0); }
+}
+
+.group-modal-overlay {
+  background: rgba(0,0,0,0.5) !important;
+  z-index: 1999 !important;
+}
+
+.group-modal h2 {
+  color: #c4b5fd;
+  text-align: center;
+  margin-bottom: 1.2rem;
+  font-size: 1.3rem;
+}
+
+.group-modal input[type="text"] {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border-radius: 12px;
+  border: 1.5px solid #a78bfa;
+  background: rgba(255,255,255,0.07);
+  color: #c4b5fd;
+  font-size: 1rem;
+  margin-bottom: 1.2rem;
+  transition: border 0.2s;
+}
+
+.group-modal input[type="text"]:focus {
+  border-color: #8b5cf6;
+  outline: none;
+}
+
+.group-members-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin-bottom: 1.5rem;
+  justify-content: flex-start;
+}
+
+.group-member-item {
+  display: flex;
+  align-items: center;
+  background: rgba(139, 92, 246, 0.13);
+  border: 1.5px solid #a78bfa;
+  border-radius: 999px;
+  padding: 0.4rem 1rem 0.4rem 0.6rem;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #c4b5fd;
+  transition: background 0.2s, border 0.2s;
+  position: relative;
+  min-width: 0;
+}
+
+.group-member-item input[type="checkbox"] {
+  accent-color: #a78bfa;
+  margin-right: 0.5rem;
+  width: 1.1em;
+  height: 1.1em;
+}
+
+.group-member-item span {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.group-member-item:hover, .group-member-item input[type="checkbox"]:checked + span {
+  background: linear-gradient(90deg, #a78bfa22 0%, #8b5cf622 100%);
+  border-color: #8b5cf6;
+}
+
+.group-member-item input[type="checkbox"]:checked {
+  box-shadow: 0 0 0 2px #a78bfa;
+}
+
+.create-group-btn {
+  width: 100%;
+  background: linear-gradient(90deg, #8b5cf6 0%, #a855f7 100%);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 0.9rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.7rem;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+  box-shadow: 0 2px 10px rgba(139, 92, 246, 0.13);
+}
+
+.create-group-btn:disabled {
+  background: #a78bfa88;
+  color: #e0e7ff;
+  cursor: not-allowed;
+}
+
+.close-modal-btn {
+  width: 100%;
+  background: none;
+  color: #a78bfa;
+  border: none;
+  border-radius: 12px;
+  padding: 0.7rem 0;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.close-modal-btn:hover {
+  color: #fff;
+  background: #a78bfa33;
+}
+
+@media (max-width: 600px) {
+  .group-modal {
+    max-width: 100vw;
+    max-height: 80vh;
+    padding: 1.2rem 0.7rem 1rem 0.7rem;
+  }
+}
+
+/* Remove any global overflow: hidden that may be set on body or html */
+html, body {
+  overflow-x: hidden;
+  /* Do not set overflow-y: hidden here! */
+}
+
+/* Ensure .group-modal only affects its own scroll, not the page */
+.group-modal {
+  position: fixed !important;
+  left: 50% !important;
+  bottom: 0 !important;
+  transform: translate(-50%, 0) !important;
+  width: 100%;
+  max-width: 480px;
+  background: rgba(26, 10, 82, 0.98);
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -8px 32px rgba(139, 92, 246, 0.15);
+  padding: 2rem 1.5rem 1.5rem 1.5rem;
+  z-index: 2000;
+  border: 1.5px solid #a78bfa;
+  animation: slideUp 0.3s cubic-bezier(0.4,0,0.2,1);
+  overflow-y: auto;
+  max-height: 70vh;
+}
+
+@media (max-width: 600px) {
+  .group-modal {
+    max-width: 100vw;
+    max-height: 80vh;
+    padding: 1.2rem 0.7rem 1rem 0.7rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .chat-content {
+    flex-direction: column;
+    min-height: 0;
+    height: auto;
+    overflow-y: auto;
+  }
+  .chat-sidebar {
+    width: 100%;
+    min-width: 0;
+    max-width: 100vw;
+  }
 } 

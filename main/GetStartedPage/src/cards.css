@@ -66,11 +66,18 @@
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
-  padding: 1.5rem;
+  padding: 1rem 2rem;
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  min-width: 360px;
+  max-width: 380px;
+  max-height: none;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .doubt-card::before {
@@ -97,6 +104,10 @@
 .doubt-card.resolved {
   border-color: rgba(16, 185, 129, 0.3);
   background: rgba(16, 185, 129, 0.05);
+}
+
+.doubt-card.has-solutions {
+  max-height: 540px;
 }
 
 .doubt-header {
@@ -171,6 +182,27 @@
 .like-btn:hover {
   background: rgba(239, 68, 68, 0.3);
   transform: scale(1.05);
+}
+
+.solve-btn {
+  width: 100%;
+  background: linear-gradient(90deg, #8b5cf6 0%, #7c3aed 100%);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 0.9rem 0;
+  font-size: 1.08rem;
+  font-weight: 700;
+  margin-top: 1.2rem;
+  box-shadow: 0 2px 8px rgba(139,92,246,0.10);
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+  letter-spacing: 0.5px;
+}
+
+.solve-btn:hover {
+  background: linear-gradient(90deg, #7c3aed 0%, #8b5cf6 100%);
+  transform: translateY(-2px) scale(1.03);
 }
 
 .resolve-btn {
@@ -298,6 +330,159 @@
   margin-top: 2rem;
   padding-top: 1rem;
   border-top: 1px solid rgba(196, 181, 253, 0.2);
+}
+
+.doubt-card .helper-bio p {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  max-height: 4.5em;
+  margin-bottom: 0.5rem;
+}
+
+.doubt-card .helper-header {
+  margin-bottom: 0.7rem;
+  flex-shrink: 0;
+}
+
+.doubt-card .doubt-actions-carousel {
+  flex-direction: row;
+  gap: 1rem;
+  margin-top: 1rem;
+  margin-bottom: 0;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Solutions section with scroll */
+.doubt-card .solutions-section {
+  overflow-y: auto;
+  margin: 0.5rem 0;
+  padding-right: 0.5rem;
+  max-height: 200px;
+}
+
+.doubt-card .solutions-section::-webkit-scrollbar {
+  width: 4px;
+}
+
+.doubt-card .solutions-section::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+.doubt-card .solutions-section::-webkit-scrollbar-thumb {
+  background: rgba(196, 181, 253, 0.5);
+  border-radius: 2px;
+}
+
+.doubt-card .solutions-section::-webkit-scrollbar-thumb:hover {
+  background: rgba(196, 181, 253, 0.7);
+}
+
+/* Solution item as button */
+.doubt-card .solution-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(139, 92, 246, 0.08) 100%);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 12px;
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.doubt-card .solution-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.doubt-card .solution-item:hover::before {
+  left: 100%;
+}
+
+.doubt-card .solution-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.2);
+  border-color: rgba(139, 92, 246, 0.4);
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(139, 92, 246, 0.12) 100%);
+}
+
+.doubt-card .solution-item:last-child {
+  margin-bottom: 0;
+}
+
+.doubt-card .solution-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 2px solid rgba(139, 92, 246, 0.3);
+}
+
+.doubt-card .solution-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.doubt-card .solution-username {
+  font-weight: 600;
+  color: #c4b5fd;
+  margin-bottom: 4px;
+  font-size: 0.9rem;
+}
+
+.doubt-card .solution-image {
+  max-width: 100px;
+  max-height: 80px;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  display: block;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  transition: transform 0.3s ease;
+}
+
+.doubt-card .solution-item:hover .solution-image {
+  transform: scale(1.05);
+}
+
+.doubt-card .solution-text {
+  color: #a78bfa;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.doubt-card .solutions-header {
+  font-weight: 600;
+  color: #a78bfa;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.doubt-card .solutions-header::before {
+  content: '💡';
+  font-size: 1rem;
 }
 
 @media (max-width: 768px) {
