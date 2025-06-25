@@ -26,7 +26,13 @@ export function TopHelpers() {
         level: getLevel(user.doubtsSolved),
         solved: user.doubtsSolved || 0,
         bio: user.bio || 'Passionate about helping others and sharing knowledge.',
-        expertise: user.expertise || ['General Help'],
+        expertise: Array.isArray(user.expertise)
+          ? (
+              user.expertise.length === 1 && user.expertise[0].includes(',')
+                ? user.expertise[0].split(',').map(e => e.trim())
+                : user.expertise
+            )
+          : (user.expertise ? user.expertise.split(',').map(e => e.trim()) : []),
         rating: calculateRating(user.doubtsSolved),
         avatar: getAvatar(user.profilePhoto),
         badges: generateBadges(user.doubtsSolved, user.expertise),
