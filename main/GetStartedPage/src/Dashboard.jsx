@@ -62,20 +62,20 @@ export default function Dashboard({ currentUser, onLogout }) {
           />
         </h1>
         
-        <div className="card-container">
-          <Card
+        <div className="card-container ">
+          <Card className="fancy-gradient-card box"
             icon="🧑‍🏫"
             title="Start Mentorship"
             description="Get guidance from seniors on career, academics and more."
             onClick={handleMentorship}
           />
-          <Card
+          <Card className="fancy-gradient-card box"
             icon="🤝"
             title="Start Collaborating"
             description="Team up with peers to build exciting projects."
             onClick={handleCollaboration}
           />
-          <Card
+          <Card className="fancy-gradient-card box"
             icon="📚"
             title="Resources & Chats"
             description="Access past sessions, guides and peer content."

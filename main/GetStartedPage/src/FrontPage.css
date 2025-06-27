@@ -205,7 +205,7 @@ html, body {
 
 .floating-cards {
   position: relative;
-  width: 300px;
+  width: 350px;
   height: 300px;
   margin: 0 auto;
 }
@@ -249,7 +249,7 @@ html, body {
 
 .floating-cards .card-1 {
   top: 0;
-  left: 50%;
+  left: 60%;
   transform: translateX(-50%);
   animation: float1 4s ease-in-out infinite;
 }
@@ -263,7 +263,7 @@ html, body {
 
 .floating-cards .card-3 {
   bottom: 0;
-  left: 50%;
+  left: 40%;
   transform: translateX(-50%);
   animation: float3 4s ease-in-out infinite 2s;
 }
@@ -510,3 +510,51 @@ html, body {
     font-size: 1.1rem;
   }
 } 
+
+.fancy-gradient-card {
+  position: relative;
+  border-radius: 16px;
+  padding: 20px;
+  background: #0f0f10; /* Inner card background */
+  color: white;
+  z-index: 0;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  isolation: isolate;
+}
+
+.fancy-gradient-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  right: 0; bottom: 0;
+  padding: 2px; /* Border thickness */
+  background: linear-gradient(135deg, #8e2de2, #4a00e0, #00c9ff, #92fe9d);
+  background-size: 300% 300%;
+  animation: fancyBorderAnim 6s ease infinite;
+  border-radius: 16px;
+  z-index: -1;
+  mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0); 
+  mask-composite: exclude;
+  -webkit-mask-composite: destination-out;
+  box-sizing: border-box;
+  transition: filter 0.4s ease;
+}
+
+.fancy-gradient-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+}
+
+.fancy-gradient-card:hover::before {
+  filter: brightness(1.5) saturate(1.5) blur(1px);
+}
+.box {
+    width: 100;
+    height: 100;
+    backgroundColor: #9911ff;
+    borderRadius: 5;
+}

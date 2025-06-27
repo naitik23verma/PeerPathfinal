@@ -19,7 +19,8 @@ const Profile = ({ onLogout }) => {
     doubtsSolved: 0,
     doubtsAsked: 0,
     joinDate: '',
-    profilePhoto: ''
+    profilePhoto: '',
+
   });
 
   const [newSkill, setNewSkill] = useState('');
@@ -60,7 +61,8 @@ const Profile = ({ onLogout }) => {
         doubtsSolved: response.data.doubtsSolved || 0,
         doubtsAsked: response.data.doubtsAsked || 0,
         joinDate: response.data.joinDate || new Date().toISOString(),
-        profilePhoto: response.data.profilePhoto || ''
+        profilePhoto: response.data.profilePhoto || '',
+  
       });
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -223,7 +225,7 @@ const Profile = ({ onLogout }) => {
       </nav>
 
       <div className="profile-content">
-        <div className="profile-header">
+        <div className="profile-header fancy-gradient-card">
           <div className="profile-avatar">
             {profileData.profilePhoto ? (
               <>
@@ -273,7 +275,7 @@ const Profile = ({ onLogout }) => {
 
         <div className="profile-stats">
           {stats.map((stat, index) => (
-            <div key={index} className="stat-card">
+            <div key={index} className="stat-card fancy-gradient-card">
               <div className="stat-value">{stat.value}</div>
               <div className="stat-label">{stat.label}</div>
             </div>
@@ -281,7 +283,7 @@ const Profile = ({ onLogout }) => {
         </div>
 
         <div className="profile-sections">
-          <div className="profile-section">
+          <div className="profile-section  fancy-gradient-card ">
             <h2>About Me</h2>
             {isEditing ? (
               <textarea
@@ -295,7 +297,7 @@ const Profile = ({ onLogout }) => {
             )}
           </div>
 
-          <div className="profile-section">
+          <div className="profile-section fancy-gradient-card">
             <h2>Skills</h2>
             <div className="skills-container">
               {profileData.skills.map((skill, index) => (
@@ -326,7 +328,7 @@ const Profile = ({ onLogout }) => {
             )}
           </div>
 
-          <div className="profile-section">
+          <div className="profile-section fancy-gradient-card">
             <h2>Areas of Expertise</h2>
             <div className="interests-container">
               {profileData.expertise.map((item, index) => (
@@ -357,7 +359,7 @@ const Profile = ({ onLogout }) => {
             )}
           </div>
 
-          <div className="profile-section">
+          <div className="profile-section fancy-gradient-card">
             <h2>Academic Information</h2>
             <div className="info-grid">
               <div className="info-item">

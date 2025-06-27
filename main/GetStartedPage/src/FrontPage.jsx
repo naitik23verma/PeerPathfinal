@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import './FrontPage.css';
 import { Link } from 'react-router-dom';
+import * as motion from "motion/react-client"
 
 const FrontPage = ({ currentUser, onLogout }) => {
   const navigate = useNavigate();
@@ -75,7 +76,7 @@ const FrontPage = ({ currentUser, onLogout }) => {
           </div>
           <div className="hero-visual">
             <div className="floating-cards">
-              <div className="card card-1" onClick={() => handleFeatureClick('mentorship')}>
+              <div className="card card-1 " onClick={() => handleFeatureClick('mentorship')}>
                 <span className="card-icon">🧑‍🏫</span>
                 <span className="card-text">Mentorship</span>
               </div>
@@ -98,22 +99,27 @@ const FrontPage = ({ currentUser, onLogout }) => {
         <div className="features-section">
           <h2>What You Can Do</h2>
           <div className="features-grid">
-            <div className="feature" onClick={() => handleFeatureClick('mentorship')}>
+            <div whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.8 }}
+             className="feature fancy-gradient-card box" onClick={() => handleFeatureClick('mentorship')}>
               <div className="feature-icon">🎯</div>
               <h3>Ask Questions</h3>
               <p>Get help from peers and experts on any topic</p>
             </div>
-            <div className="feature" onClick={() => handleFeatureClick('collaboration')}>
+            <div whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.8 }} className="feature fancy-gradient-card box" onClick={() => handleFeatureClick('collaboration')}>
               <div className="feature-icon">🚀</div>
               <h3>Build Projects</h3>
               <p>Collaborate on exciting projects with like-minded people</p>
             </div>
-            <div className="feature" onClick={() => handleFeatureClick('resources')}>
+            <div whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.8 }} className="feature fancy-gradient-card box" onClick={() => handleFeatureClick('resources')}>
               <div className="feature-icon">📖</div>
               <h3>Share Knowledge</h3>
               <p>Contribute to the community by sharing your expertise</p>
             </div>
-            <div className="feature" onClick={() => handleFeatureClick('location')}>
+            <div whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.8 }} className="feature fancy-gradient-card box" onClick={() => handleFeatureClick('location')}>
               <div className="feature-icon">🗺️</div>
               <h3>Find Partners</h3>
               <p>Connect with people going to the same places</p>
