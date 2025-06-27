@@ -12,6 +12,7 @@ const Profile = ({ onLogout }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [profileData, setProfileData] = useState({
     username: '',
+    email: '',
     bio: '',
     year: '',
     expertise: [],
@@ -20,7 +21,6 @@ const Profile = ({ onLogout }) => {
     doubtsAsked: 0,
     joinDate: '',
     profilePhoto: '',
-
   });
 
   const [newSkill, setNewSkill] = useState('');
@@ -52,8 +52,10 @@ const Profile = ({ onLogout }) => {
       console.log('Fetched user profile data:', response.data);
       console.log('Profile photo from server:', response.data.profilePhoto);
       
-      setProfileData({
+      setProfileData(prev => ({
+        ...prev,
         username: response.data.username || '',
+        email: response.data.email || '',
         bio: response.data.bio || '',
         year: response.data.year || '',
         expertise: response.data.expertise || [],
@@ -62,8 +64,7 @@ const Profile = ({ onLogout }) => {
         doubtsAsked: response.data.doubtsAsked || 0,
         joinDate: response.data.joinDate || new Date().toISOString(),
         profilePhoto: response.data.profilePhoto || '',
-  
-      });
+      }));
     } catch (error) {
       console.error('Error fetching profile:', error);
     }
@@ -92,10 +93,15 @@ const Profile = ({ onLogout }) => {
   };
 
   const handleSave = async () => {
+    if (!profileData.email) {
+      alert('Email is required to update your profile.');
+      return;
+    }
     try {
       const token = localStorage.getItem('token');
       await axios.put('http://localhost:5000/api/auth/profile', 
         {
+          email: profileData.email,
           bio: profileData.bio,
           year: profileData.year,
           expertise: profileData.expertise.join(','),
@@ -362,6 +368,19 @@ const Profile = ({ onLogout }) => {
           <div className="profile-section fancy-gradient-card">
             <h2>Academic Information</h2>
             <div className="info-grid">
+              <div className="info-item">
+                <label>Email</label>
+                {isEditing ? (
+                  <input
+                    type="email"
+                    value={profileData.email}
+                    readOnly
+                    className="info-input"
+                  />
+                ) : (
+                  <span>{profileData.email || 'Not specified'}</span>
+                )}
+              </div>
               <div className="info-item">
                 <label>Year of Study</label>
                 {isEditing ? (

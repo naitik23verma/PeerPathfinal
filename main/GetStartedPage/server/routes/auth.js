@@ -102,6 +102,7 @@ router.post('/register', upload.single('profilePhoto'), async (req, res) => {
       user: {
         _id: user._id,
         username: user.username,
+        email: user.email,
         bio: user.bio,
         year: user.year,
         expertise: user.expertise,
