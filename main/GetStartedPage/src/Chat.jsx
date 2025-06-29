@@ -471,7 +471,7 @@ const Chat = ({ currentUser, onLogout }) => {
                       color: '#c4b5fd'
                     }}>
                       {(user.name || user.username || 'U').charAt(0).toUpperCase()}
-                    </div>
+                </div>
                   )}
                 </motion.div>
                 <div className="user-info">
@@ -562,29 +562,29 @@ const Chat = ({ currentUser, onLogout }) => {
                 animate="animate"
               >
                 <AnimatePresence>
-                  {messages.map((msg, index) => (
+                {messages.map((msg, index) => (
                     <motion.div
-                      key={index}
-                      className={`message ${msg.sender._id === currentUser._id ? 'own' : 'other'}`}
+                    key={index}
+                    className={`message ${msg.sender._id === currentUser._id ? 'own' : 'other'}`}
                       variants={messageVariants}
                       initial="initial"
                       animate="animate"
                       exit="exit"
                       transition={{ delay: index * 0.05 }}
-                    >
-                      <div className="message-sender-info">
-                        <span className="chat-message-username">{msg.sender.username}</span>
-                      </div>
+                  >
+                    <div className="message-sender-info">
+                      <span className="chat-message-username">{msg.sender.username}</span>
+                    </div>
                       <motion.div 
                         className="message-content"
                         whileHover={{ scale: 1.02 }}
                         transition={{ duration: 0.2 }}
                       >
-                        <p>{msg.content}</p>
-                        <span className="message-time">{msg.time}</span>
+                      <p>{msg.content}</p>
+                      <span className="message-time">{msg.time}</span>
                       </motion.div>
                     </motion.div>
-                  ))}
+                ))}
                 </AnimatePresence>
                 <div ref={messagesEndRef} />
               </motion.div>
@@ -672,24 +672,24 @@ const Chat = ({ currentUser, onLogout }) => {
                   variants={messageVariants}
                   whileHover={{ scale: 1.05 }}
                 >
-                  <span>🔒</span>
-                  <p>Secure messaging</p>
+                    <span>🔒</span>
+                    <p>Secure messaging</p>
                 </motion.div>
                 <motion.div 
                   className="feature"
                   variants={messageVariants}
                   whileHover={{ scale: 1.05 }}
                 >
-                  <span>⚡</span>
-                  <p>Real-time updates</p>
+                    <span>⚡</span>
+                    <p>Real-time updates</p>
                 </motion.div>
                 <motion.div 
                   className="feature"
                   variants={messageVariants}
                   whileHover={{ scale: 1.05 }}
                 >
-                  <span>👥</span>
-                  <p>Group & one-on-one chats</p>
+                    <span>👥</span>
+                    <p>Group & one-on-one chats</p>
                 </motion.div>
               </motion.div>
             </motion.div>
@@ -700,14 +700,14 @@ const Chat = ({ currentUser, onLogout }) => {
       {/* New Group Modal */}
       <AnimatePresence>
         {showGroupModal && (
-          <Modal
-            isOpen={showGroupModal}
-            onRequestClose={() => setShowGroupModal(false)}
-            contentLabel="Create Group"
-            className="group-modal"
-            overlayClassName="group-modal-overlay"
-            ariaHideApp={false}
-          >
+      <Modal
+        isOpen={showGroupModal}
+        onRequestClose={() => setShowGroupModal(false)}
+        contentLabel="Create Group"
+        className="group-modal"
+        overlayClassName="group-modal-overlay"
+        ariaHideApp={false}
+      >
             <motion.div
               initial={{ opacity: 0, scale: 0.8, y: 50 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -722,10 +722,10 @@ const Chat = ({ currentUser, onLogout }) => {
                 Create New Group
               </motion.h2>
               <motion.input
-                type="text"
-                placeholder="Group Name"
-                value={groupName}
-                onChange={e => setGroupName(e.target.value)}
+          type="text"
+          placeholder="Group Name"
+          value={groupName}
+          onChange={e => setGroupName(e.target.value)}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2 }}
@@ -745,30 +745,30 @@ const Chat = ({ currentUser, onLogout }) => {
                     transition={{ delay: 0.4 + index * 0.05 }}
                     whileHover={{ scale: 1.02 }}
                   >
-                    <input
-                      type="checkbox"
-                      checked={groupMembers.includes(user._id)}
+              <input
+                type="checkbox"
+                checked={groupMembers.includes(user._id)}
                       onChange={(e) => {
-                        if (e.target.checked) {
-                          setGroupMembers(prev => [...prev, user._id]);
-                        } else {
-                          setGroupMembers(prev => prev.filter(id => id !== user._id));
-                        }
-                      }}
-                    />
-                    <span>{user.name || user.username}</span>
+                  if (e.target.checked) {
+                    setGroupMembers(prev => [...prev, user._id]);
+                  } else {
+                    setGroupMembers(prev => prev.filter(id => id !== user._id));
+                  }
+                }}
+              />
+              <span>{user.name || user.username}</span>
                   </motion.label>
-                ))}
+          ))}
               </motion.div>
               <motion.button
-                className="create-group-btn"
-                onClick={handleCreateGroup}
-                disabled={!groupName.trim() || groupMembers.length < 2}
+          className="create-group-btn"
+          onClick={handleCreateGroup}
+          disabled={!groupName.trim() || groupMembers.length < 2}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
-              >
-                Create Group
+        >
+          Create Group
               </motion.button>
               <motion.button
                 className="close-modal-btn"
@@ -780,11 +780,11 @@ const Chat = ({ currentUser, onLogout }) => {
                 Cancel
               </motion.button>
             </motion.div>
-          </Modal>
+      </Modal>
         )}
       </AnimatePresence>
     </motion.div>
   );
 };
 
-export default Chat;
+export default Chat; 

@@ -633,7 +633,7 @@ const Profile = ({ onLogout }) => {
         </motion.div>
 
         <AnimatePresence>
-          {isEditing && (
+        {isEditing && (
             <motion.div 
               className="save-section"
               initial={{ opacity: 0, y: 20 }}
@@ -648,15 +648,15 @@ const Profile = ({ onLogout }) => {
                 whileHover="hover"
                 whileTap="tap"
               >
-                Save Changes
+              Save Changes
               </motion.button>
             </motion.div>
-          )}
+        )}
         </AnimatePresence>
       </div>
 
       <AnimatePresence>
-        {weeklyDoubts && weeklyDoubts.length > 0 ? (
+      {weeklyDoubts && weeklyDoubts.length > 0 ? (
           <motion.div 
             className="profile-graph-section" 
             style={{ width: '100%', maxWidth: 900, margin: '2rem auto 0', background: 'rgba(255,255,255,0.04)', borderRadius: 16, padding: '2rem 1rem' }}
@@ -679,31 +679,31 @@ const Profile = ({ onLogout }) => {
               animate={{ opacity: 1 }}
               transition={{ delay: 1.7 }}
             >
-              Total doubts this week: {weeklyDoubts.reduce((sum, day) => sum + (day.count || 0), 0)}
+            Total doubts this week: {weeklyDoubts.reduce((sum, day) => sum + (day.count || 0), 0)}
             </motion.div>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={weeklyDoubts} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="date" 
-                  tickFormatter={date => {
-                    const d = new Date(date);
-                    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                  }} 
-                />
-                <YAxis allowDecimals={false} />
-                <Tooltip 
-                  labelFormatter={(date) => {
-                    const d = new Date(date);
-                    return d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                  }}
-                  formatter={(value) => [value, 'Doubts']}
-                />
-                <Bar dataKey="count" fill="#8884d8" />
-              </BarChart>
-            </ResponsiveContainer>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={weeklyDoubts} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis 
+                dataKey="date" 
+                tickFormatter={date => {
+                  const d = new Date(date);
+                  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                }} 
+              />
+              <YAxis allowDecimals={false} />
+              <Tooltip 
+                labelFormatter={(date) => {
+                  const d = new Date(date);
+                  return d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                }}
+                formatter={(value) => [value, 'Doubts']}
+              />
+              <Bar dataKey="count" fill="#8884d8" />
+            </BarChart>
+          </ResponsiveContainer>
           </motion.div>
-        ) : (
+      ) : (
           <motion.div 
             className="profile-graph-section" 
             style={{ width: '100%', maxWidth: 900, margin: '2rem auto 0', background: 'rgba(255,255,255,0.04)', borderRadius: 16, padding: '2rem 1rem', textAlign: 'center' }}
@@ -726,10 +726,10 @@ const Profile = ({ onLogout }) => {
               animate={{ opacity: 1 }}
               transition={{ delay: 1.7 }}
             >
-              No doubts asked this week. Start asking questions to see your activity here!
+            No doubts asked this week. Start asking questions to see your activity here!
             </motion.p>
           </motion.div>
-        )}
+      )}
       </AnimatePresence>
     </motion.div>
   );

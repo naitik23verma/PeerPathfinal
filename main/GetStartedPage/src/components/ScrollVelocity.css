@@ -1,0 +1,77 @@
+.parallax {
+  position: relative;
+  overflow: hidden;
+  margin-top: 7rem;
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+  margin-bottom: -0.5rem;
+  background: linear-gradient(135deg, rgba(26, 10, 82, 0.9) 0%, rgba(61, 32, 179, 0.9) 100%);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(196, 181, 253, 0.3);
+  border-bottom: 1px solid rgba(196, 181, 253, 0.3);
+  padding: 0.8rem 0;
+}
+
+.parallax::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(196, 181, 253, 0.1) 50%, transparent 100%);
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% { transform: translateX(-100%); }
+  50% { transform: translateX(100%); }
+}
+
+.scroller {
+  display: flex;
+  white-space: nowrap;
+  text-align: center;
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  line-height: 1;
+  color: #e0e7ff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.scroller span {
+  flex-shrink: 0;
+  padding: 0 0.5rem;
+  position: relative;
+}
+
+.scroller span::after {
+  content: '•';
+  color: #c4b5fd;
+  margin: 0 1rem;
+  font-size: 0.9rem;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.scroller span:last-child::after {
+  display: none;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+@media (min-width: 768px) {
+  .scroller {
+    font-size: 1.5rem;
+    line-height: 1;
+  }
+  
+  .parallax {
+    padding: 1.2rem 0;
+  }
+} 

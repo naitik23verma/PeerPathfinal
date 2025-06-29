@@ -339,7 +339,7 @@ const Collaboration = ({ currentUser, onLogout }) => {
 
         {/* User's Projects Section */}
         <AnimatePresence>
-          {userProjects.length > 0 && (
+        {userProjects.length > 0 && (
             <motion.div 
               className="user-projects-section"
               initial={{ opacity: 0, y: 30 }}
@@ -373,10 +373,10 @@ const Collaboration = ({ currentUser, onLogout }) => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.9 + index * 0.1 }}
                     >
-                      <h3>{project.title}</h3>
-                      <span className={`difficulty ${(project.difficulty || 'Intermediate').toLowerCase()}`}>
-                        {project.difficulty || 'Intermediate'}
-                      </span>
+                    <h3>{project.title}</h3>
+                    <span className={`difficulty ${(project.difficulty || 'Intermediate').toLowerCase()}`}>
+                      {project.difficulty || 'Intermediate'}
+                    </span>
                     </motion.div>
                     <motion.p 
                       className="project-description"
@@ -411,15 +411,15 @@ const Collaboration = ({ currentUser, onLogout }) => {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 1.3 + index * 0.1 }}
                     >
-                      <div className="meta-item">
-                        <span>👥 {project.members?.length || 1}/{project.maxMembers || 5} Members</span>
-                      </div>
-                      <div className="meta-item">
-                        <span>⏱️ {project.duration || '3 months'}</span>
-                      </div>
-                      <div className="meta-item">
-                        <span>👨‍🏫 {project.mentor || (project.creator?.username || 'N/A')}</span>
-                      </div>
+                    <div className="meta-item">
+                      <span>👥 {project.members?.length || 1}/{project.maxMembers || 5} Members</span>
+                    </div>
+                    <div className="meta-item">
+                      <span>⏱️ {project.duration || '3 months'}</span>
+                    </div>
+                    <div className="meta-item">
+                      <span>👨‍🏫 {project.mentor || (project.creator?.username || 'N/A')}</span>
+                    </div>
                     </motion.div>
                     <motion.div 
                       className="project-members"
@@ -427,7 +427,7 @@ const Collaboration = ({ currentUser, onLogout }) => {
                       animate={{ opacity: 1 }}
                       transition={{ delay: 1.4 + index * 0.1 }}
                     >
-                      <strong>Members:</strong> {(project.members || []).map((m, idx) => m.user?.username || m.user?.name || 'Unknown').join(', ')}
+                    <strong>Members:</strong> {(project.members || []).map((m, idx) => m.user?.username || m.user?.name || 'Unknown').join(', ')}
                     </motion.div>
                     <motion.div 
                       className="project-actions"
@@ -626,12 +626,12 @@ const Collaboration = ({ currentUser, onLogout }) => {
         >
           <motion.h2 
             style={{
-              color: '#c4b5fd',
-              fontSize: '2rem',
-              marginBottom: '2rem',
-              textAlign: 'center',
-              paddingTop: '2rem',
-              paddingBottom: '1.5rem'
+            color: '#c4b5fd',
+            fontSize: '2rem',
+            marginBottom: '2rem',
+            textAlign: 'center',
+            paddingTop: '2rem',
+            paddingBottom: '1.5rem'
             }}
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -740,7 +740,7 @@ const Collaboration = ({ currentUser, onLogout }) => {
 
       {/* Join Project Modal */}
       <AnimatePresence>
-        {showModal && selectedProject && (
+      {showModal && selectedProject && (
           <motion.div 
             className="modal-overlay" 
             onClick={() => setShowModal(false)}
@@ -763,7 +763,7 @@ const Collaboration = ({ currentUser, onLogout }) => {
                 whileHover="hover"
                 whileTap="tap"
               >
-                &times;
+              &times;
               </motion.button>
               <motion.h2
                 initial={{ opacity: 0, y: -20 }}
@@ -820,10 +820,10 @@ const Collaboration = ({ currentUser, onLogout }) => {
                   whileHover="hover"
                   whileTap="tap"
                 >
-                  Cancel
+                Cancel
                 </motion.button>
-                {(!selectedProject.members || !selectedProject.members.some(m => m.user?._id === currentUser?._id)) &&
-                  (selectedProject.members?.length || 1) < (selectedProject.maxMembers || 5) && (
+              {(!selectedProject.members || !selectedProject.members.some(m => m.user?._id === currentUser?._id)) &&
+                (selectedProject.members?.length || 1) < (selectedProject.maxMembers || 5) && (
                   <motion.button 
                     onClick={confirmJoin} 
                     className="confirm-btn"
@@ -831,7 +831,7 @@ const Collaboration = ({ currentUser, onLogout }) => {
                     whileHover="hover"
                     whileTap="tap"
                   >
-                    Join Project
+                  Join Project
                   </motion.button>
                 )}
               </motion.div>
@@ -842,7 +842,7 @@ const Collaboration = ({ currentUser, onLogout }) => {
 
       {/* Create Project Form Modal */}
       <AnimatePresence>
-        {showCreateForm && (
+      {showCreateForm && (
           <motion.div 
             className="modal-overlay" 
             onClick={() => setShowCreateForm(false)}
@@ -865,7 +865,7 @@ const Collaboration = ({ currentUser, onLogout }) => {
                 whileHover="hover"
                 whileTap="tap"
               >
-                &times;
+              &times;
               </motion.button>
               <motion.h2
                 initial={{ opacity: 0, y: -20 }}
@@ -886,15 +886,15 @@ const Collaboration = ({ currentUser, onLogout }) => {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.3 }}
                 >
-                  <label>Project Title</label>
-                  <input
-                    type="text"
-                    name="title"
-                    value={formData.title}
-                    onChange={handleInputChange}
-                    required
-                    placeholder="Enter project title"
-                  />
+                <label>Project Title</label>
+                <input
+                  type="text"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleInputChange}
+                  required
+                  placeholder="Enter project title"
+                />
                 </motion.div>
                 
                 <motion.div 
@@ -903,15 +903,15 @@ const Collaboration = ({ currentUser, onLogout }) => {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.4 }}
                 >
-                  <label>Description</label>
-                  <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleInputChange}
-                    required
-                    placeholder="Describe your project"
-                    rows="3"
-                  />
+                <label>Description</label>
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  required
+                  placeholder="Describe your project"
+                  rows="3"
+                />
                 </motion.div>
                 
                 <motion.div 
@@ -920,15 +920,15 @@ const Collaboration = ({ currentUser, onLogout }) => {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.5 }}
                 >
-                  <label>Skills Required (comma-separated)</label>
-                  <input
-                    type="text"
-                    name="skills"
-                    value={formData.skills}
-                    onChange={handleInputChange}
-                    required
-                    placeholder="React, Node.js, MongoDB"
-                  />
+                <label>Skills Required (comma-separated)</label>
+                <input
+                  type="text"
+                  name="skills"
+                  value={formData.skills}
+                  onChange={handleInputChange}
+                  required
+                  placeholder="React, Node.js, MongoDB"
+                />
                 </motion.div>
                 
                 <motion.div 
@@ -943,18 +943,18 @@ const Collaboration = ({ currentUser, onLogout }) => {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.7 }}
                   >
-                    <label>Max Team Size</label>
-                    <select
-                      name="maxMembers"
-                      value={formData.maxMembers}
-                      onChange={handleInputChange}
-                    >
-                      <option value={3}>3</option>
-                      <option value={4}>4</option>
-                      <option value={5}>5</option>
-                      <option value={6}>6</option>
-                      <option value={8}>8</option>
-                    </select>
+                  <label>Max Team Size</label>
+                  <select
+                    name="maxMembers"
+                    value={formData.maxMembers}
+                    onChange={handleInputChange}
+                  >
+                    <option value={3}>3</option>
+                    <option value={4}>4</option>
+                    <option value={5}>5</option>
+                    <option value={6}>6</option>
+                    <option value={8}>8</option>
+                  </select>
                   </motion.div>
                   
                   <motion.div 
@@ -963,16 +963,16 @@ const Collaboration = ({ currentUser, onLogout }) => {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.8 }}
                   >
-                    <label>Difficulty Level</label>
-                    <select
-                      name="difficulty"
-                      value={formData.difficulty}
-                      onChange={handleInputChange}
-                    >
-                      <option value="Beginner">Beginner</option>
-                      <option value="Intermediate">Intermediate</option>
-                      <option value="Advanced">Advanced</option>
-                    </select>
+                  <label>Difficulty Level</label>
+                  <select
+                    name="difficulty"
+                    value={formData.difficulty}
+                    onChange={handleInputChange}
+                  >
+                    <option value="Beginner">Beginner</option>
+                    <option value="Intermediate">Intermediate</option>
+                    <option value="Advanced">Advanced</option>
+                  </select>
                   </motion.div>
                   
                   <motion.div 
@@ -981,19 +981,19 @@ const Collaboration = ({ currentUser, onLogout }) => {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.9 }}
                   >
-                    <label>Duration</label>
-                    <select
-                      name="duration"
-                      value={formData.duration}
-                      onChange={handleInputChange}
-                    >
-                      <option value="1 month">1 month</option>
-                      <option value="2 months">2 months</option>
-                      <option value="3 months">3 months</option>
-                      <option value="4 months">4 months</option>
-                      <option value="5 months">5 months</option>
-                      <option value="6 months">6 months</option>
-                    </select>
+                  <label>Duration</label>
+                  <select
+                    name="duration"
+                    value={formData.duration}
+                    onChange={handleInputChange}
+                  >
+                    <option value="1 month">1 month</option>
+                    <option value="2 months">2 months</option>
+                    <option value="3 months">3 months</option>
+                    <option value="4 months">4 months</option>
+                    <option value="5 months">5 months</option>
+                    <option value="6 months">6 months</option>
+                  </select>
                   </motion.div>
                 </motion.div>
                 
@@ -1011,7 +1011,7 @@ const Collaboration = ({ currentUser, onLogout }) => {
                     whileHover="hover"
                     whileTap="tap"
                   >
-                    Cancel
+                  Cancel
                   </motion.button>
                   <motion.button 
                     type="submit" 
@@ -1020,7 +1020,7 @@ const Collaboration = ({ currentUser, onLogout }) => {
                     whileHover="hover"
                     whileTap="tap"
                   >
-                    Create Project
+                  Create Project
                   </motion.button>
                 </motion.div>
               </motion.form>

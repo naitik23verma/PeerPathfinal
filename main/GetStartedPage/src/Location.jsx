@@ -567,7 +567,6 @@ const Location = ({ currentUser, onLogout }) => {
             style={{
               background: 'linear-gradient(120deg, #ede9fe 0%, #c7d2fe 100%)',
               color: '#7c3aed',
-              border: 'none',
               borderRadius: '10px',
               padding: '0.8rem 1.5rem',
               fontSize: '1.04rem',
@@ -585,7 +584,6 @@ const Location = ({ currentUser, onLogout }) => {
             style={{
               background: 'linear-gradient(120deg, #ede9fe 0%, #c7d2fe 100%)',
               color: '#7c3aed',
-              border: 'none',
               borderRadius: '10px',
               padding: '0.8rem 1.5rem',
               fontSize: '1.04rem',

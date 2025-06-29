@@ -14,6 +14,7 @@ import Chat from './Chat.jsx';
 import Location from './Location.jsx';
 import SearchResults from './SearchResults.jsx';
 import ProtectedRoute from './ProtectedRoute.jsx';
+import ClickSpark from './components/ClickSpark.jsx';
 import './App.css';
 
 function App() {
@@ -73,89 +74,99 @@ function App() {
   }
 
   return (
-    <Router>
-      <div className="App">
-        <Routes>
-          <Route path="/login" element={
-            !isAuthenticated ? 
-            <Login onLogin={handleLogin} /> : 
-            <Navigate to="/front" replace />
-          } />
-          
-          <Route path="/signup" element={
-            !isAuthenticated ? 
-            <SignUp onRegister={handleRegister} /> : 
-            <Navigate to="/front" replace />
-          } />
-          
-          <Route path="/register" element={
-            !isAuthenticated ? 
-            <Register onRegister={handleRegister} /> : 
-            <Navigate to="/front" replace />
-          } />
-          
-          <Route path="/front" element={
-            <ProtectedRoute>
-              <FrontPage currentUser={currentUser} onLogout={handleLogout} />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/dashboard" element={
-            <ProtectedRoute>
-              <Dashboard currentUser={currentUser} onLogout={handleLogout} />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/doubts" element={
-            <ProtectedRoute>
-              <Doubts currentUser={currentUser} onLogout={handleLogout} />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/collaboration" element={
-            <ProtectedRoute>
-              <Collaboration currentUser={currentUser} onLogout={handleLogout} />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/resources" element={
-            <ProtectedRoute>
-              <Resources currentUser={currentUser} onLogout={handleLogout} />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/profile" element={
-            <ProtectedRoute>
-              <Profile currentUser={currentUser} onLogout={handleLogout} />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/chat" element={
-            <ProtectedRoute>
-              <Chat currentUser={currentUser} onLogout={handleLogout} />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/location" element={
-            <ProtectedRoute>
-              <Location currentUser={currentUser} onLogout={handleLogout} />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/search" element={
-            <ProtectedRoute>
-              <SearchResults currentUser={currentUser} onLogout={handleLogout} />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/" element={
-            isAuthenticated ? 
-            <Navigate to="/front" replace /> : 
-            <Navigate to="/signup" replace />
-          } />
-        </Routes>
-      </div>
-    </Router>
+    <ClickSpark 
+      sparkColor="#c4b5fd"
+      sparkSize={12}
+      sparkRadius={20}
+      sparkCount={10}
+      duration={500}
+      easing="ease-out"
+      extraScale={1.2}
+    >
+      <Router>
+        <div className="App">
+          <Routes>
+            <Route path="/login" element={
+              !isAuthenticated ? 
+              <Login onLogin={handleLogin} /> : 
+              <Navigate to="/front" replace />
+            } />
+            
+            <Route path="/signup" element={
+              !isAuthenticated ? 
+              <SignUp onRegister={handleRegister} /> : 
+              <Navigate to="/front" replace />
+            } />
+            
+            <Route path="/register" element={
+              !isAuthenticated ? 
+              <Register onRegister={handleRegister} /> : 
+              <Navigate to="/front" replace />
+            } />
+            
+            <Route path="/front" element={
+              <ProtectedRoute>
+                <FrontPage currentUser={currentUser} onLogout={handleLogout} />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <Dashboard currentUser={currentUser} onLogout={handleLogout} />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/doubts" element={
+              <ProtectedRoute>
+                <Doubts currentUser={currentUser} onLogout={handleLogout} />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/collaboration" element={
+              <ProtectedRoute>
+                <Collaboration currentUser={currentUser} onLogout={handleLogout} />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/resources" element={
+              <ProtectedRoute>
+                <Resources currentUser={currentUser} onLogout={handleLogout} />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <Profile currentUser={currentUser} onLogout={handleLogout} />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/chat" element={
+              <ProtectedRoute>
+                <Chat currentUser={currentUser} onLogout={handleLogout} />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/location" element={
+              <ProtectedRoute>
+                <Location currentUser={currentUser} onLogout={handleLogout} />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/search" element={
+              <ProtectedRoute>
+                <SearchResults currentUser={currentUser} onLogout={handleLogout} />
+              </ProtectedRoute>
+            } />
+            
+            <Route path="/" element={
+              isAuthenticated ? 
+              <Navigate to="/front" replace /> : 
+              <Navigate to="/signup" replace />
+            } />
+          </Routes>
+        </div>
+      </Router>
+    </ClickSpark>
   );
 }
 

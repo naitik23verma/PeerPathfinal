@@ -9,9 +9,13 @@ import { TopHelpers } from './TopHelpers.jsx';
 import { AskDoubt } from './AskDoubt.jsx';
 import NavigationBar from './components/NavigationBar.jsx';
 
+
 // DoubtCard styled like Top Helpers
-function DoubtCard({ doubt, onSolve, onCall, onVideoCall, onChat, onLike, likedByCurrentUser, showMarkSolved, onMarkSolved, isAsker, onImageSolution, onImageClick }) {
+function DoubtCard({ doubt, onSolve, onCall, onVideoCall, onChat, onLike, likedByCurrentUser, showMarkSolved, onMarkSolved, isAsker, onImageSolution, onImageClick, onTextSolution }) {
   const fileInputRef = useRef();
+  const [showTextInput, setShowTextInput] = useState(false);
+  const [solutionText, setSolutionText] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   
   // Animation variants for doubt cards
   const cardVariants = {
@@ -199,6 +203,18 @@ function DoubtCard({ doubt, onSolve, onCall, onVideoCall, onChat, onLike, likedB
         >
           <span role="img" aria-label="gallery">🖼️</span>
         </motion.button>
+        {!doubt.isResolved && (
+          <motion.button
+            className="write-solution-btn small-action-btn"
+            style={{ background: '#7c3aed', color: '#fff', marginLeft: 8, borderRadius: 8, padding: '0.5rem 1rem', fontWeight: 600 }}
+            onClick={() => setShowTextInput(v => !v)}
+            variants={buttonVariants}
+            whileHover="hover"
+            whileTap="tap"
+          >
+            {showTextInput ? 'Cancel' : '✍️ Write Solution'}
+          </motion.button>
+        )}
         <motion.button
           className="like-btn small-action-btn"
           style={{ fontSize: '1.2rem', color: likedByCurrentUser ? '#fbbf24' : '#a78bfa' }}
@@ -222,6 +238,37 @@ function DoubtCard({ doubt, onSolve, onCall, onVideoCall, onChat, onLike, likedB
             }
           }}
         />
+        {showTextInput && !doubt.isResolved && (
+          <div style={{ width: '100%', marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <textarea
+              className="solution-textarea"
+              value={solutionText}
+              onChange={e => setSolutionText(e.target.value)}
+              placeholder="Type your solution here..."
+              rows={3}
+              style={{ width: '100%', borderRadius: 8, border: '1px solid #a78bfa', padding: 8, resize: 'vertical', fontSize: 16 }}
+              disabled={submitting}
+            />
+            <motion.button
+              className="submit-solution-btn"
+              style={{ background: '#8b5cf6', color: '#fff', border: 'none', borderRadius: 8, padding: '0.5rem 1.2rem', fontWeight: 700, alignSelf: 'flex-end' }}
+              onClick={async () => {
+                if (!solutionText.trim()) return;
+                setSubmitting(true);
+                await onTextSolution(doubt, solutionText, () => {
+                  setSolutionText("");
+                  setShowTextInput(false);
+                }, () => setSubmitting(false));
+              }}
+              disabled={submitting || !solutionText.trim()}
+              variants={buttonVariants}
+              whileHover="hover"
+              whileTap="tap"
+            >
+              {submitting ? 'Submitting...' : 'Submit Solution'}
+            </motion.button>
+          </div>
+        )}
         {showMarkSolved && !doubt.isResolved && (
           <motion.button 
             className="solve-btn" 
@@ -506,6 +553,29 @@ export default function Doubts({ currentUser, onLogout }){
       }
     };
 
+    // Handler for submitting a text solution
+    const handleTextSolution = async (doubt, text, onSuccess, onDone) => {
+      if (!text.trim()) return;
+      try {
+        const token = localStorage.getItem('token');
+        const formData = new FormData();
+        formData.append('content', text);
+        await axios.post(`http://localhost:5000/api/doubts/${doubt.id}/solutions`, formData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+        await fetchDoubts();
+        showToast('Solution posted!', 'success');
+        if (onSuccess) onSuccess();
+      } catch (error) {
+        showToast('Failed to post solution.', 'error');
+      } finally {
+        if (onDone) onDone();
+      }
+    };
+
     return(
         <motion.div 
             className="doubts-page-container"
@@ -666,6 +736,7 @@ export default function Doubts({ currentUser, onLogout }){
                                     profilePhoto: sol.user?.profilePhoto 
                                   });
                                 }}
+                                onTextSolution={handleTextSolution}
                               />
                             );
                           })}
@@ -868,8 +939,11 @@ export default function Doubts({ currentUser, onLogout }){
                 fontSize: '12px'
               }}>
                 Modal is open! Image: {imageModal.image}
+                
               </div>
+              
             )}
         </motion.div>
+        
     );
 }

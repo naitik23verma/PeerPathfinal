@@ -3,6 +3,8 @@ import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import BlurHeading from "./DashboardHeading.jsx";
 import NavigationBar from "./components/NavigationBar.jsx";
+import ScrollVelocity from "./components/ScrollVelocity.jsx";
+
 import "./Dashboard.css";
 
 const Card = ({ icon, title, description, onClick }) => (
@@ -154,6 +156,18 @@ export default function Dashboard({ currentUser, onLogout }) {
             onClick={handleResources}
           />
         </motion.div>
+
+        {/* Scroll Velocity Announcements */}
+        <ScrollVelocity 
+          texts={[
+            "🎉 Welcome to PeerPath - Connect, Learn, Grow Together",
+            "📚 New Resources Available - Explore Study Materials & Guides"
+          ]}
+          velocity={50}
+          className="text-white"
+        />
+
+        
       </motion.div>
     </motion.div>
   );
