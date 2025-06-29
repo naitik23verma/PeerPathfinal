@@ -1,7 +1,7 @@
 /* Profile.css */
 
 /* Main container */
-.profile-container {
+.profile-page {
   min-height: 100vh;
   background: linear-gradient(135deg, #000000 0%, #1a0a52 50%, #3d20b3 100%);
   color: #c4b5fd;
@@ -79,6 +79,7 @@
 /* Main Content Layout */
 .profile-content {
   padding: 2rem;
+  padding-top: 100px; /* Increased to ensure proper spacing from navbar */
   max-width: 1000px;
   margin: 0 auto;
 }

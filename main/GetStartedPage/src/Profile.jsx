@@ -3,8 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './Profile.css';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { FaCamera } from 'react-icons/fa';
+import NavigationBar from './components/NavigationBar.jsx';
 
 const Profile = ({ onLogout }) => {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ const Profile = ({ onLogout }) => {
   const [profileData, setProfileData] = useState({
     username: '',
     email: '',
+    mobileNumber: '',
     bio: '',
     year: '',
     expertise: [],
@@ -27,6 +29,58 @@ const Profile = ({ onLogout }) => {
   const [newExpertise, setNewExpertise] = useState('');
   const [weeklyDoubts, setWeeklyDoubts] = useState([]);
   const [uploading, setUploading] = useState(false);
+
+  // Animation variants
+  const pageVariants = {
+    initial: { opacity: 0, y: 20 },
+    in: { opacity: 1, y: 0 },
+    out: { opacity: 0, y: -20 }
+  };
+
+  const pageTransition = {
+    type: "tween",
+    ease: "anticipate",
+    duration: 0.5
+  };
+
+  const cardVariants = {
+    initial: { opacity: 0, scale: 0.9, y: 20 },
+    animate: { opacity: 1, scale: 1, y: 0 },
+    hover: { 
+      scale: 1.02, 
+      y: -5,
+      transition: { duration: 0.2 }
+    }
+  };
+
+  const buttonVariants = {
+    initial: { scale: 1 },
+    hover: { scale: 1.05 },
+    tap: { scale: 0.95 }
+  };
+
+  const statVariants = {
+    initial: { opacity: 0, scale: 0.8 },
+    animate: { opacity: 1, scale: 1 },
+    hover: { 
+      scale: 1.05,
+      transition: { duration: 0.2 }
+    }
+  };
+
+  const tagVariants = {
+    initial: { opacity: 0, x: -20 },
+    animate: { opacity: 1, x: 0 },
+    hover: { scale: 1.05 }
+  };
+
+  const staggerContainer = {
+    animate: {
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -56,6 +110,7 @@ const Profile = ({ onLogout }) => {
         ...prev,
         username: response.data.username || '',
         email: response.data.email || '',
+        mobileNumber: response.data.mobileNumber || '',
         bio: response.data.bio || '',
         year: response.data.year || '',
         expertise: response.data.expertise || [],
@@ -93,15 +148,10 @@ const Profile = ({ onLogout }) => {
   };
 
   const handleSave = async () => {
-    if (!profileData.email) {
-      alert('Email is required to update your profile.');
-      return;
-    }
     try {
       const token = localStorage.getItem('token');
       await axios.put('http://localhost:5000/api/auth/profile', 
         {
-          email: profileData.email,
           bio: profileData.bio,
           year: profileData.year,
           expertise: profileData.expertise.join(','),
@@ -212,27 +262,36 @@ const Profile = ({ onLogout }) => {
   };
 
   return (
-    <div className="profile-container">
-      <nav className="collaboration-nav">
-        <div className="nav-logo">
-          <img src="/peerpath.png" alt="PeerPath" />
-          <h1>PeerPath</h1>
-        </div>
-        <div className="nav-links">
-          <Link to="/dashboard">Dashboard</Link>
-          <Link to="/doubts">Doubts</Link>
-          <Link to="/collaboration">Collaboration</Link>
-          <Link to="/resources">Resources</Link>
-          <Link to="/chat">Chat</Link>
-          <Link to="/location">Location</Link>
-          <Link to="/profile" className="active">Profile</Link>
-          <button onClick={handleLogout} className="logout-btn">Logout</button>
-        </div>
-      </nav>
+    <motion.div 
+      className="profile-page"
+      initial="initial"
+      animate="in"
+      exit="out"
+      variants={pageVariants}
+      transition={pageTransition}
+    >
+      <NavigationBar 
+        currentUser={currentUser}
+        onLogout={onLogout}
+        showUserInfo={true}
+        showNotifications={true}
+        showSearch={false}
+      />
 
       <div className="profile-content">
-        <div className="profile-header fancy-gradient-card">
-          <div className="profile-avatar">
+        <motion.div 
+          className="profile-header fancy-gradient-card"
+          variants={cardVariants}
+          initial="initial"
+          animate="animate"
+          whileHover="hover"
+          transition={{ delay: 0.3 }}
+        >
+          <motion.div 
+            className="profile-avatar"
+            whileHover={{ scale: 1.05 }}
+            transition={{ duration: 0.2 }}
+          >
             {profileData.profilePhoto ? (
               <>
                 <img 
@@ -240,7 +299,11 @@ const Profile = ({ onLogout }) => {
                   alt="Profile" 
                   className="avatar-image" 
                 />
-                <label className="camera-icon-overlay">
+                <motion.label 
+                  className="camera-icon-overlay"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
                   <FaCamera size={22} />
                   <input
                     type="file"
@@ -249,12 +312,16 @@ const Profile = ({ onLogout }) => {
                     onChange={handleProfilePhotoChange}
                     disabled={uploading}
                   />
-                </label>
+                </motion.label>
               </>
             ) : (
               <>
                 <span className="avatar-text">{profileData.username.charAt(0)}</span>
-                <label className="camera-icon-overlay">
+                <motion.label 
+                  className="camera-icon-overlay"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
                   <FaCamera size={22} />
                   <input
                     type="file"
@@ -263,65 +330,143 @@ const Profile = ({ onLogout }) => {
                     onChange={handleProfilePhotoChange}
                     disabled={uploading}
                   />
-                </label>
+                </motion.label>
               </>
             )}
-          </div>
+          </motion.div>
           <div className="profile-info">
-            <h1>{profileData.username}</h1>
-            <p className="profile-level">{profileData.year || 'Student'}</p>
+            <motion.h1
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              {profileData.username}
+            </motion.h1>
+            <motion.p 
+              className="profile-level"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.5 }}
+            >
+              {profileData.year || 'Student'}
+            </motion.p>
           </div>
-          <button 
+          <motion.button 
             className="edit-btn"
             onClick={() => setIsEditing(!isEditing)}
+            variants={buttonVariants}
+            whileHover="hover"
+            whileTap="tap"
           >
             {isEditing ? 'Cancel' : 'Edit Profile'}
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
 
-        <div className="profile-stats">
+        <motion.div 
+          className="profile-stats"
+          variants={staggerContainer}
+          initial="initial"
+          animate="animate"
+        >
           {stats.map((stat, index) => (
-            <div key={index} className="stat-card fancy-gradient-card">
+            <motion.div 
+              key={index} 
+              className="stat-card fancy-gradient-card"
+              variants={statVariants}
+              whileHover="hover"
+            >
               <div className="stat-value">{stat.value}</div>
               <div className="stat-label">{stat.label}</div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
 
-        <div className="profile-sections">
-          <div className="profile-section  fancy-gradient-card ">
-            <h2>About Me</h2>
+        <motion.div 
+          className="profile-sections"
+          variants={staggerContainer}
+          initial="initial"
+          animate="animate"
+        >
+          <motion.div 
+            className="profile-section fancy-gradient-card"
+            variants={cardVariants}
+            whileHover="hover"
+          >
+            <motion.h2
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+            >
+              About Me
+            </motion.h2>
             {isEditing ? (
-              <textarea
+              <motion.textarea
                 value={profileData.bio}
                 onChange={(e) => setProfileData({...profileData, bio: e.target.value})}
                 className="bio-input"
                 rows="4"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.7 }}
               />
             ) : (
-              <p className="bio-text">{profileData.bio || 'No bio added yet.'}</p>
+              <motion.p 
+                className="bio-text"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.7 }}
+              >
+                {profileData.bio || 'No bio added yet.'}
+              </motion.p>
             )}
-          </div>
+          </motion.div>
 
-          <div className="profile-section fancy-gradient-card">
-            <h2>Skills</h2>
-            <div className="skills-container">
+          <motion.div 
+            className="profile-section fancy-gradient-card"
+            variants={cardVariants}
+            whileHover="hover"
+          >
+            <motion.h2
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8 }}
+            >
+              Skills
+            </motion.h2>
+            <motion.div 
+              className="skills-container"
+              variants={staggerContainer}
+              initial="initial"
+              animate="animate"
+            >
               {profileData.skills.map((skill, index) => (
-                <span key={index} className="skill-tag">
+                <motion.span 
+                  key={index} 
+                  className="skill-tag"
+                  variants={tagVariants}
+                  whileHover="hover"
+                >
                   {skill}
                   {isEditing && (
-                    <button 
+                    <motion.button 
                       onClick={() => removeSkill(skill)}
                       className="remove-btn"
+                      whileHover={{ scale: 1.2 }}
+                      whileTap={{ scale: 0.8 }}
                     >
                       ×
-                    </button>
+                    </motion.button>
                   )}
-                </span>
+                </motion.span>
               ))}
-            </div>
+            </motion.div>
             {isEditing && (
-              <div className="add-item">
+              <motion.div 
+                className="add-item"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.9 }}
+              >
                 <input
                   type="text"
                   value={newSkill}
@@ -329,30 +474,65 @@ const Profile = ({ onLogout }) => {
                   placeholder="Add a skill"
                   className="add-input"
                 />
-                <button onClick={addSkill} className="add-btn">Add</button>
-              </div>
+                <motion.button 
+                  onClick={addSkill} 
+                  className="add-btn"
+                  variants={buttonVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                >
+                  Add
+                </motion.button>
+              </motion.div>
             )}
-          </div>
+          </motion.div>
 
-          <div className="profile-section fancy-gradient-card">
-            <h2>Areas of Expertise</h2>
-            <div className="interests-container">
+          <motion.div 
+            className="profile-section fancy-gradient-card"
+            variants={cardVariants}
+            whileHover="hover"
+          >
+            <motion.h2
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.0 }}
+            >
+              Areas of Expertise
+            </motion.h2>
+            <motion.div 
+              className="interests-container"
+              variants={staggerContainer}
+              initial="initial"
+              animate="animate"
+            >
               {profileData.expertise.map((item, index) => (
-                <span key={index} className="interest-tag">
+                <motion.span 
+                  key={index} 
+                  className="interest-tag"
+                  variants={tagVariants}
+                  whileHover="hover"
+                >
                   {item}
                   {isEditing && (
-                    <button 
+                    <motion.button 
                       onClick={() => removeExpertise(item)}
                       className="remove-btn"
+                      whileHover={{ scale: 1.2 }}
+                      whileTap={{ scale: 0.8 }}
                     >
                       ×
-                    </button>
+                    </motion.button>
                   )}
-                </span>
+                </motion.span>
               ))}
-            </div>
+            </motion.div>
             {isEditing && (
-              <div className="add-item">
+              <motion.div 
+                className="add-item"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.1 }}
+              >
                 <input
                   type="text"
                   value={newExpertise}
@@ -360,15 +540,38 @@ const Profile = ({ onLogout }) => {
                   placeholder="Add an area of expertise"
                   className="add-input"
                 />
-                <button onClick={addExpertise} className="add-btn">Add</button>
-              </div>
+                <motion.button 
+                  onClick={addExpertise} 
+                  className="add-btn"
+                  variants={buttonVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                >
+                  Add
+                </motion.button>
+              </motion.div>
             )}
-          </div>
+          </motion.div>
 
-          <div className="profile-section fancy-gradient-card">
-            <h2>Academic Information</h2>
+          <motion.div 
+            className="profile-section fancy-gradient-card"
+            variants={cardVariants}
+            whileHover="hover"
+          >
+            <motion.h2
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.2 }}
+            >
+              Academic Information
+            </motion.h2>
             <div className="info-grid">
-              <div className="info-item">
+              <motion.div 
+                className="info-item"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 1.3 }}
+              >
                 <label>Email</label>
                 {isEditing ? (
                   <input
@@ -380,8 +583,32 @@ const Profile = ({ onLogout }) => {
                 ) : (
                   <span>{profileData.email || 'Not specified'}</span>
                 )}
-              </div>
-              <div className="info-item">
+              </motion.div>
+              <motion.div 
+                className="info-item"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 1.35 }}
+              >
+                <label>Mobile Number</label>
+                {isEditing ? (
+                  <input
+                    type="tel"
+                    value={profileData.mobileNumber}
+                    onChange={(e) => setProfileData({...profileData, mobileNumber: e.target.value})}
+                    placeholder="Enter your mobile number"
+                    className="info-input"
+                  />
+                ) : (
+                  <span>{profileData.mobileNumber || 'Not specified'}</span>
+                )}
+              </motion.div>
+              <motion.div 
+                className="info-item"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 1.4 }}
+              >
                 <label>Year of Study</label>
                 {isEditing ? (
                   <select
@@ -400,57 +627,111 @@ const Profile = ({ onLogout }) => {
                 ) : (
                   <span>{profileData.year || 'Not specified'}</span>
                 )}
-              </div>
+              </motion.div>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
-        {isEditing && (
-          <div className="save-section">
-            <button onClick={handleSave} className="save-btn">
-              Save Changes
-            </button>
-          </div>
-        )}
+        <AnimatePresence>
+          {isEditing && (
+            <motion.div 
+              className="save-section"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <motion.button 
+                onClick={handleSave} 
+                className="save-btn"
+                variants={buttonVariants}
+                whileHover="hover"
+                whileTap="tap"
+              >
+                Save Changes
+              </motion.button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      {weeklyDoubts && weeklyDoubts.length > 0 ? (
-        <div className="profile-graph-section" style={{ width: '100%', maxWidth: 900, margin: '2rem auto 0', background: 'rgba(255,255,255,0.04)', borderRadius: 16, padding: '2rem 1rem' }}>
-          <h2 style={{ textAlign: 'center' }}>Doubts Asked This Week</h2>
-          <div style={{ textAlign: 'center', marginBottom: '1rem', color: '#a78bfa' }}>
-            Total doubts this week: {weeklyDoubts.reduce((sum, day) => sum + (day.count || 0), 0)}
-          </div>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={weeklyDoubts} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="date" 
-                tickFormatter={date => {
-                  const d = new Date(date);
-                  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                }} 
-              />
-              <YAxis allowDecimals={false} />
-              <Tooltip 
-                labelFormatter={(date) => {
-                  const d = new Date(date);
-                  return d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                }}
-                formatter={(value) => [value, 'Doubts']}
-              />
-              <Bar dataKey="count" fill="#8884d8" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      ) : (
-        <div className="profile-graph-section" style={{ width: '100%', maxWidth: 900, margin: '2rem auto 0', background: 'rgba(255,255,255,0.04)', borderRadius: 16, padding: '2rem 1rem', textAlign: 'center' }}>
-          <h2 style={{ textAlign: 'center' }}>Doubts Asked This Week</h2>
-          <p style={{ color: '#a78bfa', fontSize: '1.1rem' }}>
-            No doubts asked this week. Start asking questions to see your activity here!
-          </p>
-        </div>
-      )}
-    </div>
+      <AnimatePresence>
+        {weeklyDoubts && weeklyDoubts.length > 0 ? (
+          <motion.div 
+            className="profile-graph-section" 
+            style={{ width: '100%', maxWidth: 900, margin: '2rem auto 0', background: 'rgba(255,255,255,0.04)', borderRadius: 16, padding: '2rem 1rem' }}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.5, duration: 0.5 }}
+            whileHover={{ scale: 1.01 }}
+          >
+            <motion.h2 
+              style={{ textAlign: 'center' }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.6 }}
+            >
+              Doubts Asked This Week
+            </motion.h2>
+            <motion.div 
+              style={{ textAlign: 'center', marginBottom: '1rem', color: '#a78bfa' }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.7 }}
+            >
+              Total doubts this week: {weeklyDoubts.reduce((sum, day) => sum + (day.count || 0), 0)}
+            </motion.div>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={weeklyDoubts} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="date" 
+                  tickFormatter={date => {
+                    const d = new Date(date);
+                    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                  }} 
+                />
+                <YAxis allowDecimals={false} />
+                <Tooltip 
+                  labelFormatter={(date) => {
+                    const d = new Date(date);
+                    return d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                  }}
+                  formatter={(value) => [value, 'Doubts']}
+                />
+                <Bar dataKey="count" fill="#8884d8" />
+              </BarChart>
+            </ResponsiveContainer>
+          </motion.div>
+        ) : (
+          <motion.div 
+            className="profile-graph-section" 
+            style={{ width: '100%', maxWidth: 900, margin: '2rem auto 0', background: 'rgba(255,255,255,0.04)', borderRadius: 16, padding: '2rem 1rem', textAlign: 'center' }}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.5, duration: 0.5 }}
+            whileHover={{ scale: 1.01 }}
+          >
+            <motion.h2 
+              style={{ textAlign: 'center' }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.6 }}
+            >
+              Doubts Asked This Week
+            </motion.h2>
+            <motion.p 
+              style={{ color: '#a78bfa', fontSize: '1.1rem' }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.7 }}
+            >
+              No doubts asked this week. Start asking questions to see your activity here!
+            </motion.p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 };
 

@@ -30,104 +30,13 @@ html, body {
   50% { transform: translateY(-20px); }
 }
 
-/* Navigation */
-.front-nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 2rem;
-  background: rgba(26, 10, 82, 0.95);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(196, 181, 253, 0.2);
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
-}
-
-.nav-logo {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.nav-logo img {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-}
-
-.nav-logo h1 {
-  color: #c4b5fd;
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin: 0;
-}
-
-.nav-user {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.nav-profile {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  cursor: pointer;
-  padding: 0.5rem 1rem;
-  border-radius: 25px;
-  background: rgba(196, 181, 253, 0.1);
-  border: 1px solid rgba(196, 181, 253, 0.2);
-  transition: all 0.3s ease;
-}
-
-.nav-profile:hover {
-  background: rgba(196, 181, 253, 0.2);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(196, 181, 253, 0.3);
-}
-
-.profile-photo {
-  width: 35px;
-  height: 35px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid rgba(196, 181, 253, 0.3);
-}
-
-.username {
-  color: #c4b5fd;
-  font-weight: 500;
-  font-size: 0.9rem;
-}
-
-.logout-btn {
-  padding: 0.5rem 1rem;
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  border: none;
-  border-radius: 8px;
-  color: white;
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.logout-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
-}
-
 /* Main Content */
 .front-content {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
-  padding-top: 100px; /* Account for fixed navbar */
+  padding-top: 120px; /* Account for fixed navbar */
   min-height: 100vh;
   position: relative;
   z-index: 1;
@@ -402,17 +311,6 @@ html, body {
 }
 
 @media (max-width: 768px) {
-  .front-nav {
-    padding: 1rem;
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .nav-user {
-    width: 100%;
-    justify-content: space-between;
-  }
-  
   .front-content {
     padding: 1rem;
     padding-top: 120px;

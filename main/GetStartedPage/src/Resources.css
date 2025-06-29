@@ -1,7 +1,11 @@
-.resources-container {
+.resources-page {
   min-height: 100vh;
   background: linear-gradient(135deg, #000000 0%, #1a0a52 50%, #3d20b3 100%);
   color: #c4b5fd;
+}
+
+.resources-main {
+  padding-top: 120px;
 }
 
 .resources-nav {

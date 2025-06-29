@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import { motion, AnimatePresence } from 'framer-motion';
 import './Collaboration.css';
+import NavigationBar from './components/NavigationBar.jsx';
 
 const projects = [
   {
@@ -84,6 +86,49 @@ const Collaboration = ({ currentUser, onLogout }) => {
     mentor: currentUser?.name || 'You'
   });
   const [allProjects, setAllProjects] = useState([]);
+
+  // Animation variants
+  const pageVariants = {
+    initial: { opacity: 0, y: 20 },
+    in: { opacity: 1, y: 0 },
+    out: { opacity: 0, y: -20 }
+  };
+
+  const pageTransition = {
+    type: "tween",
+    ease: "anticipate",
+    duration: 0.5
+  };
+
+  const cardVariants = {
+    initial: { opacity: 0, scale: 0.9, y: 20 },
+    animate: { opacity: 1, scale: 1, y: 0 },
+    hover: { 
+      scale: 1.02, 
+      y: -5,
+      transition: { duration: 0.2 }
+    }
+  };
+
+  const buttonVariants = {
+    initial: { scale: 1 },
+    hover: { scale: 1.05 },
+    tap: { scale: 0.95 }
+  };
+
+  const modalVariants = {
+    initial: { opacity: 0, scale: 0.8, y: 50 },
+    animate: { opacity: 1, scale: 1, y: 0 },
+    exit: { opacity: 0, scale: 0.8, y: 50 }
+  };
+
+  const staggerContainer = {
+    animate: {
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
 
   // Fetch all projects from backend
   useEffect(() => {
@@ -248,93 +293,244 @@ const Collaboration = ({ currentUser, onLogout }) => {
   );
 
   return (
-    <div className="collaboration-container">
-      <nav className="collaboration-nav">
-        <div className="nav-logo">
-          <img src="/peerpath.png" alt="PeerPath" />
-          <h1>PeerPath</h1>
-        </div>
-        <div className="nav-links">
-          <Link to="/dashboard">Dashboard</Link>
-          <Link to="/doubts">Doubts</Link>
-          <Link to="/collaboration" className="active">Collaboration</Link>
-          <Link to="/resources">Resources</Link>
-          <Link to="/chat">Chat</Link>
-          <Link to="/location">Location</Link>
-          <Link to="/profile">Profile</Link>
-          <button onClick={onLogout} className="logout-btn">Logout</button>
-        </div>
-      </nav>
+    <motion.div 
+      className="collaboration-container"
+      initial="initial"
+      animate="in"
+      exit="out"
+      variants={pageVariants}
+      transition={pageTransition}
+    >
+      <NavigationBar 
+        currentUser={currentUser}
+        onLogout={onLogout}
+        showUserInfo={true}
+        showNotifications={true}
+        showSearch={false}
+      />
 
-      <div className="collaboration-content">
-        <div className="collaboration-header">
-          <h1>🤝 Project Collaboration</h1>
-          <p>Join exciting projects and build amazing things together</p>
-        </div>
+      <motion.div 
+        className="collaboration-content"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3, duration: 0.6 }}
+      >
+        <motion.div 
+          className="collaboration-header"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <motion.h1
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+          >
+            🤝 Project Collaboration
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+          >
+            Join exciting projects and build amazing things together
+          </motion.p>
+        </motion.div>
 
         {/* User's Projects Section */}
-        {userProjects.length > 0 && (
-          <div className="user-projects-section">
-            <h2>🎯 Your Projects</h2>
-            <div className="projects-grid">
-              {userProjects.map((project) => (
-                <div key={project._id || project.id} className="project-card user-project">
-                  <div className="project-header">
-                    <h3>{project.title}</h3>
-                    <span className={`difficulty ${(project.difficulty || 'Intermediate').toLowerCase()}`}>
-                      {project.difficulty || 'Intermediate'}
-                    </span>
-                  </div>
-                  <p className="project-description">{project.description}</p>
-                  <div className="project-skills">
-                    {(project.skills || []).map((skill, index) => (
-                      <span key={index} className="skill-tag">{skill}</span>
-                    ))}
-                  </div>
-                  <div className="project-meta">
-                    <div className="meta-item">
-                      <span>👥 {project.members?.length || 1}/{project.maxMembers || 5} Members</span>
-                    </div>
-                    <div className="meta-item">
-                      <span>⏱️ {project.duration || '3 months'}</span>
-                    </div>
-                    <div className="meta-item">
-                      <span>👨‍🏫 {project.mentor || (project.creator?.username || 'N/A')}</span>
-                    </div>
-                  </div>
-                  {/* Display all member names */}
-                  <div className="project-members">
-                    <strong>Members:</strong> {(project.members || []).map((m, idx) => m.user?.username || m.user?.name || 'Unknown').join(', ')}
-                  </div>
-                  <div className="project-actions">
-                    <button className="manage-btn">Manage Project</button>
-                    <button className="chat-btn">💬</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        <AnimatePresence>
+          {userProjects.length > 0 && (
+            <motion.div 
+              className="user-projects-section"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7 }}
+            >
+              <motion.h2
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.8 }}
+              >
+                🎯 Your Projects
+              </motion.h2>
+              <motion.div 
+                className="projects-grid"
+                variants={staggerContainer}
+                initial="initial"
+                animate="animate"
+              >
+                {userProjects.map((project, index) => (
+                  <motion.div 
+                    key={project._id || project.id} 
+                    className="project-card user-project"
+                    variants={cardVariants}
+                    whileHover="hover"
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <motion.div 
+                      className="project-header"
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.9 + index * 0.1 }}
+                    >
+                      <h3>{project.title}</h3>
+                      <span className={`difficulty ${(project.difficulty || 'Intermediate').toLowerCase()}`}>
+                        {project.difficulty || 'Intermediate'}
+                      </span>
+                    </motion.div>
+                    <motion.p 
+                      className="project-description"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 1.0 + index * 0.1 }}
+                    >
+                      {project.description}
+                    </motion.p>
+                    <motion.div 
+                      className="project-skills"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 1.1 + index * 0.1 }}
+                    >
+                      {(project.skills || []).map((skill, skillIndex) => (
+                        <motion.span 
+                          key={skillIndex} 
+                          className="skill-tag"
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: 1.2 + index * 0.1 + skillIndex * 0.05 }}
+                          whileHover={{ scale: 1.05 }}
+                        >
+                          {skill}
+                        </motion.span>
+                      ))}
+                    </motion.div>
+                    <motion.div 
+                      className="project-meta"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 1.3 + index * 0.1 }}
+                    >
+                      <div className="meta-item">
+                        <span>👥 {project.members?.length || 1}/{project.maxMembers || 5} Members</span>
+                      </div>
+                      <div className="meta-item">
+                        <span>⏱️ {project.duration || '3 months'}</span>
+                      </div>
+                      <div className="meta-item">
+                        <span>👨‍🏫 {project.mentor || (project.creator?.username || 'N/A')}</span>
+                      </div>
+                    </motion.div>
+                    <motion.div 
+                      className="project-members"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 1.4 + index * 0.1 }}
+                    >
+                      <strong>Members:</strong> {(project.members || []).map((m, idx) => m.user?.username || m.user?.name || 'Unknown').join(', ')}
+                    </motion.div>
+                    <motion.div 
+                      className="project-actions"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 1.5 + index * 0.1 }}
+                    >
+                      <motion.button 
+                        className="manage-btn"
+                        variants={buttonVariants}
+                        whileHover="hover"
+                        whileTap="tap"
+                      >
+                        Manage Project
+                      </motion.button>
+                      <motion.button 
+                        className="chat-btn"
+                        variants={buttonVariants}
+                        whileHover="hover"
+                        whileTap="tap"
+                      >
+                        💬
+                      </motion.button>
+                    </motion.div>
+                  </motion.div>
+                ))}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Available Projects Section */}
-        <div className="available-projects-section">
-          <h2>🚀 Available Projects</h2>
-          <div className="projects-grid">
-            {availableProjects.map((project) => (
-              <div key={project._id || project.id} className="project-card">
-                <div className="project-header">
+        <motion.div 
+          className="available-projects-section"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8 }}
+        >
+          <motion.h2
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.9 }}
+          >
+            🚀 Available Projects
+          </motion.h2>
+          <motion.div 
+            className="projects-grid"
+            variants={staggerContainer}
+            initial="initial"
+            animate="animate"
+          >
+            {availableProjects.map((project, index) => (
+              <motion.div 
+                key={project._id || project.id} 
+                className="project-card"
+                variants={cardVariants}
+                whileHover="hover"
+                transition={{ delay: index * 0.1 }}
+              >
+                <motion.div 
+                  className="project-header"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.0 + index * 0.1 }}
+                >
                   <h3>{project.title}</h3>
                   <span className={`difficulty ${(project.difficulty || 'Intermediate').toLowerCase()}`}>
                     {project.difficulty || 'Intermediate'}
                   </span>
-                </div>
-                <p className="project-description">{project.description}</p>
-                <div className="project-skills">
-                  {(project.skills || []).map((skill, index) => (
-                    <span key={index} className="skill-tag">{skill}</span>
+                </motion.div>
+                <motion.p 
+                  className="project-description"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 1.1 + index * 0.1 }}
+                >
+                  {project.description}
+                </motion.p>
+                <motion.div 
+                  className="project-skills"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.2 + index * 0.1 }}
+                >
+                  {(project.skills || []).map((skill, skillIndex) => (
+                    <motion.span 
+                      key={skillIndex} 
+                      className="skill-tag"
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 1.3 + index * 0.1 + skillIndex * 0.05 }}
+                      whileHover={{ scale: 1.05 }}
+                    >
+                      {skill}
+                    </motion.span>
                   ))}
-                </div>
-                <div className="project-meta">
+                </motion.div>
+                <motion.div 
+                  className="project-meta"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.4 + index * 0.1 }}
+                >
                   <div className="meta-item">
                     <span>👥 {project.members?.length || 1}/{project.maxMembers || 5} Members</span>
                   </div>
@@ -344,109 +540,163 @@ const Collaboration = ({ currentUser, onLogout }) => {
                   <div className="meta-item">
                     <span>👨‍🏫 {project.mentor || (project.creator?.username || 'N/A')}</span>
                   </div>
-                </div>
-                {/* Display all member names */}
-                <div className="project-members">
+                </motion.div>
+                <motion.div 
+                  className="project-members"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 1.5 + index * 0.1 }}
+                >
                   <strong>Members:</strong> {(project.members || []).map((m, idx) => m.user?.username || m.user?.name || 'Unknown').join(', ')}
-                </div>
-                <div className="project-actions">
-                  {/* Only show join if not full and not already a member */}
+                </motion.div>
+                <motion.div 
+                  className="project-actions"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.6 + index * 0.1 }}
+                >
                   {(!project.members || !project.members.some(m => m.user?._id === currentUser?._id)) &&
                     (project.members?.length || 1) < (project.maxMembers || 5) && (
-                    <button className="join-btn" onClick={() => handleJoinProject(project)}>
+                    <motion.button 
+                      className="join-btn" 
+                      onClick={() => handleJoinProject(project)}
+                      variants={buttonVariants}
+                      whileHover="hover"
+                      whileTap="tap"
+                    >
                       Join Project
-                    </button>
+                    </motion.button>
                   )}
-                  <button className="chat-btn" onClick={() => handleChatWithLeader(project)} title={`Chat with ${project.mentor || (project.creator?.username || 'N/A')}`}>
+                  <motion.button 
+                    className="chat-btn" 
+                    onClick={() => handleChatWithLeader(project)} 
+                    title={`Chat with ${project.mentor || (project.creator?.username || 'N/A')}`}
+                    variants={buttonVariants}
+                    whileHover="hover"
+                    whileTap="tap"
+                  >
                     💬
-                  </button>
-                </div>
-              </div>
+                  </motion.button>
+                </motion.div>
+              </motion.div>
             ))}
-          </div>
-        </div>
-
-        {/* Full Projects Section */}
-        {fullProjects.length > 0 && (
-          <div className="full-projects-section">
-            <h2>Projects Already Full</h2>
-            <div className="projects-grid">
-              {fullProjects.map((project) => (
-                <div key={project._id || project.id} className="project-card full-project">
-                  <div className="project-header">
-                    <h3>{project.title}</h3>
-                    <span className={`difficulty ${(project.difficulty || 'Intermediate').toLowerCase()}`}>
-                      {project.difficulty || 'Intermediate'}
-                    </span>
-                  </div>
-                  <p className="project-description">{project.description}</p>
-                  <div className="project-skills">
-                    {(project.skills || []).map((skill, index) => (
-                      <span key={index} className="skill-tag">{skill}</span>
-                    ))}
-                  </div>
-                  <div className="project-meta">
-                    <div className="meta-item">
-                      <span>👥 {project.members?.length || 1}/{project.maxMembers || 5} Members</span>
-                    </div>
-                    <div className="meta-item">
-                      <span>⏱️ {project.duration || '3 months'}</span>
-                    </div>
-                    <div className="meta-item">
-                      <span>👨‍🏫 {project.mentor || (project.creator?.username || 'N/A')}</span>
-                    </div>
-                  </div>
-                  {/* Display all member names */}
-                  <div className="project-members">
-                    <strong>Members:</strong> {(project.members || []).map((m, idx) => m.user?.username || m.user?.name || 'Unknown').join(', ')}
-                  </div>
-                  <div className="project-actions">
-                    {/* No join button for full projects */}
-                    <button className="chat-btn" onClick={() => handleChatWithLeader(project)} title={`Chat with ${project.mentor || (project.creator?.username || 'N/A')}`}>
-                      💬
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+          </motion.div>
+        </motion.div>
 
         {/* Create Project Section */}
-        <div className="create-project-section">
-          <h2>Have a project idea?</h2>
-          <p>Create your own project and invite others to collaborate</p>
-          <button className="create-btn" onClick={handleCreateProject}>Create New Project</button>
-        </div>
+        <motion.div 
+          className="create-project-section"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.0 }}
+        >
+          <motion.h2
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.1 }}
+          >
+            Have a project idea?
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.2 }}
+          >
+            Create your own project and invite others to collaborate
+          </motion.p>
+          <motion.button 
+            className="create-btn" 
+            onClick={handleCreateProject}
+            variants={buttonVariants}
+            initial="initial"
+            whileHover="hover"
+            whileTap="tap"
+            transition={{ delay: 1.3 }}
+          >
+            Create New Project
+          </motion.button>
+        </motion.div>
 
-        {/* Join Fast! The Projects Already Full Section */}
-        <div className="full-projects-section">
-          <h2 style={{
-            color: '#c4b5fd',
-            fontSize: '2rem',
-            marginBottom: '2rem',
-            textAlign: 'center',
-            paddingTop: '2rem',
-            paddingBottom: '1.5rem'
-          }}>
+        {/* Full Projects Section */}
+        <motion.div 
+          className="full-projects-section"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.1 }}
+        >
+          <motion.h2 
+            style={{
+              color: '#c4b5fd',
+              fontSize: '2rem',
+              marginBottom: '2rem',
+              textAlign: 'center',
+              paddingTop: '2rem',
+              paddingBottom: '1.5rem'
+            }}
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.2 }}
+          >
             Join Fast! The Projects Already Full
-          </h2>
-          <div className="projects-grid">
-            {combinedFullProjects.map((project) => (
-              <div key={project._id || project.id} className="project-card full-project">
-                <div className="project-header">
+          </motion.h2>
+          <motion.div 
+            className="projects-grid"
+            variants={staggerContainer}
+            initial="initial"
+            animate="animate"
+          >
+            {combinedFullProjects.map((project, index) => (
+              <motion.div 
+                key={project._id || project.id} 
+                className="project-card full-project"
+                variants={cardVariants}
+                whileHover="hover"
+                transition={{ delay: index * 0.1 }}
+              >
+                <motion.div 
+                  className="project-header"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.3 + index * 0.1 }}
+                >
                   <h3>{project.title}</h3>
                   <span className={`difficulty ${(project.difficulty || 'Intermediate').toLowerCase()}`}>
                     {project.difficulty || 'Intermediate'}
                   </span>
-                </div>
-                <p className="project-description">{project.description}</p>
-                <div className="project-skills">
-                  {(project.skills || []).map((skill, index) => (
-                    <span key={index} className="skill-tag">{skill}</span>
+                </motion.div>
+                <motion.p 
+                  className="project-description"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 1.4 + index * 0.1 }}
+                >
+                  {project.description}
+                </motion.p>
+                <motion.div 
+                  className="project-skills"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.5 + index * 0.1 }}
+                >
+                  {(project.skills || []).map((skill, skillIndex) => (
+                    <motion.span 
+                      key={skillIndex} 
+                      className="skill-tag"
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 1.6 + index * 0.1 + skillIndex * 0.05 }}
+                      whileHover={{ scale: 1.05 }}
+                    >
+                      {skill}
+                    </motion.span>
                   ))}
-                </div>
-                <div className="project-meta">
+                </motion.div>
+                <motion.div 
+                  className="project-meta"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.7 + index * 0.1 }}
+                >
                   <div className="meta-item">
                     <span>👥 {project.members?.length || 1}/{project.maxMembers || 5} Members</span>
                   </div>
@@ -456,156 +706,329 @@ const Collaboration = ({ currentUser, onLogout }) => {
                   <div className="meta-item">
                     <span>👨‍🏫 {project.mentor || (project.creator?.username || 'N/A')}</span>
                   </div>
-                </div>
-                {/* Display all member names */}
-                <div className="project-members">
+                </motion.div>
+                <motion.div 
+                  className="project-members"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 1.8 + index * 0.1 }}
+                >
                   <strong>Members:</strong> {(project.members || []).map((m, idx) => m.user?.username || m.user?.name || 'Unknown').join(', ')}
-                </div>
-                <div className="project-actions">
-                  {/* No join button for full projects */}
-                  <button className="chat-btn" onClick={() => handleChatWithLeader(project)} title={`Chat with ${project.mentor || (project.creator?.username || 'N/A')}`}>
+                </motion.div>
+                <motion.div 
+                  className="project-actions"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.9 + index * 0.1 }}
+                >
+                  <motion.button 
+                    className="chat-btn" 
+                    onClick={() => handleChatWithLeader(project)} 
+                    title={`Chat with ${project.mentor || (project.creator?.username || 'N/A')}`}
+                    variants={buttonVariants}
+                    whileHover="hover"
+                    whileTap="tap"
+                  >
                     💬
-                  </button>
-                </div>
-              </div>
+                  </motion.button>
+                </motion.div>
+              </motion.div>
             ))}
-          </div>
-        </div>
-      </div>
+          </motion.div>
+        </motion.div>
+      </motion.div>
 
       {/* Join Project Modal */}
-      {showModal && selectedProject && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="close-btn" onClick={() => setShowModal(false)}>
-              &times;
-            </button>
-            <h2>Join {selectedProject.title}</h2>
-            <p><strong>Description:</strong> {selectedProject.description}</p>
-            <p><strong>Skills Required:</strong> {(selectedProject.skills || []).join(', ')}</p>
-            <p><strong>Duration:</strong> {selectedProject.duration || '3 months'}</p>
-            <p><strong>Mentor:</strong> {selectedProject.mentor || (selectedProject.creator?.username || 'N/A')}</p>
-            <p><strong>Team Size:</strong> {selectedProject.members?.length || 1}/{selectedProject.maxMembers || 5}</p>
-            <div className="modal-actions">
-              <button onClick={() => setShowModal(false)} className="cancel-btn">
-                Cancel
-              </button>
-              {/* Only show join if not full and not already a member */}
-              {(!selectedProject.members || !selectedProject.members.some(m => m.user?._id === currentUser?._id)) &&
-                (selectedProject.members?.length || 1) < (selectedProject.maxMembers || 5) && (
-                <button onClick={confirmJoin} className="confirm-btn">
-                  Join Project
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {showModal && selectedProject && (
+          <motion.div 
+            className="modal-overlay" 
+            onClick={() => setShowModal(false)}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div 
+              className="modal-content" 
+              onClick={(e) => e.stopPropagation()}
+              variants={modalVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+            >
+              <motion.button 
+                className="close-btn" 
+                onClick={() => setShowModal(false)}
+                variants={buttonVariants}
+                whileHover="hover"
+                whileTap="tap"
+              >
+                &times;
+              </motion.button>
+              <motion.h2
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+              >
+                Join {selectedProject.title}
+              </motion.h2>
+              <motion.p
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <strong>Description:</strong> {selectedProject.description}
+              </motion.p>
+              <motion.p
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <strong>Skills Required:</strong> {(selectedProject.skills || []).join(', ')}
+              </motion.p>
+              <motion.p
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                <strong>Duration:</strong> {selectedProject.duration || '3 months'}
+              </motion.p>
+              <motion.p
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+              >
+                <strong>Mentor:</strong> {selectedProject.mentor || (selectedProject.creator?.username || 'N/A')}
+              </motion.p>
+              <motion.p
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+              >
+                <strong>Team Size:</strong> {selectedProject.members?.length || 1}/{selectedProject.maxMembers || 5}
+              </motion.p>
+              <motion.div 
+                className="modal-actions"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.7 }}
+              >
+                <motion.button 
+                  onClick={() => setShowModal(false)} 
+                  className="cancel-btn"
+                  variants={buttonVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                >
+                  Cancel
+                </motion.button>
+                {(!selectedProject.members || !selectedProject.members.some(m => m.user?._id === currentUser?._id)) &&
+                  (selectedProject.members?.length || 1) < (selectedProject.maxMembers || 5) && (
+                  <motion.button 
+                    onClick={confirmJoin} 
+                    className="confirm-btn"
+                    variants={buttonVariants}
+                    whileHover="hover"
+                    whileTap="tap"
+                  >
+                    Join Project
+                  </motion.button>
+                )}
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Create Project Form Modal */}
-      {showCreateForm && (
-        <div className="modal-overlay" onClick={() => setShowCreateForm(false)}>
-          <div className="modal-content create-form" onClick={(e) => e.stopPropagation()}>
-            <button className="close-btn" onClick={() => setShowCreateForm(false)}>
-              &times;
-            </button>
-            <h2>Create New Project</h2>
-            <form onSubmit={handleFormSubmit}>
-              <div className="form-group">
-                <label>Project Title</label>
-                <input
-                  type="text"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleInputChange}
-                  required
-                  placeholder="Enter project title"
-                />
-              </div>
-              
-              <div className="form-group">
-                <label>Description</label>
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  required
-                  placeholder="Describe your project"
-                  rows="3"
-                />
-              </div>
-              
-              <div className="form-group">
-                <label>Skills Required (comma-separated)</label>
-                <input
-                  type="text"
-                  name="skills"
-                  value={formData.skills}
-                  onChange={handleInputChange}
-                  required
-                  placeholder="React, Node.js, MongoDB"
-                />
-              </div>
-              
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Max Team Size</label>
-                  <select
-                    name="maxMembers"
-                    value={formData.maxMembers}
+      <AnimatePresence>
+        {showCreateForm && (
+          <motion.div 
+            className="modal-overlay" 
+            onClick={() => setShowCreateForm(false)}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div 
+              className="modal-content create-form" 
+              onClick={(e) => e.stopPropagation()}
+              variants={modalVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+            >
+              <motion.button 
+                className="close-btn" 
+                onClick={() => setShowCreateForm(false)}
+                variants={buttonVariants}
+                whileHover="hover"
+                whileTap="tap"
+              >
+                &times;
+              </motion.button>
+              <motion.h2
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+              >
+                Create New Project
+              </motion.h2>
+              <motion.form 
+                onSubmit={handleFormSubmit}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <motion.div 
+                  className="form-group"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  <label>Project Title</label>
+                  <input
+                    type="text"
+                    name="title"
+                    value={formData.title}
                     onChange={handleInputChange}
-                  >
-                    <option value={3}>3</option>
-                    <option value={4}>4</option>
-                    <option value={5}>5</option>
-                    <option value={6}>6</option>
-                    <option value={8}>8</option>
-                  </select>
-                </div>
+                    required
+                    placeholder="Enter project title"
+                  />
+                </motion.div>
                 
-                <div className="form-group">
-                  <label>Difficulty Level</label>
-                  <select
-                    name="difficulty"
-                    value={formData.difficulty}
+                <motion.div 
+                  className="form-group"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.4 }}
+                >
+                  <label>Description</label>
+                  <textarea
+                    name="description"
+                    value={formData.description}
                     onChange={handleInputChange}
-                  >
-                    <option value="Beginner">Beginner</option>
-                    <option value="Intermediate">Intermediate</option>
-                    <option value="Advanced">Advanced</option>
-                  </select>
-                </div>
+                    required
+                    placeholder="Describe your project"
+                    rows="3"
+                  />
+                </motion.div>
                 
-                <div className="form-group">
-                  <label>Duration</label>
-                  <select
-                    name="duration"
-                    value={formData.duration}
+                <motion.div 
+                  className="form-group"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  <label>Skills Required (comma-separated)</label>
+                  <input
+                    type="text"
+                    name="skills"
+                    value={formData.skills}
                     onChange={handleInputChange}
+                    required
+                    placeholder="React, Node.js, MongoDB"
+                  />
+                </motion.div>
+                
+                <motion.div 
+                  className="form-row"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 }}
+                >
+                  <motion.div 
+                    className="form-group"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.7 }}
                   >
-                    <option value="1 month">1 month</option>
-                    <option value="2 months">2 months</option>
-                    <option value="3 months">3 months</option>
-                    <option value="4 months">4 months</option>
-                    <option value="5 months">5 months</option>
-                    <option value="6 months">6 months</option>
-                  </select>
-                </div>
-              </div>
-              
-              <div className="modal-actions">
-                <button type="button" onClick={() => setShowCreateForm(false)} className="cancel-btn">
-                  Cancel
-                </button>
-                <button type="submit" className="confirm-btn">
-                  Create Project
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-    </div>
+                    <label>Max Team Size</label>
+                    <select
+                      name="maxMembers"
+                      value={formData.maxMembers}
+                      onChange={handleInputChange}
+                    >
+                      <option value={3}>3</option>
+                      <option value={4}>4</option>
+                      <option value={5}>5</option>
+                      <option value={6}>6</option>
+                      <option value={8}>8</option>
+                    </select>
+                  </motion.div>
+                  
+                  <motion.div 
+                    className="form-group"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.8 }}
+                  >
+                    <label>Difficulty Level</label>
+                    <select
+                      name="difficulty"
+                      value={formData.difficulty}
+                      onChange={handleInputChange}
+                    >
+                      <option value="Beginner">Beginner</option>
+                      <option value="Intermediate">Intermediate</option>
+                      <option value="Advanced">Advanced</option>
+                    </select>
+                  </motion.div>
+                  
+                  <motion.div 
+                    className="form-group"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.9 }}
+                  >
+                    <label>Duration</label>
+                    <select
+                      name="duration"
+                      value={formData.duration}
+                      onChange={handleInputChange}
+                    >
+                      <option value="1 month">1 month</option>
+                      <option value="2 months">2 months</option>
+                      <option value="3 months">3 months</option>
+                      <option value="4 months">4 months</option>
+                      <option value="5 months">5 months</option>
+                      <option value="6 months">6 months</option>
+                    </select>
+                  </motion.div>
+                </motion.div>
+                
+                <motion.div 
+                  className="modal-actions"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.0 }}
+                >
+                  <motion.button 
+                    type="button" 
+                    onClick={() => setShowCreateForm(false)} 
+                    className="cancel-btn"
+                    variants={buttonVariants}
+                    whileHover="hover"
+                    whileTap="tap"
+                  >
+                    Cancel
+                  </motion.button>
+                  <motion.button 
+                    type="submit" 
+                    className="confirm-btn"
+                    variants={buttonVariants}
+                    whileHover="hover"
+                    whileTap="tap"
+                  >
+                    Create Project
+                  </motion.button>
+                </motion.div>
+              </motion.form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 };
 

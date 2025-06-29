@@ -59,35 +59,46 @@ const authenticateToken = (req, res, next) => {
 // Register route
 router.post('/register', upload.single('profilePhoto'), async (req, res) => {
   try {
-    const { username, email, password, bio, year, expertise, skills } = req.body;
+    console.log('--- REGISTRATION ATTEMPT ---');
+    console.log('Request body:', req.body);
+    const { username, email, password, bio, year, expertise, skills, mobileNumber } = req.body;
 
     if (!email) {
+      console.log('Email is missing');
       return res.status(400).json({ message: 'Email is required' });
     }
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ username });
-    if (existingUser) {
+    console.log('Creating user with username:', username, 'email:', email);
+
+    // Check if user already exists by username
+    const existingUserByUsername = await User.findOne({ username });
+    if (existingUserByUsername) {
+      console.log('Username already exists:', username);
       return res.status(400).json({ message: 'Username already exists' });
     }
 
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    // Check if user already exists by email
+    const existingUserByEmail = await User.findOne({ email });
+    if (existingUserByEmail) {
+      console.log('Email already exists:', email);
+      return res.status(400).json({ message: 'Email already registered. Please use a different email or try logging in.' });
+    }
 
-    // Create new user
+    // Create new user (password will be hashed by the model's pre-save middleware)
     const user = new User({
       username,
       email,
-      password: hashedPassword,
+      password: password, // Don't hash here - the model will do it
       bio: bio || '',
       year: year || '',
       expertise: expertise || '',
       skills: skills || '',
+      mobileNumber: mobileNumber || '',
       profilePhoto: req.file ? `/uploads/${req.file.filename}` : ''
     });
 
     await user.save();
+    console.log('User saved successfully. Password hash:', user.password.substring(0, 20) + '...');
 
     // Create and sign JWT token
     const token = jwt.sign(
@@ -96,6 +107,8 @@ router.post('/register', upload.single('profilePhoto'), async (req, res) => {
       { expiresIn: '24h' }
     );
 
+    console.log('Registration successful for:', username);
+
     // Return user data and token
     res.status(201).json({
       message: 'User registered successfully',
@@ -103,6 +116,7 @@ router.post('/register', upload.single('profilePhoto'), async (req, res) => {
         _id: user._id,
         username: user.username,
         email: user.email,
+        mobileNumber: user.mobileNumber,
         bio: user.bio,
         year: user.year,
         expertise: user.expertise,
@@ -113,6 +127,16 @@ router.post('/register', upload.single('profilePhoto'), async (req, res) => {
     });
   } catch (error) {
     console.error('Registration error:', error);
+    
+    // Handle specific MongoDB duplicate key errors
+    if (error.code === 11000) {
+      if (error.keyPattern && error.keyPattern.email) {
+        return res.status(400).json({ message: 'Email already registered. Please use a different email or try logging in.' });
+      } else if (error.keyPattern && error.keyPattern.username) {
+        return res.status(400).json({ message: 'Username already exists. Please choose a different username.' });
+      }
+    }
+    
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
@@ -120,17 +144,38 @@ router.post('/register', upload.single('profilePhoto'), async (req, res) => {
 // Login route
 router.post('/login', async (req, res) => {
   try {
+    console.log('--- LOGIN ATTEMPT ---');
+    console.log('Request body:', req.body);
     const { username, password } = req.body;
+    console.log('Parsed username:', username);
+    console.log('Parsed password:', password ? '***' : undefined);
 
-    // Find user
-    const user = await User.findOne({ username });
+    if (!username || !password) {
+      console.log('Missing username or password');
+      return res.status(400).json({ message: 'Username/email and password are required.' });
+    }
+
+    // Determine if username is an email
+    const isEmail = username && username.includes('@');
+    const user = await User.findOne(isEmail ? { email: username } : { username });
+    console.log('User found:', user ? user.username : null, '| Email:', user ? user.email : null);
     if (!user) {
+      console.log('No user found for', username);
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
     // Verify password
-    const isMatch = await bcrypt.compare(password, user.password);
+    let isMatch = false;
+    try {
+      isMatch = await bcrypt.compare(password, user.password);
+      console.log('bcrypt.compare result:', isMatch);
+    } catch (e) {
+      console.log('bcrypt.compare error:', e);
+      isMatch = false;
+    }
+
     if (!isMatch) {
+      console.log('Final result: Invalid credentials');
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
@@ -146,6 +191,8 @@ router.post('/login', async (req, res) => {
       user: {
         _id: user._id,
         username: user.username,
+        email: user.email,
+        mobileNumber: user.mobileNumber,
         bio: user.bio,
         year: user.year,
         expertise: user.expertise,
@@ -177,7 +224,7 @@ router.get('/me', authenticateToken, async (req, res) => {
 // Update user profile route
 router.put('/profile', authenticateToken, upload.single('profilePhoto'), async (req, res) => {
   try {
-    const { bio, year, expertise, skills, github, linkedin, twitter } = req.body;
+    const { bio, year, expertise, skills, github, linkedin, twitter, mobileNumber } = req.body;
     const user = await User.findById(req.user.userId);
 
     if (!user) {
@@ -192,6 +239,7 @@ router.put('/profile', authenticateToken, upload.single('profilePhoto'), async (
     if (github !== undefined) user.github = github;
     if (linkedin !== undefined) user.linkedin = linkedin;
     if (twitter !== undefined) user.twitter = twitter;
+    if (mobileNumber !== undefined) user.mobileNumber = mobileNumber;
     if (req.file) user.profilePhoto = `/uploads/${req.file.filename}`;
 
     await user.save();
@@ -204,6 +252,7 @@ router.put('/profile', authenticateToken, upload.single('profilePhoto'), async (
       year: user.year,
       expertise: user.expertise,
       skills: user.skills,
+      mobileNumber: user.mobileNumber,
       profilePhoto: user.profilePhoto,
       doubtsSolved: user.doubtsSolved,
       doubtsAsked: user.doubtsAsked,
@@ -224,4 +273,5 @@ router.put('/profile', authenticateToken, upload.single('profilePhoto'), async (
   }
 });
 
+export { authenticateToken };
 export default router; 

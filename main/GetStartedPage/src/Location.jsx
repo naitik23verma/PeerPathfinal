@@ -5,6 +5,8 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './Location.css';
+import { motion, AnimatePresence } from 'framer-motion';
+import NavigationBar from './components/NavigationBar.jsx';
 
 // Fix for default markers in react-leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -63,6 +65,8 @@ const Location = ({ currentUser, onLogout }) => {
   const [mapCenter, setMapCenter] = useState([20.5937, 78.9629]); // Default to India center
   const [mapZoom, setMapZoom] = useState(5);
   const mapRef = useRef(null);
+  const [nearbyUsers, setNearbyUsers] = useState([]);
+  const [showMap, setShowMap] = useState(false);
   
   const [formData, setFormData] = useState({
     currentLocation: { coordinates: [], address: '' },
@@ -72,6 +76,49 @@ const Location = ({ currentUser, onLogout }) => {
     maxPassengers: 3
   });
   const [destinationLoading, setDestinationLoading] = useState(false);
+
+  // Animation variants
+  const pageVariants = {
+    initial: { opacity: 0, y: 20 },
+    in: { opacity: 1, y: 0 },
+    out: { opacity: 0, y: -20 }
+  };
+
+  const pageTransition = {
+    type: "tween",
+    ease: "anticipate",
+    duration: 0.5
+  };
+
+  const cardVariants = {
+    initial: { opacity: 0, scale: 0.9, y: 20 },
+    animate: { opacity: 1, scale: 1, y: 0 },
+    hover: { 
+      scale: 1.02, 
+      y: -5,
+      transition: { duration: 0.2 }
+    }
+  };
+
+  const buttonVariants = {
+    initial: { scale: 1 },
+    hover: { scale: 1.05 },
+    tap: { scale: 0.95 }
+  };
+
+  const mapVariants = {
+    initial: { opacity: 0, scale: 0.8 },
+    animate: { opacity: 1, scale: 1 },
+    exit: { opacity: 0, scale: 0.8 }
+  };
+
+  const staggerContainer = {
+    animate: {
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
 
   useEffect(() => {
     fetchRides();
@@ -328,15 +375,22 @@ const Location = ({ currentUser, onLogout }) => {
   };
 
   const renderRideCards = () => {
-    return rides.map((ride) => (
-      <div
+    return rides.map((ride, index) => (
+      <motion.div
         key={ride._id}
-        className="doubt-card ride-card-carousel location-ride-card"
-        style={{ marginBottom: '2rem' }}
+        className="location-ride-card"
+        variants={cardVariants}
+        whileHover="hover"
+        transition={{ delay: index * 0.1 }}
       >
         <div className="ride-header">
           <div className="user-info">
-            <img src={ride.user.profilePhoto || '/peerpath.png'} alt={ride.user.username} />
+            <motion.img 
+              src={ride.user.profilePhoto || '/peerpath.png'} 
+              alt={ride.user.username}
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              transition={{ duration: 0.2 }}
+            />
             <h3>{ride.user.username}</h3>
           </div>
           <div className="ride-status">
@@ -358,10 +412,15 @@ const Location = ({ currentUser, onLogout }) => {
             {ride.passengers && ride.passengers.length > 0 && (
               <div className="passenger-list">
                 {ride.passengers.map((p) => (
-                  <div className="passenger-list-item" key={p.user._id}>
+                  <motion.div 
+                    className="passenger-list-item" 
+                    key={p.user._id}
+                    whileHover={{ scale: 1.05 }}
+                    transition={{ duration: 0.2 }}
+                  >
                     <img src={p.user.profilePhoto || '/peerpath.png'} alt={p.user.username} />
                     <span>{p.user.username}</span>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             )}
@@ -373,24 +432,53 @@ const Location = ({ currentUser, onLogout }) => {
           )}
         </div>
         <div className="ride-actions">
-          <button className="route-btn" onClick={() => openGoogleMapsRoute(ride)}>
+          <button 
+            className="route-btn" 
+            onClick={() => openGoogleMapsRoute(ride)}
+          >
             View Route
           </button>
           {ride.user._id === currentUser._id ? (
-            <button className="cancel-btn" onClick={() => handleCancelRide(ride._id)}>Cancel Ride</button>
+            <button 
+              className="cancel-btn" 
+              onClick={() => handleCancelRide(ride._id)}
+            >
+              Cancel Ride
+            </button>
           ) : (
             <>
               {ride.passengers.some(p => p.user._id === currentUser._id) ? (
-                <button className="leave-btn" onClick={() => handleLeaveRide(ride._id)}>Leave Ride</button>
+                <button 
+                  className="leave-btn" 
+                  onClick={() => handleLeaveRide(ride._id)}
+                >
+                  Leave Ride
+                </button>
               ) : (
-                <button className="join-btn" onClick={() => handleJoinRide(ride._id)} disabled={ride.currentPassengers >= ride.maxPassengers}>Join Ride</button>
+                <button 
+                  className="join-btn" 
+                  onClick={() => handleJoinRide(ride._id)} 
+                  disabled={ride.currentPassengers >= ride.maxPassengers}
+                >
+                  Join Ride
+                </button>
               )}
-              <button className="contact-btn" onClick={() => handleCommunication(ride)}>Contact</button>
+              <button 
+                className="contact-btn" 
+                onClick={() => handleCommunication(ride)}
+              >
+                Contact
+              </button>
             </>
           )}
-          <button className="share-btn" onClick={() => { handleJoinRide(ride._id); shareLocation(ride); }}>Share</button>
+          <button 
+            className="share-btn" 
+            onClick={() => { handleJoinRide(ride._id); shareLocation(ride); }}
+          >
+            Share
+          </button>
         </div>
-      </div>
+      </motion.div>
     ));
   };
 
@@ -457,180 +545,152 @@ const Location = ({ currentUser, onLogout }) => {
   };
 
   return (
-    <div className="location-page-container">
-      <nav className="collaboration-nav">
-        <div className="nav-logo">
-          <img src="/peerpath.png" alt="PeerPath" />
-          <h1>PeerPath</h1>
-        </div>
-        <div className="nav-links">
-          <Link to="/dashboard">Dashboard</Link>
-          <Link to="/doubts">Doubts</Link>
-          <Link to="/collaboration">Collaboration</Link>
-          <Link to="/resources">Resources</Link>
-          <Link to="/chat">Chat</Link>
-          <Link to="/location" className="active">Location</Link>
-          <Link to="/profile">Profile</Link>
-          <button onClick={onLogout} className="logout-btn">Logout</button>
-        </div>
-      </nav>
+    <motion.div 
+      className="location-page"
+      initial="initial"
+      animate="in"
+      exit="out"
+      variants={pageVariants}
+      transition={pageTransition}
+    >
+      <NavigationBar 
+        currentUser={currentUser}
+        onLogout={onLogout}
+        showUserInfo={true}
+        showNotifications={true}
+        showSearch={false}
+      />
 
       <div className="location-main-content">
-        <div className="location-header">
-          <h1>🚗 Ride Sharing</h1>
-          <p>Find travel partners or offer rides to your destination</p>
-          <div className="location-actions">
-            <button 
-              className="create-ride-btn"
-              onClick={() => setShowCreateForm(!showCreateForm)}
-            >
-              {showCreateForm ? 'Cancel' : 'Create New Ride'}
-            </button>
-            <button 
-              className="map-toggle-btn"
-              onClick={() => setMapView(!mapView)}
-            >
-              {mapView ? 'List View' : 'Map View'}
-            </button>
-          </div>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', marginBottom: '2.5rem' }}>
+          <button
+            style={{
+              background: 'linear-gradient(120deg, #ede9fe 0%, #c7d2fe 100%)',
+              color: '#7c3aed',
+              border: 'none',
+              borderRadius: '10px',
+              padding: '0.8rem 1.5rem',
+              fontSize: '1.04rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(168, 85, 247, 0.08)',
+              border: '1px solid #e9d5ff',
+              transition: 'background 0.18s, box-shadow 0.18s, transform 0.18s, color 0.18s',
+            }}
+            onClick={() => setShowCreateForm(true)}
+          >
+            Create New Ride
+          </button>
+          <button
+            style={{
+              background: 'linear-gradient(120deg, #ede9fe 0%, #c7d2fe 100%)',
+              color: '#7c3aed',
+              border: 'none',
+              borderRadius: '10px',
+              padding: '0.8rem 1.5rem',
+              fontSize: '1.04rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(168, 85, 247, 0.08)',
+              border: '1px solid #e9d5ff',
+              transition: 'background 0.18s, box-shadow 0.18s, transform 0.18s, color 0.18s',
+            }}
+            onClick={() => setMapView(v => !v)}
+          >
+            Map View
+          </button>
         </div>
-
-        {error && <div className="error-message">{error}</div>}
-
-        {/* Create Ride Form */}
-        {showCreateForm && (
-          <div className="create-ride-form">
-            <h2>Create New Ride</h2>
-            <form onSubmit={handleCreateRide}>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Current Location</label>
-                  <div className="location-input-group">
-                    <input
-                      type="text"
-                      placeholder="Enter your current location"
-                      value={formData.currentLocation.address}
-                      onChange={(e) => handleLocationChange('currentLocation', 'address', e.target.value)}
-                      required
-                    />
-                    <button 
-                      type="button" 
-                      className="location-btn"
-                      onClick={getCurrentLocation}
-                      title="Get current location"
-                    >
-                      📍
-                    </button>
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label>Destination</label>
-                  <div className="location-input-group">
-                    <input
-                      type="text"
-                      placeholder="Enter your destination (full address works best)"
-                      value={formData.destination.address}
-                      onChange={handleDestinationChange}
-                      required
-                    />
-                    <button
-                      type="button"
-                      className="location-btn"
-                      onClick={handleFindDestination}
-                      title="Find destination coordinates"
-                    >
-                      🔍
-                    </button>
-                  </div>
-                  {destinationLoading && <span className="destination-loading">Finding location...</span>}
-                  {error && error.includes('destination') && (
-                    <span className="destination-error">{error} (Try a full address)</span>
-                  )}
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Departure Time</label>
-                  <input
-                    type="datetime-local"
-                    name="departureTime"
-                    value={formData.departureTime}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Max Passengers</label>
-                  <select
-                    name="maxPassengers"
-                    value={formData.maxPassengers}
-                    onChange={handleInputChange}
-                  >
-                    <option value={1}>1</option>
-                    <option value={2}>2</option>
-                    <option value={3}>3</option>
-                    <option value={4}>4</option>
-                    <option value={5}>5</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label>Notice / Details</label>
-                <textarea
-                  name="notice"
-                  placeholder="Any specific details for the ride?"
-                  value={formData.notice}
-                  onChange={handleInputChange}
-                  rows={3}
-                />
-              </div>
-
-              <button type="submit" className="submit-btn" disabled={loading}>
-                {loading ? 'Creating...' : 'Confirm & Create Ride'}
-              </button>
-            </form>
-          </div>
-        )}
-
-        {/* Map View */}
-        {mapView && renderMapView()}
-
-        {/* Rides Section */}
-        {!mapView && (
-          <div className="rides-grid">
+        {/* Ride Cards or Map View */}
+        {!mapView ? (
+          <div className="location-cards-wrapper">
             {renderRideCards()}
           </div>
+        ) : (
+          renderMapView()
         )}
       </div>
 
       {/* Communication Modal */}
-      {showCommunication && selectedRide && (
-        <div className="communication-modal">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h3>Contact {selectedRide.user.username}</h3>
-              <button className="close-btn" onClick={() => setShowCommunication(false)}>&times;</button>
-            </div>
-            <div className="communication-options">
-              <button className="comm-btn call-btn" onClick={() => initiateCall(selectedRide.user.phoneNumber)}>
-                📞 Call
-              </button>
-              <button className="comm-btn video-btn" onClick={() => initiateVideoCall(selectedRide.user._id)}>
-                📹 Video Call
-              </button>
-              <button className="comm-btn message-btn" onClick={() => sendMessage(selectedRide.user._id)}>
-                💬 Message
-              </button>
-              <button className="comm-btn location-btn" onClick={() => shareLocation(selectedRide)}>
-                📍 Share Location
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+      <AnimatePresence>
+        {showCommunication && selectedRide && (
+          <motion.div 
+            className="communication-modal"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div 
+              className="modal-content"
+              initial={{ opacity: 0, scale: 0.8, y: 50 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.8, y: 50 }}
+              transition={{ duration: 0.3 }}
+            >
+              <motion.div 
+                className="modal-header"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+              >
+                <h3>Contact {selectedRide.user.username}</h3>
+                <motion.button 
+                  className="close-btn" 
+                  onClick={() => setShowCommunication(false)}
+                  variants={buttonVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                >
+                  &times;
+                </motion.button>
+              </motion.div>
+              <motion.div 
+                className="communication-options"
+                variants={staggerContainer}
+                initial="initial"
+                animate="animate"
+              >
+                <motion.button 
+                  className="comm-btn call-btn" 
+                  onClick={() => initiateCall(selectedRide.user.phoneNumber)}
+                  variants={buttonVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                >
+                  📞 Call
+                </motion.button>
+                <motion.button 
+                  className="comm-btn video-btn" 
+                  onClick={() => initiateVideoCall(selectedRide.user._id)}
+                  variants={buttonVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                >
+                  📹 Video Call
+                </motion.button>
+                <motion.button 
+                  className="comm-btn message-btn" 
+                  onClick={() => sendMessage(selectedRide.user._id)}
+                  variants={buttonVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                >
+                  💬 Message
+                </motion.button>
+                <motion.button 
+                  className="comm-btn location-btn" 
+                  onClick={() => shareLocation(selectedRide)}
+                  variants={buttonVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                >
+                  📍 Share Location
+                </motion.button>
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 };
 

@@ -75,7 +75,7 @@ router.post('/', authenticateToken, async (req, res) => {
     });
 
     // Populate user info
-    await doubt.populate('user', 'username profilePhoto');
+    await doubt.populate('user', 'username profilePhoto mobileNumber');
 
     res.status(201).json({
       message: 'Doubt created successfully',
@@ -111,8 +111,8 @@ router.get('/', async (req, res) => {
     }
 
     const doubts = await Doubt.find(query)
-      .populate('user', 'username profilePhoto')
-      .populate('solutions.user', 'username profilePhoto')
+      .populate('user', 'username profilePhoto mobileNumber')
+      .populate('solutions.user', 'username profilePhoto mobileNumber')
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit);
@@ -136,8 +136,8 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const doubt = await Doubt.findById(req.params.id)
-      .populate('user', 'username profilePhoto')
-      .populate('solutions.user', 'username profilePhoto');
+      .populate('user', 'username profilePhoto mobileNumber')
+      .populate('solutions.user', 'username profilePhoto mobileNumber');
 
     if (!doubt) {
       return res.status(404).json({ message: 'Doubt not found' });
@@ -246,7 +246,7 @@ router.get('/trending/views', async (req, res) => {
 router.get('/user/:userId', async (req, res) => {
   try {
     const doubts = await Doubt.find({ user: req.params.userId })
-      .populate('user', 'username profilePhoto')
+      .populate('user', 'username profilePhoto mobileNumber')
       .sort({ createdAt: -1 });
 
     res.json(doubts);

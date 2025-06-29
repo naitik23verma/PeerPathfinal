@@ -2,99 +2,214 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Modal from 'react-modal';
+import { motion, AnimatePresence } from 'framer-motion';
 import "./Doubts.css";
 import { TrendingDoubts } from './TrendingDoubts.jsx';
 import { TopHelpers } from './TopHelpers.jsx';
 import { AskDoubt } from './AskDoubt.jsx';
+import NavigationBar from './components/NavigationBar.jsx';
 
 // DoubtCard styled like Top Helpers
 function DoubtCard({ doubt, onSolve, onCall, onVideoCall, onChat, onLike, likedByCurrentUser, showMarkSolved, onMarkSolved, isAsker, onImageSolution, onImageClick }) {
   const fileInputRef = useRef();
+  
+  // Animation variants for doubt cards
+  const cardVariants = {
+    initial: { opacity: 0, y: 50, scale: 0.9 },
+    animate: { opacity: 1, y: 0, scale: 1 },
+    hover: { 
+      scale: 1.02, 
+      y: -5,
+      transition: { duration: 0.2 }
+    }
+  };
+
+  const buttonVariants = {
+    initial: { scale: 1 },
+    hover: { scale: 1.1 },
+    tap: { scale: 0.9 }
+  };
+
   return (
-    <div className={`doubt-card${Array.isArray(doubt.solutions) && doubt.solutions.length > 0 ? ' has-solutions' : ''}${doubt.isResolved ? ' resolved' : ''}`}>
-      <div className="helper-header">
-        <div className="helper-avatar">
+    <motion.div 
+      className={`doubt-card${Array.isArray(doubt.solutions) && doubt.solutions.length > 0 ? ' has-solutions' : ''}${doubt.isResolved ? ' resolved' : ''}`}
+      variants={cardVariants}
+      initial="initial"
+      animate="animate"
+      whileHover="hover"
+      transition={{ duration: 0.3 }}
+    >
+      <motion.div 
+        className="helper-header"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+      >
+        <motion.div 
+          className="helper-avatar"
+          whileHover={{ scale: 1.1, rotate: 5 }}
+          transition={{ duration: 0.2 }}
+        >
           <span className="avatar-emoji">❓</span>
-        </div>
+        </motion.div>
         <div className="helper-info">
-          <h3 className="helper-name">{doubt.question}</h3>
-          <div className="helper-rating">
+          <motion.h3 
+            className="helper-name"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            {doubt.question}
+          </motion.h3>
+          <motion.div 
+            className="helper-rating"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3 }}
+          >
             <span className="stars">Asked by: {typeof doubt.user === 'object' ? doubt.user.username : doubt.user}</span>
-            {doubt.isResolved && <span className="resolved-badge" style={{ marginLeft: 8 }}>✅ Solved</span>}
-          </div>
+            {doubt.isResolved && (
+              <motion.span 
+                className="resolved-badge" 
+                style={{ marginLeft: 8 }}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.4 }}
+              >
+                ✅ Solved
+              </motion.span>
+            )}
+          </motion.div>
         </div>
-      </div>
-      <div className="helper-bio">
+      </motion.div>
+      <motion.div 
+        className="helper-bio"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+      >
         <p>{doubt.details}</p>
-      </div>
+      </motion.div>
       {/* Solutions list visible to all */}
-      {Array.isArray(doubt.solutions) && doubt.solutions.length > 0 && (
-        <div className="solutions-section">
-          <div className="solutions-header">Solutions ({doubt.solutions.length})</div>
-          {doubt.solutions.map((sol) => (
-            <div
-              key={sol._id}
-              className="solution-item"
-              onClick={() => {
-                console.log('Solution clicked:', sol);
-                console.log('Solution keys:', Object.keys(sol));
-                console.log('Solution image property:', sol.image);
-                console.log('Solution solutionImage property:', sol.solutionImage);
-                
-                // Check for image in different possible properties
-                const hasImage = sol.image || sol.solutionImage || sol.imageUrl;
-                
-                if (hasImage) {
-                  console.log('Image found, opening modal');
-                  onImageClick(sol);
-                } else {
-                  // For text-only solutions, maybe show a different modal or just log
-                  console.log('Text solution clicked:', sol.content);
-                  alert('This is a text-only solution. No image to display.');
-                }
-              }}
-              title={sol.image ? 'Click to view image' : 'View solution'}
+      <AnimatePresence>
+        {Array.isArray(doubt.solutions) && doubt.solutions.length > 0 && (
+          <motion.div 
+            className="solutions-section"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <motion.div 
+              className="solutions-header"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.5 }}
             >
-              {sol.user?.profilePhoto && (
-                <img 
-                  src={`http://localhost:5000${sol.user.profilePhoto}`} 
-                  alt={sol.user?.username} 
-                  className="solution-avatar"
-                />
-              )}
-              <div className="solution-content">
-                <div className="solution-username">{sol.user?.username || 'Unknown'}</div>
-                {sol.image && (
-                  <img 
-                    src={`http://localhost:5000${sol.image}`} 
-                    alt="solution" 
-                    className="solution-image"
+              Solutions ({doubt.solutions.length})
+            </motion.div>
+            {doubt.solutions.map((sol, index) => (
+              <motion.div
+                key={sol._id}
+                className="solution-item"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.6 + index * 0.1 }}
+                whileHover={{ scale: 1.02 }}
+                onClick={() => {
+                  console.log('Solution clicked:', sol);
+                  console.log('Solution keys:', Object.keys(sol));
+                  console.log('Solution image property:', sol.image);
+                  console.log('Solution solutionImage property:', sol.solutionImage);
+                  
+                  // Check for image in different possible properties
+                  const hasImage = sol.image || sol.solutionImage || sol.imageUrl;
+                  
+                  if (hasImage) {
+                    console.log('Image found, opening modal');
+                    onImageClick(sol);
+                  } else {
+                    // For text-only solutions, maybe show a different modal or just log
+                    console.log('Text solution clicked:', sol.content);
+                    alert('This is a text-only solution. No image to display.');
+                  }
+                }}
+                title={sol.image ? 'Click to view image' : 'View solution'}
+              >
+                {sol.user?.profilePhoto && (
+                  <motion.img 
+                    src={`http://localhost:5000${sol.user.profilePhoto}`} 
+                    alt={sol.user?.username} 
+                    className="solution-avatar"
+                    whileHover={{ scale: 1.1 }}
+                    transition={{ duration: 0.2 }}
                   />
                 )}
-                {sol.content && <div className="solution-text">{sol.content}</div>}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-      <div className="doubt-actions-carousel action-btn-row">
-        <button className="call-btn small-action-btn" onClick={() => onCall(doubt)}>📞</button>
-        {!isAsker && <button className="chat-btn small-action-btn" onClick={() => onChat(doubt)}>💬</button>}
-        <button
+                <div className="solution-content">
+                  <div className="solution-username">{sol.user?.username || 'Unknown'}</div>
+                  {sol.image && (
+                    <motion.img 
+                      src={`http://localhost:5000${sol.image}`} 
+                      alt="solution" 
+                      className="solution-image"
+                      whileHover={{ scale: 1.05 }}
+                      transition={{ duration: 0.2 }}
+                    />
+                  )}
+                  {sol.content && <div className="solution-text">{sol.content}</div>}
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <motion.div 
+        className="doubt-actions-carousel action-btn-row"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.7 }}
+      >
+        <motion.button 
+          className="call-btn small-action-btn" 
+          onClick={() => onCall(doubt)}
+          variants={buttonVariants}
+          whileHover="hover"
+          whileTap="tap"
+        >
+          📞
+        </motion.button>
+        {!isAsker && (
+          <motion.button 
+            className="chat-btn small-action-btn" 
+            onClick={() => onChat(doubt)}
+            variants={buttonVariants}
+            whileHover="hover"
+            whileTap="tap"
+          >
+            💬
+          </motion.button>
+        )}
+        <motion.button
           className="gallery-btn small-action-btn"
           title="Post Image Solution"
           onClick={() => fileInputRef.current && fileInputRef.current.click()}
+          variants={buttonVariants}
+          whileHover="hover"
+          whileTap="tap"
         >
           <span role="img" aria-label="gallery">🖼️</span>
-        </button>
-        <button
+        </motion.button>
+        <motion.button
           className="like-btn small-action-btn"
           style={{ fontSize: '1.2rem', color: likedByCurrentUser ? '#fbbf24' : '#a78bfa' }}
           onClick={() => onLike(doubt)}
           title={likedByCurrentUser ? 'Unlike' : 'Like'}
+          variants={buttonVariants}
+          whileHover="hover"
+          whileTap="tap"
         >
           👍 {Array.isArray(doubt.likes) ? doubt.likes.length : 0}
-        </button>
+        </motion.button>
         <input
           type="file"
           accept="image/*"
@@ -108,12 +223,18 @@ function DoubtCard({ doubt, onSolve, onCall, onVideoCall, onChat, onLike, likedB
           }}
         />
         {showMarkSolved && !doubt.isResolved && (
-          <button className="solve-btn" onClick={() => onMarkSolved(doubt)}>
+          <motion.button 
+            className="solve-btn" 
+            onClick={() => onMarkSolved(doubt)}
+            variants={buttonVariants}
+            whileHover="hover"
+            whileTap="tap"
+          >
             ✔️ Mark as Solved
-          </button>
+          </motion.button>
         )}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -131,20 +252,109 @@ export default function Doubts({ currentUser, onLogout }){
 
     // Carousel for doubts
     const [carouselIndex, setCarouselIndex] = useState(0);
+
+    // Animation variants
+    const pageVariants = {
+      initial: { opacity: 0 },
+      in: { opacity: 1 },
+      out: { opacity: 0 }
+    };
+
+    const pageTransition = {
+      type: "tween",
+      ease: "anticipate",
+      duration: 0.5
+    };
+
+    const cardVariants = {
+      initial: { opacity: 0, scale: 0.9, y: 20 },
+      animate: { opacity: 1, scale: 1, y: 0 },
+      hover: { 
+        scale: 1.02, 
+        y: -5,
+        transition: { duration: 0.2 }
+      }
+    };
+
+    const buttonVariants = {
+      initial: { scale: 1 },
+      hover: { scale: 1.05 },
+      tap: { scale: 0.95 }
+    };
+
+    const staggerContainer = {
+      animate: {
+        transition: {
+          staggerChildren: 0.1
+        }
+      }
+    };
+
+    // Map backend doubts to TrendingDoubts structure
+    const mappedDoubts = (doubts || [])
+      .filter(doubt => doubt && typeof doubt === 'object')
+      .map(doubt => ({
+        id: doubt._id || doubt.id,
+        question: doubt.title || doubt.question || '',
+        user: doubt.user,
+        details: doubt.content || doubt.details || '',
+        time: doubt.time || doubt.createdAt || '',
+        replies: doubt.replies || (doubt.answers ? doubt.answers.length : 0) || 0,
+        likes: doubt.likes || 0,
+        category: doubt.category || 'general',
+        tags: Array.isArray(doubt.tags) ? doubt.tags.map(t => String(t)) : [],
+        isResolved: typeof doubt.isResolved === 'boolean' ? doubt.isResolved : false,
+        solutions: Array.isArray(doubt.solutions) ? doubt.solutions.map(sol => ({ ...sol })) : []
+      }))
+      .filter(d => d.question && typeof d.question === 'string');
+
+    // Sort mappedDoubts by like count descending
+    const sortedDoubts = [...mappedDoubts].sort((a, b) => (b.likes?.length || 0) - (a.likes?.length || 0));
+
+    // Carousel functions
     const scrollDoubtsLeft = () => setCarouselIndex(i => Math.max(i - 1, 0));
-    const scrollDoubtsRight = () => setCarouselIndex(i => Math.min(i + 1, Math.max(0, mappedDoubts.length - 3)));
+    const scrollDoubtsRight = () => setCarouselIndex(i => Math.min(i + 1, Math.max(0, sortedDoubts.length - 3)));
 
     // Call/Video Call handlers
     const handleCall = (doubt) => {
-      alert(`Initiating call to the asker of: ${doubt.question}`);
+      // Get the doubt asker's user ID
+      const doubtAskerId = typeof doubt.user === 'object' ? doubt.user._id : doubt.user;
+      
+      // Check if current user has mobile number
+      if (!currentUser.mobileNumber) {
+        alert('Please add your mobile number to your profile to make calls.');
+        return;
+      }
+      
+      // Check if doubt asker has mobile number
+      if (!doubt.user.mobileNumber) {
+        alert('The doubt asker has not provided their mobile number.');
+        return;
+      }
+      
+      // Initiate call using tel: protocol
+      const callUrl = `tel:${doubt.user.mobileNumber}`;
+      window.open(callUrl, '_blank');
+      
+      // Show confirmation message
+      alert(`Initiating call to ${doubt.user.username || 'the doubt asker'} at ${doubt.user.mobileNumber}`);
     };
     const handleVideoCall = (doubt) => {
       alert(`Starting video call for: ${doubt.question}`);
     };
     const navigate = useNavigate();
     const handleChat = (doubt) => {
-      // Open group chat for all users who liked the doubt
-      navigate(`/chat/doubt_${doubt.id || doubt._id}`);
+      // Get the doubt asker's user ID
+      const doubtAskerId = typeof doubt.user === 'object' ? doubt.user._id : doubt.user;
+      
+      // Navigate to direct chat with the doubt asker
+      navigate('/chat', { 
+        state: { 
+          userId: doubtAskerId,
+          doubtId: doubt._id || doubt.id,
+          doubtQuestion: doubt.question
+        } 
+      });
     };
     const handleSolve = async (doubt) => {
       try {
@@ -218,28 +428,6 @@ export default function Doubts({ currentUser, onLogout }){
     const handleDoubtUpdate = (updatedDoubts) => {
         setDoubts(updatedDoubts);
     };
-
-    // Map backend doubts to TrendingDoubts structure
-    const mappedDoubts = (doubts || [])
-      .filter(doubt => doubt && typeof doubt === 'object')
-      .map(doubt => ({
-        id: doubt._id || doubt.id,
-        question: doubt.title || doubt.question || '',
-        user: doubt.user,
-        details: doubt.content || doubt.details || '',
-        time: doubt.time || doubt.createdAt || '',
-        replies: doubt.replies || (doubt.answers ? doubt.answers.length : 0) || 0,
-        likes: doubt.likes || 0,
-        category: doubt.category || 'general',
-        tags: Array.isArray(doubt.tags) ? doubt.tags.map(t => String(t)) : [],
-        isResolved: typeof doubt.isResolved === 'boolean' ? doubt.isResolved : false,
-        solutions: Array.isArray(doubt.solutions) ? doubt.solutions.map(sol => ({ ...sol })) : []
-      }))
-      .filter(d => d.question && typeof d.question === 'string');
-    console.log('mappedDoubts:', mappedDoubts);
-
-    // Sort mappedDoubts by like count descending
-    const sortedDoubts = [...mappedDoubts].sort((a, b) => (b.likes?.length || 0) - (a.likes?.length || 0));
 
     // Fetch solutions for a doubt
     const fetchSolutions = async (doubtId) => {
@@ -319,55 +507,120 @@ export default function Doubts({ currentUser, onLogout }){
     };
 
     return(
-        <div className="doubts-page-container">
-            <nav className="collaboration-nav">
-                <div className="nav-logo">
-                    <img src="/peerpath.png" alt="PeerPath" />
-                    <h1>PeerPath</h1>
-                </div>
-                <div className="nav-links">
-                    <Link to="/dashboard">Dashboard</Link>
-                    <Link to="/doubts" className="active">Doubts</Link>
-                    <Link to="/collaboration">Collaboration</Link>
-                    <Link to="/resources">Resources</Link>
-                    <Link to="/chat">Chat</Link>
-                    <Link to="/location">Location</Link>
-                    <Link to="/profile">Profile</Link>
-                    <button onClick={onLogout} className="logout-btn">Logout</button>
-                </div>
-            </nav>
+        <motion.div 
+            className="doubts-page-container"
+            initial="initial"
+            animate="in"
+            exit="out"
+            variants={pageVariants}
+            transition={pageTransition}
+        >
+            <NavigationBar 
+                currentUser={currentUser}
+                onLogout={onLogout} 
+            />
             
-            <main className="doubts-main-content">
-                <div className="doubts-hero-section">
-                    <h1>
-                        Together We Learn.<span className="center-grow">Together We Build.</span>
-                    </h1>
-                    <p style={{fontSize:30}}>A space for all your doubts.</p>
-                    <button 
+            <motion.main 
+                className="doubts-main-content"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.6 }}
+            >
+                <motion.div 
+                    className="doubts-hero-section"
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                >
+                    <motion.h1
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.5 }}
+                    >
+                        Together We Learn.<motion.span 
+                            className="center-grow"
+                            whileHover={{ scale: 1.05 }}
+                            transition={{ duration: 0.2 }}
+                        >
+                            Together We Build.
+                        </motion.span>
+                    </motion.h1>
+                    <motion.p 
+                        style={{fontSize:30}}
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.6 }}
+                    >
+                        A space for all your doubts.
+                    </motion.p>
+                    <motion.button 
                         className="ask-doubt-hero-btn"
                         onClick={() => setShowAskDoubt(!showAskDoubt)}
+                        variants={buttonVariants}
+                        initial="initial"
+                        whileHover="hover"
+                        whileTap="tap"
+                        transition={{ delay: 0.7 }}
                     >
                         {showAskDoubt ? 'Close Form' : '🤔 Ask Your Doubt'}
-                    </button>
-                </div>
+                    </motion.button>
+                </motion.div>
 
-                {error && <div className="error-message">{error}</div>}
-
-                <div className="doubts-body-content">
-                    {showAskDoubt && (
-                        <div className="ask-doubt-modal">
-                             <AskDoubt 
-                                currentUser={currentUser} 
-                                onDoubtSubmit={handleDoubtSubmit}
-                                onCancel={() => setShowAskDoubt(false)}
-                            />
-                        </div>
+                <AnimatePresence>
+                    {error && (
+                        <motion.div 
+                            className="error-message"
+                            initial={{ opacity: 0, y: -10, scale: 0.9 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -10, scale: 0.9 }}
+                            transition={{ duration: 0.3 }}
+                        >
+                            {error}
+                        </motion.div>
                     )}
+                </AnimatePresence>
+
+                <motion.div 
+                    className="doubts-body-content"
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.8, duration: 0.6 }}
+                >
+                    <AnimatePresence>
+                        {showAskDoubt && (
+                            <motion.div 
+                                className="ask-doubt-modal"
+                                initial={{ opacity: 0, scale: 0.8, y: 50 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.8, y: 50 }}
+                                transition={{ duration: 0.3 }}
+                            >
+                                 <AskDoubt 
+                                    currentUser={currentUser} 
+                                    onDoubtSubmit={handleDoubtSubmit}
+                                    onCancel={() => setShowAskDoubt(false)}
+                                />
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
 
                     {/* Doubts Carousel - now above Top Helpers */}
-                    <div className="carousel-wrapper">
+                    <motion.div 
+                        className="carousel-wrapper"
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.9 }}
+                    >
                       {carouselIndex > 0 && (
-                        <button className="scroll-btn scroll-left" onClick={scrollDoubtsLeft}>‹</button>
+                        <motion.button 
+                            className="scroll-btn scroll-left" 
+                            onClick={scrollDoubtsLeft}
+                            variants={buttonVariants}
+                            whileHover="hover"
+                            whileTap="tap"
+                        >
+                            ‹
+                        </motion.button>
                       )}
                       <div className="carousel-container">
                         <div className="carousel-track" style={{ transform: `translateX(-${carouselIndex * 350}px)` }}>
@@ -418,20 +671,54 @@ export default function Doubts({ currentUser, onLogout }){
                           })}
                         </div>
                       </div>
-                      {carouselIndex < Math.max(0, mappedDoubts.length - 3) && (
-                        <button className="scroll-btn scroll-right" onClick={scrollDoubtsRight}>›</button>
+                      {carouselIndex < Math.max(0, sortedDoubts.length - 3) && (
+                        <motion.button 
+                            className="scroll-btn scroll-right" 
+                            onClick={scrollDoubtsRight}
+                            variants={buttonVariants}
+                            whileHover="hover"
+                            whileTap="tap"
+                        >
+                            ›
+                        </motion.button>
                       )}
-                    </div>
+                    </motion.div>
 
                     {/* Top Helpers section below doubts */}
-                    <TopHelpers />
-                </div>
+                    <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 1.0 }}
+                    >
+                        <TopHelpers />
+                    </motion.div>
+                </motion.div>
 
-                <section className="about-creators-section">
+                <motion.section 
+                    className="about-creators-section"
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 1.1 }}
+                >
                     <div className="about-creators-content">
-                        <h3>About the Creators</h3>
-                        <div className="creator-cards">
-                            <div className="creator-card">
+                        <motion.h3
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 1.2 }}
+                        >
+                            About the Creators
+                        </motion.h3>
+                        <motion.div 
+                            className="creator-cards"
+                            variants={staggerContainer}
+                            initial="initial"
+                            animate="animate"
+                        >
+                            <motion.div 
+                                className="creator-card"
+                                variants={cardVariants}
+                                whileHover="hover"
+                            >
                                 <div className="creator-image-placeholder" />
                                 <h4>Satyam Sharma</h4>
                                 <p>2nd Year CSE Student, MANIT</p>
@@ -439,8 +726,12 @@ export default function Doubts({ currentUser, onLogout }){
                                     <a href="#" aria-label="LinkedIn">L</a>
                                     <a href="#" aria-label="GitHub">G</a>
                                 </div>
-                            </div>
-                            <div className="creator-card">
+                            </motion.div>
+                            <motion.div 
+                                className="creator-card"
+                                variants={cardVariants}
+                                whileHover="hover"
+                            >
                                 <div className="creator-image-placeholder" />
                                 <h4>Naitik Verma</h4>
                                 <p>2nd Year CSE Student, MANIT</p>
@@ -448,11 +739,24 @@ export default function Doubts({ currentUser, onLogout }){
                                     <a href="#" aria-label="LinkedIn">L</a>
                                     <a href="#" aria-label="GitHub">G</a>
                                 </div>
-                            </div>
-                        </div>
+                            </motion.div>
+                            <motion.div 
+                                className="creator-card"
+                                variants={cardVariants}
+                                whileHover="hover"
+                            >
+                                <div className="creator-image-placeholder" />
+                                <h4>Granth Agrawal</h4>
+                                <p>2nd Year CSE Student, MANIT</p>
+                                <div className="creator-socials">
+                                    <a href="#" aria-label="LinkedIn">L</a>
+                                    <a href="#" aria-label="GitHub">G</a>
+                                </div>
+                            </motion.div>
+                        </motion.div>
                     </div>
-                </section>
-            </main>
+                </motion.section>
+            </motion.main>
             
             <footer className="doubts-footer">
                 <div className="footer-content">
@@ -566,6 +870,6 @@ export default function Doubts({ currentUser, onLogout }){
                 Modal is open! Image: {imageModal.image}
               </div>
             )}
-        </div>
+        </motion.div>
     );
 }

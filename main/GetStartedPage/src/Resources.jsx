@@ -1,9 +1,67 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
+import { motion, AnimatePresence } from 'framer-motion';
 import './Resources.css';
+import NavigationBar from './components/NavigationBar.jsx';
 
 const Resources = ({ currentUser, onLogout }) => {
   const [activeTab, setActiveTab] = useState('study-materials');
+  const [resources, setResources] = useState([]);
+  const [filteredResources, setFilteredResources] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newResource, setNewResource] = useState({
+    title: '',
+    description: '',
+    url: '',
+    category: 'general',
+    tags: ''
+  });
+
+  // Animation variants
+  const pageVariants = {
+    initial: { opacity: 0, y: 20 },
+    in: { opacity: 1, y: 0 },
+    out: { opacity: 0, y: -20 }
+  };
+
+  const pageTransition = {
+    type: "tween",
+    ease: "anticipate",
+    duration: 0.5
+  };
+
+  const cardVariants = {
+    initial: { opacity: 0, scale: 0.9, y: 20 },
+    animate: { opacity: 1, scale: 1, y: 0 },
+    hover: { 
+      scale: 1.02, 
+      y: -5,
+      transition: { duration: 0.2 }
+    }
+  };
+
+  const buttonVariants = {
+    initial: { scale: 1 },
+    hover: { scale: 1.05 },
+    tap: { scale: 0.95 }
+  };
+
+  const modalVariants = {
+    initial: { opacity: 0, scale: 0.8, y: 50 },
+    animate: { opacity: 1, scale: 1, y: 0 },
+    exit: { opacity: 0, scale: 0.8, y: 50 }
+  };
+
+  const staggerContainer = {
+    animate: {
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
 
   const studyMaterials = [
     {
@@ -187,31 +245,83 @@ const Resources = ({ currentUser, onLogout }) => {
   const renderContent = () => {
     if (activeTab === 'study-materials') {
       return (
-        <div className="resources-grid">
-          {studyMaterials.map((resource) => (
-            <div key={resource.id} className="resource-card" onClick={() => handleResourceClick(resource)}>
-              <div className="resource-icon">{resource.icon}</div>
+        <motion.div 
+          className="resources-grid"
+          variants={staggerContainer}
+          initial="initial"
+          animate="animate"
+        >
+          {studyMaterials.map((resource, index) => (
+            <motion.div 
+              key={resource.id} 
+              className="resource-card" 
+              onClick={() => handleResourceClick(resource)}
+              variants={cardVariants}
+              whileHover="hover"
+              transition={{ delay: index * 0.1 }}
+            >
+              <motion.div 
+                className="resource-icon"
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                transition={{ duration: 0.2 }}
+              >
+                {resource.icon}
+              </motion.div>
               <h3 className="resource-title">{resource.title}</h3>
               <p className="resource-type">{resource.type}</p>
               <p className="resource-description">{resource.description}</p>
               <div className="resource-action">
-                <button className="access-btn">Access</button>
+                <motion.button 
+                  className="access-btn"
+                  variants={buttonVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                >
+                  Access
+                </motion.button>
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       );
     }
 
     if (activeTab === 'society-recruitment') {
       return (
         <>
-          <div className="society-category">
-            <h2 className="society-category-title">🛠 Technical Societies</h2>
-            <div className="resources-grid">
-              {societies.technical.map((society) => (
-                <div key={society.id} className="resource-card">
-                  <div className="resource-logo">
+          <motion.div 
+            className="society-category"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <motion.h2 
+              className="society-category-title"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              🛠 Technical Societies
+            </motion.h2>
+            <motion.div 
+              className="resources-grid"
+              variants={staggerContainer}
+              initial="initial"
+              animate="animate"
+            >
+              {societies.technical.map((society, index) => (
+                <motion.div 
+                  key={society.id} 
+                  className="resource-card"
+                  variants={cardVariants}
+                  whileHover="hover"
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <motion.div 
+                    className="resource-logo"
+                    whileHover={{ scale: 1.1, rotate: 5 }}
+                    transition={{ duration: 0.2 }}
+                  >
                     <img 
                       src={society.logo} 
                       alt={`${society.title} logo`}
@@ -229,26 +339,67 @@ const Resources = ({ currentUser, onLogout }) => {
                        society.title === 'Zenith (Programming Club)' ? '💻' :
                        society.title === 'Evolve' ? '⚡' : '🏛️'}
                     </span>
-                  </div>
+                  </motion.div>
                   <h3 className="resource-title">{society.title}</h3>
                   <p className="resource-description">{society.description}</p>
                   <div className="resource-action">
                     <a href={society.link} target="_blank" rel="noopener noreferrer">
-                      <button className="access-btn">Visit Page</button>
+                      <motion.button 
+                        className="access-btn"
+                        variants={buttonVariants}
+                        whileHover="hover"
+                        whileTap="tap"
+                      >
+                        Visit Page
+                      </motion.button>
                     </a>
-                    <button className="recruitment-btn">Recruitment Coming Soon</button>
+                    <motion.button 
+                      className="recruitment-btn"
+                      variants={buttonVariants}
+                      whileHover="hover"
+                      whileTap="tap"
+                    >
+                      Recruitment Coming Soon
+                    </motion.button>
                   </div>
-                </div>
+                </motion.div>
               ))}
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
-          <div className="society-category">
-            <h2 className="society-category-title">🎭 Cultural & Literary Societies</h2>
-            <div className="resources-grid">
-              {societies.cultural.map((society) => (
-                <div key={society.id} className="resource-card">
-                  <div className="resource-logo">
+          <motion.div 
+            className="society-category"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <motion.h2 
+              className="society-category-title"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              🎭 Cultural & Literary Societies
+            </motion.h2>
+            <motion.div 
+              className="resources-grid"
+              variants={staggerContainer}
+              initial="initial"
+              animate="animate"
+            >
+              {societies.cultural.map((society, index) => (
+                <motion.div 
+                  key={society.id} 
+                  className="resource-card"
+                  variants={cardVariants}
+                  whileHover="hover"
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <motion.div 
+                    className="resource-logo"
+                    whileHover={{ scale: 1.1, rotate: 5 }}
+                    transition={{ duration: 0.2 }}
+                  >
                     <img 
                       src={society.logo} 
                       alt={`${society.title} logo`}
@@ -262,26 +413,67 @@ const Resources = ({ currentUser, onLogout }) => {
                        society.title === 'AE SE ANEK' ? '🏛️' :
                        society.title === 'SPIC MACAY' ? '🎶' : '🎨'}
                     </span>
-                  </div>
+                  </motion.div>
                   <h3 className="resource-title">{society.title}</h3>
                   <p className="resource-description">{society.description}</p>
                   <div className="resource-action">
                     <a href={society.link} target="_blank" rel="noopener noreferrer">
-                      <button className="access-btn">Visit Page</button>
+                      <motion.button 
+                        className="access-btn"
+                        variants={buttonVariants}
+                        whileHover="hover"
+                        whileTap="tap"
+                      >
+                        Visit Page
+                      </motion.button>
                     </a>
-                    <button className="recruitment-btn">Recruitment Coming Soon</button>
+                    <motion.button 
+                      className="recruitment-btn"
+                      variants={buttonVariants}
+                      whileHover="hover"
+                      whileTap="tap"
+                    >
+                      Recruitment Coming Soon
+                    </motion.button>
                   </div>
-                </div>
+                </motion.div>
               ))}
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
-          <div className="society-category">
-            <h2 className="society-category-title">📚 Educational Outreach</h2>
-            <div className="resources-grid">
-              {societies.educational.map((society) => (
-                <div key={society.id} className="resource-card">
-                  <div className="resource-logo">
+          <motion.div 
+            className="society-category"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+          >
+            <motion.h2 
+              className="society-category-title"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.6 }}
+            >
+              📚 Educational Outreach
+            </motion.h2>
+            <motion.div 
+              className="resources-grid"
+              variants={staggerContainer}
+              initial="initial"
+              animate="animate"
+            >
+              {societies.educational.map((society, index) => (
+                <motion.div 
+                  key={society.id} 
+                  className="resource-card"
+                  variants={cardVariants}
+                  whileHover="hover"
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <motion.div 
+                    className="resource-logo"
+                    whileHover={{ scale: 1.1, rotate: 5 }}
+                    transition={{ duration: 0.2 }}
+                  >
                     <img 
                       src={society.logo} 
                       alt={`${society.title} logo`}
@@ -294,26 +486,67 @@ const Resources = ({ currentUser, onLogout }) => {
                       {society.title === 'Avantikulam' ? '📚' :
                        society.title === 'Quizzer\'s Club' ? '❓' : '📚'}
                     </span>
-                  </div>
+                  </motion.div>
                   <h3 className="resource-title">{society.title}</h3>
                   <p className="resource-description">{society.description}</p>
                   <div className="resource-action">
                     <a href={society.link} target="_blank" rel="noopener noreferrer">
-                      <button className="access-btn">Visit Page</button>
+                      <motion.button 
+                        className="access-btn"
+                        variants={buttonVariants}
+                        whileHover="hover"
+                        whileTap="tap"
+                      >
+                        Visit Page
+                      </motion.button>
                     </a>
-                    <button className="recruitment-btn">Recruitment Coming Soon</button>
+                    <motion.button 
+                      className="recruitment-btn"
+                      variants={buttonVariants}
+                      whileHover="hover"
+                      whileTap="tap"
+                    >
+                      Recruitment Coming Soon
+                    </motion.button>
                   </div>
-                </div>
+                </motion.div>
               ))}
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
-          <div className="society-category">
-            <h2 className="society-category-title">🌱 Environment, Sports & Hobby Clubs</h2>
-            <div className="resources-grid">
-              {societies.sportsAndHobby.map((society) => (
-                <div key={society.id} className="resource-card">
-                  <div className="resource-logo">
+          <motion.div 
+            className="society-category"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+          >
+            <motion.h2 
+              className="society-category-title"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.8 }}
+            >
+              🌱 Environment, Sports & Hobby Clubs
+            </motion.h2>
+            <motion.div 
+              className="resources-grid"
+              variants={staggerContainer}
+              initial="initial"
+              animate="animate"
+            >
+              {societies.sportsAndHobby.map((society, index) => (
+                <motion.div 
+                  key={society.id} 
+                  className="resource-card"
+                  variants={cardVariants}
+                  whileHover="hover"
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <motion.div 
+                    className="resource-logo"
+                    whileHover={{ scale: 1.1, rotate: 5 }}
+                    transition={{ duration: 0.2 }}
+                  >
                     <img 
                       src={society.logo} 
                       alt={`${society.title} logo`}
@@ -326,90 +559,196 @@ const Resources = ({ currentUser, onLogout }) => {
                       {society.title === 'Purge' ? '🌿' :
                        society.title === 'Pixel' ? '📷' : '🏆'}
                     </span>
-                  </div>
+                  </motion.div>
                   <h3 className="resource-title">{society.title}</h3>
                   <p className="resource-description">{society.description}</p>
                   <div className="resource-action">
                     <a href={society.link} target="_blank" rel="noopener noreferrer">
-                      <button className="access-btn">Visit Page</button>
+                      <motion.button 
+                        className="access-btn"
+                        variants={buttonVariants}
+                        whileHover="hover"
+                        whileTap="tap"
+                      >
+                        Visit Page
+                      </motion.button>
                     </a>
-                    <button className="recruitment-btn">Recruitment Coming Soon</button>
+                    <motion.button 
+                      className="recruitment-btn"
+                      variants={buttonVariants}
+                      whileHover="hover"
+                      whileTap="tap"
+                    >
+                      Recruitment Coming Soon
+                    </motion.button>
                   </div>
-                </div>
+                </motion.div>
               ))}
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </>
       );
     }
 
     if (activeTab === 'results') {
       return (
-        <div className="resources-grid">
-          {results.map((resource) => (
-            <div key={resource.id} className="resource-card">
-              <div className="resource-icon">{resource.icon}</div>
+        <motion.div 
+          className="resources-grid"
+          variants={staggerContainer}
+          initial="initial"
+          animate="animate"
+        >
+          {results.map((resource, index) => (
+            <motion.div 
+              key={resource.id} 
+              className="resource-card"
+              variants={cardVariants}
+              whileHover="hover"
+              transition={{ delay: index * 0.1 }}
+            >
+              <motion.div 
+                className="resource-icon"
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                transition={{ duration: 0.2 }}
+              >
+                {resource.icon}
+              </motion.div>
               <h3 className="resource-title">{resource.title}</h3>
               <p className="resource-description">{resource.description}</p>
               <div className="resource-action single-button">
                 {resource.id === 2 ? (
-                  <button className="recruitment-btn">Coming Soon</button>
+                  <motion.button 
+                    className="recruitment-btn"
+                    variants={buttonVariants}
+                    whileHover="hover"
+                    whileTap="tap"
+                  >
+                    Coming Soon
+                  </motion.button>
                 ) : (
                   <a href={resource.link} target="_blank" rel="noopener noreferrer">
-                    <button className="access-btn">Access Portal</button>
+                    <motion.button 
+                      className="access-btn"
+                      variants={buttonVariants}
+                      whileHover="hover"
+                      whileTap="tap"
+                    >
+                      Access Portal
+                    </motion.button>
                   </a>
                 )}
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       );
     }
     return null;
   };
 
   return (
-    <div className="resources-container">
-      <nav className="collaboration-nav">
-        <div className="nav-logo">
-          <img src="/peerpath.png" alt="PeerPath" />
-          <h1>PeerPath</h1>
-        </div>
-        <div className="nav-links">
-          <Link to="/dashboard">Dashboard</Link>
-          <Link to="/doubts">Doubts</Link>
-          <Link to="/collaboration">Collaboration</Link>
-          <Link to="/resources" className="active">Resources</Link>
-          <Link to="/chat">Chat</Link>
-          <Link to="/location">Location</Link>
-          <Link to="/profile">Profile</Link>
-          <button onClick={onLogout} className="logout-btn">Logout</button>
-        </div>
-      </nav>
+    <motion.div 
+      className="resources-page"
+      initial="initial"
+      animate="in"
+      exit="out"
+      variants={pageVariants}
+      transition={pageTransition}
+    >
+      <NavigationBar 
+        currentUser={currentUser}
+        onLogout={onLogout}
+        showUserInfo={true}
+        showNotifications={true}
+        showSearch={false}
+      />
 
-      <main className="resources-main">
-        <header className="resources-header">
-          <h1>University Resources</h1>
-          <p>Your central hub for academic materials, society information, and official updates.</p>
-        </header>
+      <motion.main 
+        className="resources-main"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3, duration: 0.6 }}
+      >
+        <motion.header 
+          className="resources-header"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <motion.h1
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+          >
+            University Resources
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+          >
+            Your central hub for academic materials, society information, and official updates.
+          </motion.p>
+        </motion.header>
 
-        <div className="category-tabs">
-          <button onClick={() => handleTabClick('study-materials')} className={`category-tab ${activeTab === 'study-materials' ? 'active' : ''}`}>
+        <motion.div 
+          className="category-tabs"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7 }}
+        >
+          <motion.button 
+            onClick={() => handleTabClick('study-materials')} 
+            className={`category-tab ${activeTab === 'study-materials' ? 'active' : ''}`}
+            variants={buttonVariants}
+            whileHover="hover"
+            whileTap="tap"
+            transition={{ delay: 0.8 }}
+          >
             📚 Study Materials
-          </button>
-          <button onClick={() => handleTabClick('society-recruitment')} className={`category-tab ${activeTab === 'society-recruitment' ? 'active' : ''}`}>
+          </motion.button>
+          <motion.button 
+            onClick={() => handleTabClick('society-recruitment')} 
+            className={`category-tab ${activeTab === 'society-recruitment' ? 'active' : ''}`}
+            variants={buttonVariants}
+            whileHover="hover"
+            whileTap="tap"
+            transition={{ delay: 0.9 }}
+          >
             🏛️ Society Recruitment
-          </button>
-          <button onClick={() => handleTabClick('results')} className={`category-tab ${activeTab === 'results' ? 'active' : ''}`}>
+          </motion.button>
+          <motion.button 
+            onClick={() => handleTabClick('results')} 
+            className={`category-tab ${activeTab === 'results' ? 'active' : ''}`}
+            variants={buttonVariants}
+            whileHover="hover"
+            whileTap="tap"
+            transition={{ delay: 1.0 }}
+          >
             📊 Results & Updates
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
 
-        <div className="resources-content">
-          {renderContent()}
-        </div>
-      </main>
-    </div>
+        <motion.div 
+          className="resources-content"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8 }}
+        >
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              {renderContent()}
+            </motion.div>
+          </AnimatePresence>
+        </motion.div>
+      </motion.main>
+    </motion.div>
   );
 };
 

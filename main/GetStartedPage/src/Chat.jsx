@@ -2,10 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import io from 'socket.io-client';
 import axios from 'axios';
+import { motion, AnimatePresence } from 'framer-motion';
 import './Chat.css';
 import Modal from 'react-modal';
-
-const socket = io('http://localhost:5000');
+import NavigationBar from './components/NavigationBar.jsx';
 
 const Chat = ({ currentUser, onLogout }) => {
   const [users, setUsers] = useState([]);
@@ -18,12 +18,79 @@ const Chat = ({ currentUser, onLogout }) => {
   const params = useParams ? useParams() : {};
   const [roomId, setRoomId] = useState(null);
   const [groups, setGroups] = useState(() => {
-    const saved = localStorage.getItem('pp_groups');
-    return saved ? JSON.parse(saved) : [];
+    const stored = localStorage.getItem('groups');
+    return stored ? JSON.parse(stored) : [];
   });
   const [showGroupModal, setShowGroupModal] = useState(false);
   const [groupName, setGroupName] = useState('');
   const [groupMembers, setGroupMembers] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [isConnected, setIsConnected] = useState(false);
+  const [roomUsers, setRoomUsers] = useState([]);
+  const [showUserList, setShowUserList] = useState(false);
+  const [navbarVisible, setNavbarVisible] = useState(true);
+  const [socket, setSocket] = useState(null);
+  const [doubtContext, setDoubtContext] = useState(null);
+
+  // Animation variants
+  const pageVariants = {
+    initial: { opacity: 0, y: 20 },
+    in: { opacity: 1, y: 0 },
+    out: { opacity: 0, y: -20 }
+  };
+
+  const pageTransition = {
+    type: "tween",
+    ease: "anticipate",
+    duration: 0.5
+  };
+
+  const messageVariants = {
+    initial: { opacity: 0, x: -50, scale: 0.9 },
+    animate: { opacity: 1, x: 0, scale: 1 },
+    exit: { opacity: 0, x: 50, scale: 0.9 }
+  };
+
+  const buttonVariants = {
+    initial: { scale: 1 },
+    hover: { scale: 1.05 },
+    tap: { scale: 0.95 }
+  };
+
+  const chatContainerVariants = {
+    initial: { opacity: 0, y: 30 },
+    animate: { opacity: 1, y: 0 },
+    transition: { delay: 0.3 }
+  };
+
+  const staggerContainer = {
+    animate: {
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  // Initialize Socket.IO connection when component mounts
+  useEffect(() => {
+    const newSocket = io('http://localhost:5000');
+    setSocket(newSocket);
+
+    newSocket.on('connect', () => {
+      setIsConnected(true);
+      console.log('Connected to Socket.IO server');
+    });
+
+    newSocket.on('disconnect', () => {
+      setIsConnected(false);
+      console.log('Disconnected from Socket.IO server');
+    });
+
+    // Cleanup on unmount
+    return () => {
+      newSocket.close();
+    };
+  }, []);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -45,6 +112,8 @@ const Chat = ({ currentUser, onLogout }) => {
   }, [currentUser]);
 
   useEffect(() => {
+    if (!socket) return;
+
     socket.on('receive-message', (data) => {
       setMessages((prevMessages) => [...prevMessages, data]);
       scrollToBottom();
@@ -53,17 +122,60 @@ const Chat = ({ currentUser, onLogout }) => {
     return () => {
       socket.off('receive-message');
     };
-  }, []);
+  }, [socket]);
 
   useEffect(() => {
     if (location.state && location.state.userId && users.length > 0) {
       const userToSelect = users.find(u => u._id === location.state.userId);
       if (userToSelect) setSelectedUser(userToSelect);
+      
+      // Set doubt context if available
+      if (location.state.doubtId && location.state.doubtQuestion) {
+        setDoubtContext({
+          doubtId: location.state.doubtId,
+          doubtQuestion: location.state.doubtQuestion
+        });
+      }
     }
   }, [location.state, users]);
 
+  // Send initial message when chat is initiated from doubt
   useEffect(() => {
-    if (selectedUser && currentUser) {
+    if (doubtContext && selectedUser && currentUser && socket && messages.length === 0) {
+      const initialMessage = {
+        roomId: [currentUser._id, selectedUser._id].sort().join('_'),
+        content: `Hi! I'd like to discuss your doubt: "${doubtContext.doubtQuestion}"`,
+        sender: { _id: currentUser._id, username: currentUser.username, profilePhoto: currentUser.profilePhoto },
+        receiver: selectedUser._id,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      
+      // Send the initial message
+      socket.emit('send-message', initialMessage);
+      setMessages([initialMessage]);
+      
+      // Save to backend
+      const sendInitialMessage = async () => {
+        try {
+          const token = localStorage.getItem('token');
+          await axios.post('http://localhost:5000/api/users/chat', {
+            roomId: initialMessage.roomId,
+            content: initialMessage.content,
+            receiver: initialMessage.receiver,
+            time: initialMessage.time
+          }, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+        } catch (error) {
+          console.error('Error saving initial message:', error);
+        }
+      };
+      sendInitialMessage();
+    }
+  }, [doubtContext, selectedUser, currentUser, socket, messages.length]);
+
+  useEffect(() => {
+    if (selectedUser && currentUser && socket) {
       const generateRoomId = (id1, id2) => [id1, id2].sort().join('_');
       const newRoomId = generateRoomId(currentUser._id, selectedUser._id);
       setRoomId(newRoomId);
@@ -83,10 +195,12 @@ const Chat = ({ currentUser, onLogout }) => {
       };
       fetchMessages();
     }
-  }, [selectedUser, currentUser]);
+  }, [selectedUser, currentUser, socket]);
 
   // Detect group chat room from URL
   useEffect(() => {
+    if (!socket) return;
+    
     const path = location.pathname;
     const match = path.match(/\/chat\/doubt_(.+)$/);
     if (match) {
@@ -109,18 +223,19 @@ const Chat = ({ currentUser, onLogout }) => {
       };
       fetchMessages();
     }
-  }, [location.pathname]);
+  }, [location.pathname, socket]);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(scrollToBottom, [messages]);
 
-  const isGroupChat = roomId && roomId.startsWith('doubt_');
+  // Updated isGroupChat logic
+  const isGroupChat = roomId && (roomId.startsWith('doubt_') || roomId.startsWith('group_'));
 
   const handleSendMessage = async () => {
-    if (message.trim() && (selectedUser || isGroupChat) && roomId) {
+    if (message.trim() && (selectedUser || isGroupChat) && roomId && socket) {
       const messageData = {
         roomId,
         content: message.trim(),
@@ -164,11 +279,6 @@ const Chat = ({ currentUser, onLogout }) => {
   );
   const sortedUsers = [...matchingUsers, ...nonMatchingUsers];
 
-  // Save groups to localStorage when changed
-  useEffect(() => {
-    localStorage.setItem('pp_groups', JSON.stringify(groups));
-  }, [groups]);
-
   // Helper: all chats for sidebar
   const allChats = [
     ...groups.map(g => ({ type: 'group', ...g })),
@@ -186,45 +296,110 @@ const Chat = ({ currentUser, onLogout }) => {
     }
   };
 
-  // Add new group
+  // Add new group using backend API
   const handleCreateGroup = () => {
     if (!groupName.trim() || groupMembers.length < 2) return;
-    const roomId = 'group_' + Date.now();
-    setGroups(prev => [...prev, {
+    const newGroup = {
       groupName: groupName.trim(),
-      members: [currentUser, ...users.filter(u => groupMembers.includes(u._id))],
-      roomId
-    }]);
+      members: groupMembers.map(id => users.find(u => u._id === id)),
+      roomId: 'group_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
+    };
+    const updatedGroups = [...groups, newGroup];
+    setGroups(updatedGroups);
+    localStorage.setItem('groups', JSON.stringify(updatedGroups));
     setShowGroupModal(false);
     setGroupName('');
     setGroupMembers([]);
   };
 
   return (
-    <div className="chat-container">
-      <nav className="collaboration-nav">
-        <div className="nav-logo">
-          <img src="/peerpath.png" alt="PeerPath" />
-          <h1>PeerPath</h1>
-        </div>
-        <div className="nav-links">
-          <Link to="/dashboard">Dashboard</Link>
-          <Link to="/doubts">Doubts</Link>
-          <Link to="/collaboration">Collaboration</Link>
-          <Link to="/resources">Resources</Link>
-          <Link to="/chat" className="active">Chat</Link>
-          <Link to="/location">Location</Link>
-          <Link to="/profile">Profile</Link>
-          <button onClick={onLogout} className="logout-btn">Logout</button>
-        </div>
-      </nav>
+    <motion.div 
+      className="chat-page"
+      style={{ paddingTop: navbarVisible ? 120 : 0 }}
+      initial="initial"
+      animate="in"
+      exit="out"
+      variants={pageVariants}
+      transition={pageTransition}
+    >
+      {/* Navbar Toggle Button */}
+      <button
+        className="navbar-toggle-btn"
+        onClick={() => setNavbarVisible(v => !v)}
+        style={{
+          position: 'fixed',
+          top: navbarVisible ? 130 : 20,
+          left: 20,
+          zIndex: 2001,
+          background: 'rgba(26,10,82,0.85)',
+          border: 'none',
+          borderRadius: '50%',
+          width: 40,
+          height: 40,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+          cursor: 'pointer',
+          color: '#c4b5fd',
+          fontSize: 22
+        }}
+        title={navbarVisible ? 'Hide Navbar' : 'Show Navbar'}
+      >
+        {navbarVisible ? '▲' : '▼'}
+      </button>
+      {/* Conditionally render NavigationBar */}
+      {navbarVisible && (
+        <NavigationBar 
+          currentUser={currentUser}
+          onLogout={onLogout}
+          showUserInfo={true}
+          showNotifications={true}
+          showSearch={false}
+        />
+      )}
 
-      <div className="chat-content">
-        <div className="chat-sidebar">
-          <div className="chat-header">
-            <h2>💬 Chats</h2>
-            <button className="new-group-btn" onClick={() => setShowGroupModal(true)}>+ New Group</button>
-            <div className="search-box">
+      <motion.div 
+        className="chat-content"
+        variants={chatContainerVariants}
+        initial="initial"
+        animate="animate"
+      >
+        <motion.div 
+          className="chat-sidebar"
+          initial={{ opacity: 0, x: -30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <motion.div 
+            className="chat-header"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+          >
+            <motion.h2
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+            >
+              💬 Chats
+            </motion.h2>
+            <motion.button 
+              className="new-group-btn" 
+              onClick={() => setShowGroupModal(true)}
+              variants={buttonVariants}
+              whileHover="hover"
+              whileTap="tap"
+              transition={{ delay: 0.7 }}
+            >
+              + New Group
+            </motion.button>
+            <motion.div 
+              className="search-box"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8 }}
+            >
               <input
                 type="text"
                 placeholder="Search..."
@@ -232,53 +407,107 @@ const Chat = ({ currentUser, onLogout }) => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
               <span className="search-icon">🔍</span>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
-          <div className="users-list">
+          <motion.div 
+            className="users-list"
+            variants={staggerContainer}
+            initial="initial"
+            animate="animate"
+          >
             {/* List user-created groups */}
-            {groups.filter(g => g.groupName.toLowerCase().includes(searchTerm.toLowerCase())).map(group => (
-              <div
+            {groups.filter(g => g.groupName.toLowerCase().includes(searchTerm.toLowerCase())).map((group, index) => (
+              <motion.div
                 key={group.roomId}
                 className={`user-item ${roomId === group.roomId ? 'active' : ''}`}
                 onClick={() => handleSelectChat({ type: 'group', ...group })}
+                variants={messageVariants}
+                whileHover={{ scale: 1.02, x: 5 }}
+                transition={{ delay: index * 0.05 }}
               >
-                <div className="user-avatar group-avatar">👥</div>
+                <motion.div 
+                  className="user-avatar group-avatar"
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  📷
+                </motion.div>
                 <div className="user-info">
                   <span className="user-name">{group.groupName}</span>
-                  <span className="user-status">Group</span>
                 </div>
-              </div>
+              </motion.div>
             ))}
             {/* List one-on-one users */}
-            {sortedUsers.filter(user => (user.name || user.username)?.toLowerCase().includes(searchTerm.toLowerCase())).map(user => (
-              <div
+            {sortedUsers.filter(user => (user.name || user.username)?.toLowerCase().includes(searchTerm.toLowerCase())).map((user, index) => (
+              <motion.div
                 key={user._id}
                 className={`user-item ${selectedUser?._id === user._id && !roomId?.startsWith('group_') ? 'active' : ''}`}
                 onClick={() => handleSelectChat({ type: 'user', ...user })}
+                variants={messageVariants}
+                whileHover={{ scale: 1.02, x: 5 }}
+                transition={{ delay: index * 0.05 }}
               >
-                <div className="user-avatar">
-                  <img src={user.profilePhoto || '/peerpath.png'} alt={user.name || user.username} />
-                </div>
+                <motion.div 
+                  className="user-avatar"
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {user.profilePhoto ? (
+                    <img 
+                      src={`http://localhost:5000${user.profilePhoto}`} 
+                      alt={user.name || user.username}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+                      onError={e => { e.target.src = '/peerpath.png'; }}
+                    />
+                  ) : (
+                    <div style={{
+                      width: '100%',
+                      height: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '1.5rem',
+                      color: '#c4b5fd'
+                    }}>
+                      {(user.name || user.username || 'U').charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                </motion.div>
                 <div className="user-info">
                   <span className="user-name">{user.name || user.username}</span>
-                  <span className="user-status">Online</span>
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
-        <div className="chat-main">
+        <motion.div 
+          className="chat-main"
+          initial={{ opacity: 0, x: 30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.6 }}
+        >
           {roomId ? (
             <>
-              <div className="chat-header-main">
+              <motion.div 
+                className="chat-header-main"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.7 }}
+              >
                 <div className="chat-user-info">
                   {roomId.startsWith('group_') ? (
                     <>
                       <div>
                         <h3>{groups.find(g => g.roomId === roomId)?.groupName || 'Group Chat'}</h3>
-                        <span className="status-text online">👥 Group Members: {groups.find(g => g.roomId === roomId)?.members.map(m => m.username || m.name).join(', ')}</span>
+                        <div className="group-members-list-header">
+                          {groups.find(g => g.roomId === roomId)?.members.map((m, idx) => (
+                            <span className="group-member-header" key={m._id || idx}>
+                              {m.username || m.name}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     </>
                   ) : roomId.startsWith('doubt_') ? (
@@ -290,40 +519,82 @@ const Chat = ({ currentUser, onLogout }) => {
                     </>
                   ) : selectedUser ? (
                     <>
-                      <img src={selectedUser.profilePhoto || '/peerpath.png'} alt={selectedUser.name} className="user-avatar-main" />
+                      <motion.div 
+                        className="user-avatar-main"
+                        whileHover={{ scale: 1.1, rotate: 5 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        {(selectedUser.name || selectedUser.username || 'U').charAt(0).toUpperCase()}
+                      </motion.div>
                       <div>
                         <h3>{selectedUser.name || selectedUser.username}</h3>
                         <span className="status-text online">Online</span>
+                        {doubtContext && (
+                          <motion.div 
+                            className="doubt-context"
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                            style={{
+                              marginTop: '5px',
+                              padding: '8px 12px',
+                              backgroundColor: 'rgba(196, 181, 253, 0.1)',
+                              borderRadius: '8px',
+                              border: '1px solid rgba(196, 181, 253, 0.3)',
+                              fontSize: '12px',
+                              color: '#c4b5fd'
+                            }}
+                          >
+                            <strong>💬 Chat initiated from doubt:</strong><br />
+                            "{doubtContext.doubtQuestion}"
+                          </motion.div>
+                        )}
                       </div>
                     </>
                   ) : null}
                 </div>
-              </div>
+              </motion.div>
 
-              <div className="messages-container">
-                {messages.map((msg, index) => (
-                  <div
-                    key={index}
-                    className={`message ${msg.sender._id === currentUser._id ? 'own' : 'other'}`}
-                  >
-                    <div className="message-sender-info">
-                      <img
-                        src={msg.sender.profilePhoto || '/peerpath.png'}
-                        alt={msg.sender.username}
-                        className="chat-message-avatar"
-                      />
-                      <span className="chat-message-username">{msg.sender.username}</span>
-                    </div>
-                    <div className="message-content">
-                      <p>{msg.content}</p>
-                      <span className="message-time">{msg.time}</span>
-                    </div>
-                  </div>
-                ))}
+              <motion.div 
+                className="messages-container"
+                variants={staggerContainer}
+                initial="initial"
+                animate="animate"
+              >
+                <AnimatePresence>
+                  {messages.map((msg, index) => (
+                    <motion.div
+                      key={index}
+                      className={`message ${msg.sender._id === currentUser._id ? 'own' : 'other'}`}
+                      variants={messageVariants}
+                      initial="initial"
+                      animate="animate"
+                      exit="exit"
+                      transition={{ delay: index * 0.05 }}
+                    >
+                      <div className="message-sender-info">
+                        <span className="chat-message-username">{msg.sender.username}</span>
+                      </div>
+                      <motion.div 
+                        className="message-content"
+                        whileHover={{ scale: 1.02 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <p>{msg.content}</p>
+                        <span className="message-time">{msg.time}</span>
+                      </motion.div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
                 <div ref={messagesEndRef} />
-              </div>
+              </motion.div>
 
-              <div className="message-input-container">
+              <motion.div 
+                className="message-input-container"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8 }}
+              >
                 <div className="message-input-wrapper">
                   <textarea
                     value={message}
@@ -331,88 +602,189 @@ const Chat = ({ currentUser, onLogout }) => {
                     onKeyPress={handleKeyPress}
                     placeholder={`Message...`}
                     rows="1"
-                    className="message-input"
+                    style={{
+                      resize: 'none',
+                      border: 'none',
+                      outline: 'none',
+                      background: 'transparent',
+                      color: '#ffffff',
+                      fontSize: '1rem',
+                      width: '100%',
+                      padding: '0.8rem 0'
+                    }}
                   />
-                  <button
+                  <motion.button
+                    className="send-btn"
                     onClick={handleSendMessage}
                     disabled={!message.trim()}
-                    className="send-btn"
+                    variants={buttonVariants}
+                    whileHover="hover"
+                    whileTap="tap"
+                    style={{
+                      background: message.trim() ? 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%)' : 'rgba(156, 163, 175, 0.5)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '50%',
+                      width: '40px',
+                      height: '40px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: message.trim() ? 'pointer' : 'not-allowed',
+                      transition: 'all 0.3s ease',
+                      fontSize: '1.2rem'
+                    }}
                   >
-                    📤
-                  </button>
+                    ➤
+                  </motion.button>
                 </div>
-              </div>
+              </motion.div>
             </>
           ) : (
-            <div className="no-chat-selected">
-              <div className="no-chat-content">
-                <h2>💬 Welcome to PeerPath Chat</h2>
-                <p>Select a chat or create a group to start messaging</p>
-                <div className="chat-features">
-                  <div className="feature">
-                    <span>🔒</span>
-                    <p>Secure messaging</p>
-                  </div>
-                  <div className="feature">
-                    <span>⚡</span>
-                    <p>Real-time updates</p>
-                  </div>
-                  <div className="feature">
-                    <span>👥</span>
-                    <p>Group & one-on-one chats</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <motion.div 
+              className="no-chat-content"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.9 }}
+            >
+              <motion.h2
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.0 }}
+              >
+                Welcome to PeerPath Chat! 💬
+              </motion.h2>
+              <motion.p
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.0 }}
+              >
+                Select a chat or create a group to start messaging
+              </motion.p>
+              <motion.div 
+                className="chat-features"
+                variants={staggerContainer}
+                initial="initial"
+                animate="animate"
+              >
+                <motion.div 
+                  className="feature"
+                  variants={messageVariants}
+                  whileHover={{ scale: 1.05 }}
+                >
+                  <span>🔒</span>
+                  <p>Secure messaging</p>
+                </motion.div>
+                <motion.div 
+                  className="feature"
+                  variants={messageVariants}
+                  whileHover={{ scale: 1.05 }}
+                >
+                  <span>⚡</span>
+                  <p>Real-time updates</p>
+                </motion.div>
+                <motion.div 
+                  className="feature"
+                  variants={messageVariants}
+                  whileHover={{ scale: 1.05 }}
+                >
+                  <span>👥</span>
+                  <p>Group & one-on-one chats</p>
+                </motion.div>
+              </motion.div>
+            </motion.div>
           )}
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {/* New Group Modal */}
-      <Modal
-        isOpen={showGroupModal}
-        onRequestClose={() => setShowGroupModal(false)}
-        contentLabel="Create Group"
-        className="group-modal"
-        overlayClassName="group-modal-overlay"
-        ariaHideApp={false}
-      >
-        <h2>Create New Group</h2>
-        <input
-          type="text"
-          placeholder="Group Name"
-          value={groupName}
-          onChange={e => setGroupName(e.target.value)}
-        />
-        <div className="group-members-list">
-          {users.map(user => (
-            <label key={user._id} className="group-member-item">
-              <input
-                type="checkbox"
-                checked={groupMembers.includes(user._id)}
-                onChange={e => {
-                  if (e.target.checked) {
-                    setGroupMembers(prev => [...prev, user._id]);
-                  } else {
-                    setGroupMembers(prev => prev.filter(id => id !== user._id));
-                  }
-                }}
+      <AnimatePresence>
+        {showGroupModal && (
+          <Modal
+            isOpen={showGroupModal}
+            onRequestClose={() => setShowGroupModal(false)}
+            contentLabel="Create Group"
+            className="group-modal"
+            overlayClassName="group-modal-overlay"
+            ariaHideApp={false}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8, y: 50 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.8, y: 50 }}
+              transition={{ duration: 0.3 }}
+            >
+              <motion.h2
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+              >
+                Create New Group
+              </motion.h2>
+              <motion.input
+                type="text"
+                placeholder="Group Name"
+                value={groupName}
+                onChange={e => setGroupName(e.target.value)}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
               />
-              <span>{user.name || user.username}</span>
-            </label>
-          ))}
-        </div>
-        <button
-          className="create-group-btn"
-          onClick={handleCreateGroup}
-          disabled={!groupName.trim() || groupMembers.length < 2}
-        >
-          Create Group
-        </button>
-        <button className="close-modal-btn" onClick={() => setShowGroupModal(false)}>Cancel</button>
-      </Modal>
-    </div>
+              <motion.div 
+                className="group-members-list"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                {users.map((user, index) => (
+                  <motion.label 
+                    key={user._id} 
+                    className="group-member-item"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.4 + index * 0.05 }}
+                    whileHover={{ scale: 1.02 }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={groupMembers.includes(user._id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setGroupMembers(prev => [...prev, user._id]);
+                        } else {
+                          setGroupMembers(prev => prev.filter(id => id !== user._id));
+                        }
+                      }}
+                    />
+                    <span>{user.name || user.username}</span>
+                  </motion.label>
+                ))}
+              </motion.div>
+              <motion.button
+                className="create-group-btn"
+                onClick={handleCreateGroup}
+                disabled={!groupName.trim() || groupMembers.length < 2}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+              >
+                Create Group
+              </motion.button>
+              <motion.button
+                className="close-modal-btn"
+                onClick={() => setShowGroupModal(false)}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+              >
+                Cancel
+              </motion.button>
+            </motion.div>
+          </Modal>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 };
 
-export default Chat; 
+export default Chat;
