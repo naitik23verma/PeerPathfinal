@@ -300,13 +300,6 @@ NavigationBar.propTypes = {
   variant: PropTypes.oneOf(['default', 'minimal', 'transparent'])
 };
 
-// Default props
-NavigationBar.defaultProps = {
-  showUserInfo: true,
-  showNotifications: true,
-  showSearch: false,
-  className: '',
-  variant: 'default'
-};
+// Default props removed - using default parameters in function signature instead
 
 export default NavigationBar; 

@@ -1,695 +1,1196 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
-import axios from 'axios';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import L from 'leaflet';
-import './Location.css'
-
 import { motion, AnimatePresence } from 'framer-motion';
 import NavigationBar from './components/NavigationBar.jsx';
+import './Location.css';
+import axios from 'axios';
 
-// Fix for default markers in react-leaflet
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-});
+const API_URL = 'http://localhost:5000/api/location';
+const GOOGLE_MAPS_API_KEY = 'AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg'; // Replace with your actual API key
+const WEATHER_API_KEY = '8c4c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0'; // Replace with your actual OpenWeatherMap API key
 
-// Custom map component to handle map updates
-function MapUpdater({ center, zoom }) {
-  const map = useMap();
-  
+// Address Input Component with Autocomplete
+const AddressInput = ({ value, onChange, placeholder, onAddressSelect, name, className = '' }) => {
+  const inputRef = useRef(null);
+  const [autocomplete, setAutocomplete] = useState(null);
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [inputValue, setInputValue] = useState(value || '');
+
   useEffect(() => {
-    if (center) {
-      map.setView(center, zoom);
-    }
-  }, [center, zoom, map]);
-  
-  return null;
-}
+    setInputValue(value || '');
+  }, [value]);
 
-// Mini-map for ride cards
-function RideCardMap({ coordinates, label }) {
-  if (!coordinates || coordinates.length !== 2 || isNaN(coordinates[0]) || isNaN(coordinates[1])) return null;
+  useEffect(() => {
+    if (!window.google || !window.google.maps) {
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`;
+      script.onload = initializeAutocomplete;
+      document.head.appendChild(script);
+    } else {
+      initializeAutocomplete();
+    }
+  }, []);
+
+  const initializeAutocomplete = () => {
+    if (!inputRef.current || !window.google) return;
+
+    const autocompleteInstance = new window.google.maps.places.Autocomplete(inputRef.current, {
+      types: ['geocode', 'establishment'],
+      componentRestrictions: { country: 'IN' }, // Restrict to India
+      fields: ['formatted_address', 'geometry', 'name', 'place_id']
+    });
+
+    setAutocomplete(autocompleteInstance);
+
+    // Handle place selection
+    autocompleteInstance.addListener('place_changed', () => {
+      const place = autocompleteInstance.getPlace();
+      if (place.geometry) {
+        const address = place.formatted_address || place.name;
+        setInputValue(address);
+        onChange({ target: { name: name, value: address } });
+        onAddressSelect({
+          address: address,
+          lat: place.geometry.location.lat(),
+          lng: place.geometry.location.lng(),
+          placeId: place.place_id
+        });
+        setShowSuggestions(false);
+      }
+    });
+  };
+
+  const handleInputChange = (e) => {
+    const newValue = e.target.value;
+    setInputValue(newValue);
+    onChange({ target: { name: name, value: newValue } });
+
+    // Get suggestions if input is long enough
+    if (newValue.length >= 3) {
+      getSuggestions(newValue);
+    } else {
+      setSuggestions([]);
+      setShowSuggestions(false);
+    }
+  };
+
+  const getSuggestions = async (query) => {
+    try {
+      if (!window.google || !window.google.maps) return;
+
+      const service = new window.google.maps.places.AutocompleteService();
+      service.getPlacePredictions(
+        {
+          input: query,
+          types: ['geocode', 'establishment'],
+          componentRestrictions: { country: 'IN' }
+        },
+        (predictions, status) => {
+          if (status === window.google.maps.places.PlacesServiceStatus.OK && predictions) {
+            setSuggestions(predictions);
+            setShowSuggestions(true);
+          } else {
+            setSuggestions([]);
+            setShowSuggestions(false);
+          }
+        }
+      );
+    } catch (error) {
+      console.error('Error getting place predictions:', error);
+    }
+  };
+
+  const handleSuggestionClick = (suggestion) => {
+    const address = suggestion.description;
+    setInputValue(address);
+    onChange({ target: { name: name, value: address } });
+    onAddressSelect({
+      address: address,
+      placeId: suggestion.place_id
+    });
+    setShowSuggestions(false);
+  };
+
+  const handleInputBlur = () => {
+    // Delay hiding suggestions to allow for clicks
+    setTimeout(() => setShowSuggestions(false), 200);
+  };
+
+  const handleInputFocus = () => {
+    if (inputValue.length >= 3) {
+      getSuggestions(inputValue);
+    }
+  };
+
   return (
-    <div style={{ height: 120, width: '100%', margin: '0.5rem 0', borderRadius: 8, overflow: 'hidden', border: '1px solid #a78bfa' }}>
-      <MapContainer
-        center={coordinates}
-        zoom={13}
-        style={{ height: '100%', width: '100%' }}
-        scrollWheelZoom={false}
-        dragging={false}
-        doubleClickZoom={false}
-        zoomControl={false}
-        attributionControl={false}
-      >
-        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-        <Marker position={coordinates}>
-          <Popup>{label}</Popup>
-        </Marker>
-      </MapContainer>
+    <div className="address-input-container">
+      <input
+        ref={inputRef}
+        type="text"
+        value={inputValue}
+        onChange={handleInputChange}
+        onFocus={handleInputFocus}
+        placeholder={placeholder}
+        className={`address-input ${className}`}
+        onBlur={handleInputBlur}
+        autoComplete="off"
+        name={name}
+      />
+      {showSuggestions && suggestions.length > 0 && (
+        <div className="address-suggestions">
+          {suggestions.map((suggestion, index) => (
+            <div
+              key={index}
+              className="suggestion-item"
+              onClick={() => handleSuggestionClick(suggestion)}
+            >
+              <span className="suggestion-text">{suggestion.description}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
-}
+};
 
-const Location = ({ currentUser, onLogout }) => {
-  const [rides, setRides] = useState([]);
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [selectedRide, setSelectedRide] = useState(null);
-  const [showCommunication, setShowCommunication] = useState(false);
-  const [userLocation, setUserLocation] = useState(null);
-  const [mapView, setMapView] = useState(false);
-  const [mapCenter, setMapCenter] = useState([20.5937, 78.9629]); // Default to India center
-  const [mapZoom, setMapZoom] = useState(5);
+// Google Maps Mini Map Component for Ride Cards
+const RideCardMap = ({ fromAddress, toAddress, rideId }) => {
   const mapRef = useRef(null);
-  const [nearbyUsers, setNearbyUsers] = useState([]);
-  const [showMap, setShowMap] = useState(false);
-  
-  const [formData, setFormData] = useState({
-    currentLocation: { coordinates: [], address: '' },
-    destination: { coordinates: [], address: '' },
-    departureTime: '',
-    notice: '',
-    maxPassengers: 3
-  });
-  const [destinationLoading, setDestinationLoading] = useState(false);
+  const [mapInstance, setMapInstance] = useState(null);
 
-  // Animation variants
-  const pageVariants = {
-    initial: { opacity: 0, y: 20 },
-    in: { opacity: 1, y: 0 },
-    out: { opacity: 0, y: -20 }
-  };
-
-  const pageTransition = {
-    type: "tween",
-    ease: "anticipate",
-    duration: 0.5
-  };
-
-  const cardVariants = {
-    initial: { opacity: 0, scale: 0.9, y: 20 },
-    animate: { opacity: 1, scale: 1, y: 0 },
-    hover: { 
-      scale: 1.02, 
-      y: -5,
-      transition: { duration: 0.2 }
-    }
-  };
-
-  const buttonVariants = {
-    initial: { scale: 1 },
-    hover: { scale: 1.05 },
-    tap: { scale: 0.95 }
-  };
-
-  const mapVariants = {
-    initial: { opacity: 0, scale: 0.8 },
-    animate: { opacity: 1, scale: 1 },
-    exit: { opacity: 0, scale: 0.8 }
-  };
-
-  const staggerContainer = {
-    animate: {
-      transition: {
-        staggerChildren: 0.1
+  useEffect(() => {
+    // Load Google Maps script
+    const loadGoogleMaps = () => {
+      if (window.google && window.google.maps) {
+        initializeMap();
+        return;
       }
-    }
-  };
+
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`;
+      script.async = true;
+      script.defer = true;
+      script.onload = initializeMap;
+      document.head.appendChild(script);
+    };
+
+    const initializeMap = () => {
+      if (!mapRef.current || !fromAddress || !toAddress || mapInstance) return;
+
+      try {
+        const map = new window.google.maps.Map(mapRef.current, {
+          zoom: 10,
+          center: { lat: 20.5937, lng: 78.9629 }, // Default to India
+          disableDefaultUI: true,
+          zoomControl: false,
+          streetViewControl: false,
+          mapTypeControl: false,
+          fullscreenControl: false,
+          styles: [
+            {
+              featureType: 'all',
+              elementType: 'labels.text.fill',
+              stylers: [{ color: '#ffffff' }]
+            },
+            {
+              featureType: 'all',
+              elementType: 'labels.text.stroke',
+              stylers: [{ color: '#000000' }]
+            },
+            {
+              featureType: 'administrative',
+              elementType: 'geometry.fill',
+              stylers: [{ color: '#000000' }]
+            },
+            {
+              featureType: 'landscape',
+              elementType: 'geometry',
+              stylers: [{ color: '#2c2c2c' }]
+            },
+            {
+              featureType: 'poi',
+              elementType: 'geometry',
+              stylers: [{ color: '#2c2c2c' }]
+            },
+            {
+              featureType: 'road',
+              elementType: 'geometry',
+              stylers: [{ color: '#38414e' }]
+            },
+            {
+              featureType: 'road',
+              elementType: 'geometry.stroke',
+              stylers: [{ color: '#212a37' }]
+            },
+            {
+              featureType: 'road',
+              elementType: 'labels.text.fill',
+              stylers: [{ color: '#9ca5b3' }]
+            },
+            {
+              featureType: 'water',
+              elementType: 'geometry',
+              stylers: [{ color: '#17263c' }]
+            }
+          ]
+        });
+
+        const directionsService = new window.google.maps.DirectionsService();
+        const directionsRenderer = new window.google.maps.DirectionsRenderer({
+          map: map,
+          suppressMarkers: false,
+          polylineOptions: {
+            strokeColor: '#8b5cf6',
+            strokeWeight: 4,
+            strokeOpacity: 0.8
+          }
+        });
+
+        setMapInstance(map);
+
+        // Calculate and display route
+        calculateRoute(directionsService, directionsRenderer, fromAddress, toAddress);
+
+      } catch (error) {
+        console.error('Error initializing Google Maps:', error);
+      }
+    };
+
+    const calculateRoute = (service, renderer, origin, destination) => {
+      const request = {
+        origin: origin,
+        destination: destination,
+        travelMode: window.google.maps.TravelMode.DRIVING
+      };
+
+      service.route(request, (result, status) => {
+        if (status === 'OK') {
+          renderer.setDirections(result);
+          
+          // Fit map to show the entire route
+          const bounds = new window.google.maps.LatLngBounds();
+          result.routes[0].legs.forEach(leg => {
+            bounds.extend(leg.start_location);
+            bounds.extend(leg.end_location);
+          });
+          mapInstance.fitBounds(bounds);
+        } else {
+          console.error('Directions request failed due to ' + status);
+        }
+      });
+    };
+
+    loadGoogleMaps();
+
+    return () => {
+      if (mapInstance) {
+        // Cleanup will be handled by Google Maps
+      }
+    };
+  }, [fromAddress, toAddress]);
+
+  return (
+    <div ref={mapRef} className="ride-card-map" style={{ height: '150px', width: '100%', borderRadius: '8px' }}></div>
+  );
+};
+
+// Simple Map Component
+const SimpleMap = ({ fromAddress, toAddress }) => {
+  const mapRef = useRef(null);
+
+  useEffect(() => {
+    if (!fromAddress || !toAddress) return;
+
+    const loadMap = () => {
+      if (window.google && window.google.maps) {
+        createMap();
+      } else {
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`;
+        script.onload = createMap;
+        document.head.appendChild(script);
+      }
+    };
+
+    const createMap = () => {
+      if (!mapRef.current) return;
+
+      const map = new window.google.maps.Map(mapRef.current, {
+        zoom: 10,
+        center: { lat: 20.5937, lng: 78.9629 },
+        disableDefaultUI: true,
+        zoomControl: false,
+        streetViewControl: false,
+        mapTypeControl: false,
+        fullscreenControl: false
+      });
+
+      const directionsService = new window.google.maps.DirectionsService();
+      const directionsRenderer = new window.google.maps.DirectionsRenderer({
+        map: map,
+        suppressMarkers: false,
+        polylineOptions: {
+          strokeColor: '#8b5cf6',
+          strokeWeight: 4
+        }
+      });
+
+      const request = {
+        origin: fromAddress,
+        destination: toAddress,
+        travelMode: window.google.maps.TravelMode.DRIVING
+      };
+
+      directionsService.route(request, (result, status) => {
+        if (status === 'OK') {
+          directionsRenderer.setDirections(result);
+        }
+      });
+    };
+
+    loadMap();
+  }, [fromAddress, toAddress]);
+
+  return (
+    <div ref={mapRef} style={{ height: '150px', width: '100%', borderRadius: '8px' }} />
+  );
+};
+
+export default function Location({ currentUser, onLogout }) {
+  const [rides, setRides] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [userLocation, setUserLocation] = useState(null);
+  const [showCreate, setShowCreate] = useState(false);
+  const [showMap, setShowMap] = useState(false);
+  const [weather, setWeather] = useState(null);
+  const [mapInstance, setMapInstance] = useState(null);
+  const [form, setForm] = useState({
+    from: '',
+    to: '',
+    time: '',
+    seats: 1,
+    note: ''
+  });
+  const [routeData, setRouteData] = useState(null);
+  const [useCurrentLocation, setUseCurrentLocation] = useState(false);
+  const [currentLocationAddress, setCurrentLocationAddress] = useState('');
+  const mapRef = useRef(null);
+  const [creatingRide, setCreatingRide] = useState(false);
+  const [fromCoords, setFromCoords] = useState(null);
+  const [toCoords, setToCoords] = useState(null);
 
   useEffect(() => {
     fetchRides();
-    getCurrentLocation();
+    getUserLocation();
   }, []);
 
+  useEffect(() => {
+    if (showMap && routeData && mapRef.current && !mapInstance) {
+      initializeMap();
+    }
+  }, [showMap, routeData, mapRef.current]);
+
   const fetchRides = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:5000/api/location', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setRides(response.data.locations || []);
-    } catch (error) {
-      console.error('Error fetching rides:', error);
-      setError('Failed to load rides');
+      const res = await axios.get(API_URL, { headers: { Authorization: `Bearer ${token}` } });
+      setRides(res.data.locations || []);
+    } catch (e) {
+      setError('Failed to load rides.');
+      console.error('Error fetching rides:', e);
     } finally {
       setLoading(false);
     }
   };
 
-  const getCurrentLocation = () => {
+  const getUserLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          const newLocation = { lat: latitude, lng: longitude };
-          setUserLocation(newLocation);
-          setMapCenter([latitude, longitude]);
-          setMapZoom(12);
+        async (pos) => {
+          const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          setUserLocation(coords);
           
-          // Reverse geocoding to get address
-          fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
-            .then(response => response.json())
-            .then(data => {
-              const address = data.display_name || `${latitude}, ${longitude}`;
-              setFormData(prev => ({
-                ...prev,
-                currentLocation: {
-                  coordinates: [latitude, longitude],
-                  address: address
-                }
-              }));
-            })
-            .catch(() => {
-              setFormData(prev => ({
-                ...prev,
-                currentLocation: {
-                  coordinates: [latitude, longitude],
-                  address: `${latitude}, ${longitude}`
-                }
-              }));
-            });
+          // Get address for current location using Google Geocoding
+          try {
+            const response = await fetch(
+              `https://maps.googleapis.com/maps/api/geocode/json?latlng=${coords.lat},${coords.lng}&key=${GOOGLE_MAPS_API_KEY}`
+            );
+            const data = await response.json();
+            if (data.results && data.results[0]) {
+              setCurrentLocationAddress(data.results[0].formatted_address);
+            }
+          } catch (error) {
+            console.error('Error getting current location address:', error);
+          }
         },
-        (error) => {
-          setError('Unable to get current location. Please enter manually.');
-        }
+        () => setUserLocation(null)
       );
-    } else {
-      setError('Geolocation is not supported by this browser.');
     }
   };
 
-  const handleInputChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+  const handleInput = (e) => {
+    const { name, value } = e.target;
+    const updatedForm = { ...form, [name]: value };
+    setForm(updatedForm);
+    console.log('Form updated:', updatedForm);
+    
+    // Get route data when both from and to are filled
+    if (name === 'from' || name === 'to') {
+      if (updatedForm.from && updatedForm.to) {
+        console.log('Both addresses filled from input, getting route data');
+        getRouteData(updatedForm.from, updatedForm.to);
+      }
+    }
   };
 
-  const handleLocationChange = (type, field, value) => {
-    setFormData({
-      ...formData,
-      [type]: {
-        ...formData[type],
-        [field]: value
+  const handleAddressSelect = (field, addressData) => {
+    console.log('Address selected for field:', field, 'data:', addressData);
+    
+    if (field === 'from') {
+      setFromCoords({ lat: addressData.lat, lng: addressData.lng });
+      // Update form state with the selected address
+      const updatedForm = { ...form, from: addressData.address };
+      setForm(updatedForm);
+      console.log('Updated form with from address:', updatedForm);
+      // Only get route data if both fields are filled
+      if (updatedForm.to) {
+        console.log('Both addresses filled, getting route data');
+        getRouteData(addressData.address, updatedForm.to);
+      }
+    } else if (field === 'to') {
+      setToCoords({ lat: addressData.lat, lng: addressData.lng });
+      // Update form state with the selected address
+      const updatedForm = { ...form, to: addressData.address };
+      setForm(updatedForm);
+      console.log('Updated form with to address:', updatedForm);
+      // Only get route data if both fields are filled
+      if (updatedForm.from) {
+        console.log('Both addresses filled, getting route data');
+        getRouteData(updatedForm.from, addressData.address);
+      }
+    }
+  };
+
+  const handleUseCurrentLocation = () => {
+    if (useCurrentLocation && currentLocationAddress) {
+      const updatedForm = { ...form, from: currentLocationAddress };
+      setForm(updatedForm);
+      if (updatedForm.to) {
+        getRouteData(updatedForm.from, updatedForm.to);
+      }
+    }
+  };
+
+  useEffect(() => {
+    handleUseCurrentLocation();
+  }, [useCurrentLocation, currentLocationAddress]);
+
+  const getRouteData = async (from, to) => {
+    try {
+      console.log('Getting route data for:', from, 'to:', to);
+      
+      if (!from || !to) {
+        console.log('Missing from or to address');
+        setRouteData(null);
+        return;
+      }
+      
+      // Use coordinates if available for more precise routing
+      let origin = from;
+      let destination = to;
+      
+      if (fromCoords && from === form.from) {
+        origin = `${fromCoords.lat},${fromCoords.lng}`;
+      }
+      if (toCoords && to === form.to) {
+        destination = `${toCoords.lat},${toCoords.lng}`;
+      }
+      
+      console.log('Using origin:', origin, 'destination:', destination);
+      
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/directions/json?origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&key=${GOOGLE_MAPS_API_KEY}`
+      );
+      const data = await response.json();
+      
+      console.log('Route data response:', data);
+      
+      if (data.routes && data.routes[0]) {
+        const route = data.routes[0];
+        const leg = route.legs[0];
+        
+        const routeInfo = {
+          distance: (leg.distance.value / 1000).toFixed(1),
+          travelTime: Math.round(leg.duration.value / 60),
+          fromCoords: {
+            lat: leg.start_location.lat,
+            lng: leg.start_location.lng,
+            address: leg.start_address
+          },
+          toCoords: {
+            lat: leg.end_location.lat,
+            lng: leg.end_location.lng,
+            address: leg.end_address
+          }
+        };
+        
+        console.log('Route info:', routeInfo);
+        setRouteData(routeInfo);
+        
+        // Get weather for destination
+        await getWeather(leg.end_location.lat, leg.end_location.lng);
+      } else {
+        console.error('No routes found in response, trying fallback');
+        // Fallback: create route data with available coordinates
+        await createFallbackRouteData(from, to);
+      }
+    } catch (error) {
+      console.error('Error getting route data:', error);
+      // Fallback: create route data with available coordinates
+      await createFallbackRouteData(from, to);
+    }
+  };
+
+  const createFallbackRouteData = async (from, to) => {
+    try {
+      console.log('Creating fallback route data');
+      
+      // Use available coordinates or get them from geocoding
+      let fromLat = 20.5937, fromLng = 78.9629; // Default to India center
+      let toLat = 20.5937, toLng = 78.9629;
+      
+      if (fromCoords) {
+        fromLat = fromCoords.lat;
+        fromLng = fromCoords.lng;
+      } else {
+        // Try to geocode the from address
+        const fromResponse = await fetch(
+          `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(from)}&key=${GOOGLE_MAPS_API_KEY}`
+        );
+        const fromData = await fromResponse.json();
+        if (fromData.results && fromData.results[0]) {
+          fromLat = fromData.results[0].geometry.location.lat;
+          fromLng = fromData.results[0].geometry.location.lng;
+        }
+      }
+      
+      if (toCoords) {
+        toLat = toCoords.lat;
+        toLng = toCoords.lng;
+      } else {
+        // Try to geocode the to address
+        const toResponse = await fetch(
+          `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(to)}&key=${GOOGLE_MAPS_API_KEY}`
+        );
+        const toData = await toResponse.json();
+        if (toData.results && toData.results[0]) {
+          toLat = toData.results[0].geometry.location.lat;
+          toLng = toData.results[0].geometry.location.lng;
+        }
+      }
+      
+      // Calculate distance using Haversine formula
+      const distance = calculateDistance(
+        { lat: fromLat, lng: fromLng },
+        { lat: toLat, lng: toLng }
+      );
+      
+      const routeInfo = {
+        distance: distance.toFixed(1),
+        travelTime: Math.round(distance * 2), // Rough estimate: 2 min per km
+        fromCoords: {
+          lat: fromLat,
+          lng: fromLng,
+          address: from
+        },
+        toCoords: {
+          lat: toLat,
+          lng: toLng,
+          address: to
+        }
+      };
+      
+      console.log('Fallback route info:', routeInfo);
+      setRouteData(routeInfo);
+      
+      // Get weather for destination
+      await getWeather(toLat, toLng);
+      
+    } catch (error) {
+      console.error('Error creating fallback route data:', error);
+      setRouteData(null);
+    }
+  };
+
+  const getWeather = async (lat, lng) => {
+    try {
+      console.log('Getting weather for:', lat, lng);
+      
+      // Using OpenWeatherMap API
+      const response = await fetch(
+        `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&appid=${WEATHER_API_KEY}&units=metric`
+      );
+      const data = await response.json();
+      
+      console.log('Weather response:', data);
+      
+      if (data.cod === 200) {
+        setWeather(data);
+      } else {
+        console.error('Weather API error:', data.message);
+        setWeather(null);
+      }
+    } catch (error) {
+      console.error('Error getting weather:', error);
+      setWeather(null);
+    }
+  };
+
+  const initializeMap = () => {
+    if (!mapRef.current || mapInstance) return;
+
+    // Load Google Maps script if not already loaded
+    if (!window.google || !window.google.maps) {
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`;
+      script.async = true;
+      script.defer = true;
+      script.onload = () => createMap();
+      document.head.appendChild(script);
+    } else {
+      createMap();
+    }
+  };
+
+  const createMap = () => {
+    try {
+      const map = new window.google.maps.Map(mapRef.current, {
+        zoom: 10,
+        center: { lat: 20.5937, lng: 78.9629 },
+        disableDefaultUI: false,
+        zoomControl: true,
+        streetViewControl: false,
+        mapTypeControl: true,
+        fullscreenControl: true,
+        styles: [
+          {
+            featureType: 'all',
+            elementType: 'labels.text.fill',
+            stylers: [{ color: '#ffffff' }]
+          },
+          {
+            featureType: 'all',
+            elementType: 'labels.text.stroke',
+            stylers: [{ color: '#000000' }]
+          },
+          {
+            featureType: 'administrative',
+            elementType: 'geometry.fill',
+            stylers: [{ color: '#000000' }]
+          },
+          {
+            featureType: 'landscape',
+            elementType: 'geometry',
+            stylers: [{ color: '#2c2c2c' }]
+          },
+          {
+            featureType: 'poi',
+            elementType: 'geometry',
+            stylers: [{ color: '#2c2c2c' }]
+          },
+          {
+            featureType: 'road',
+            elementType: 'geometry',
+            stylers: [{ color: '#38414e' }]
+          },
+          {
+            featureType: 'road',
+            elementType: 'geometry.stroke',
+            stylers: [{ color: '#212a37' }]
+          },
+          {
+            featureType: 'road',
+            elementType: 'labels.text.fill',
+            stylers: [{ color: '#9ca5b3' }]
+          },
+          {
+            featureType: 'water',
+            elementType: 'geometry',
+            stylers: [{ color: '#17263c' }]
+          }
+        ]
+      });
+
+      const directionsService = new window.google.maps.DirectionsService();
+      const directionsRenderer = new window.google.maps.DirectionsRenderer({
+        map: map,
+        suppressMarkers: false,
+        polylineOptions: {
+          strokeColor: '#8b5cf6',
+          strokeWeight: 4,
+          strokeOpacity: 0.8
+        }
+      });
+
+      setMapInstance(map);
+
+      // Display route if we have route data
+      if (routeData) {
+        displayRoute(directionsService, directionsRenderer);
+      }
+
+    } catch (error) {
+      console.error('Error creating map:', error);
+    }
+  };
+
+  const displayRoute = (service, renderer) => {
+    if (!routeData) return;
+
+    const request = {
+      origin: routeData.fromCoords.address,
+      destination: routeData.toCoords.address,
+      travelMode: window.google.maps.TravelMode.DRIVING
+    };
+
+    service.route(request, (result, status) => {
+      if (status === 'OK') {
+        renderer.setDirections(result);
+        
+        // Fit map to show the entire route
+        const bounds = new window.google.maps.LatLngBounds();
+        result.routes[0].legs.forEach(leg => {
+          bounds.extend(leg.start_location);
+          bounds.extend(leg.end_location);
+        });
+        mapInstance.fitBounds(bounds);
+      } else {
+        console.error('Directions request failed due to ' + status);
       }
     });
   };
 
   const handleCreateRide = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    setCreatingRide(true);
     setError('');
-
-    if (!formData.currentLocation.coordinates.length || !formData.destination.coordinates.length) {
-      setError('Please enter both your current location and destination.');
-      setLoading(false);
-      return;
-    }
-
+    
     try {
+      console.log('Creating ride with form data:', form);
+      console.log('Route data:', routeData);
+      console.log('From coords:', fromCoords);
+      console.log('To coords:', toCoords);
+      
+      // Validate form data
+      if (!form.from || !form.to) {
+        setError('Please enter both "From" and "To" addresses.');
+        setCreatingRide(false);
+        return;
+      }
+      
+      if (!form.time) {
+        setError('Please select departure time.');
+        setCreatingRide(false);
+        return;
+      }
+      
+      if (!routeData) {
+        setError('Please enter valid addresses to create a ride. Make sure both addresses are recognized.');
+        setCreatingRide(false);
+        return;
+      }
+      
       const token = localStorage.getItem('token');
-      const response = await axios.post('http://localhost:5000/api/location', {
-        currentLocation: formData.currentLocation,
-        destination: formData.destination,
-        departureTime: formData.departureTime,
-        notice: formData.notice,
-        maxPassengers: formData.maxPassengers
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
+      if (!token) {
+        setError('Authentication required. Please login again.');
+        setCreatingRide(false);
+        return;
+      }
+      
+      const rideData = {
+        currentLocation: { 
+          address: form.from,
+          coordinates: [routeData.fromCoords.lat, routeData.fromCoords.lng]
+        },
+        destination: { 
+          address: form.to,
+          coordinates: [routeData.toCoords.lat, routeData.toCoords.lng]
+        },
+        departureTime: form.time,
+        maxPassengers: parseInt(form.seats),
+        notice: form.note
+      };
+      
+      console.log('Sending ride data to server:', rideData);
+      
+      const response = await axios.post(API_URL, rideData, { 
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        } 
       });
-
-      setRides(prevRides => [response.data.location, ...prevRides]);
-      setShowCreateForm(false);
-      setFormData({
-        currentLocation: { coordinates: [], address: '' },
-        destination: { coordinates: [], address: '' },
-        departureTime: '',
-        notice: '',
-        maxPassengers: 3
-      });
-    } catch (error) {
-      setError(error.response?.data?.message || 'Failed to create ride');
+      
+      console.log('Server response:', response.data);
+      
+      // Reset form and close create section
+      setShowCreate(false);
+      setForm({ from: '', to: '', time: '', seats: 1, note: '' });
+      setRouteData(null);
+      setWeather(null);
+      setFromCoords(null);
+      setToCoords(null);
+      
+      // Refresh rides list
+      await fetchRides();
+      
+    } catch (e) {
+      console.error('Error creating ride:', e);
+      if (e.response) {
+        setError(`Failed to create ride: ${e.response.data.message || e.response.statusText}`);
+      } else if (e.request) {
+        setError('Network error. Please check your connection.');
+      } else {
+        setError('Failed to create ride. Please try again.');
+      }
     } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCancelRide = async (rideId) => {
-    try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:5000/api/location/${rideId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      fetchRides();
-    } catch (error) {
-      setError(error.response?.data?.message || 'Failed to cancel ride');
+      setCreatingRide(false);
     }
   };
 
   const handleJoinRide = async (rideId) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`http://localhost:5000/api/location/${rideId}/join`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await axios.post(`${API_URL}/${rideId}/join`, {}, { headers: { Authorization: `Bearer ${token}` } });
       fetchRides();
-    } catch (error) {
-      setError(error.response?.data?.message || 'Failed to join ride');
+    } catch (e) {
+      setError('Failed to join ride.');
+      console.error('Error joining ride:', e);
     }
   };
 
   const handleLeaveRide = async (rideId) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`http://localhost:5000/api/location/${rideId}/leave`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await axios.post(`${API_URL}/${rideId}/leave`, {}, { headers: { Authorization: `Bearer ${token}` } });
       fetchRides();
-    } catch (error) {
-      setError(error.response?.data?.message || 'Failed to leave ride');
+    } catch (e) {
+      setError('Failed to leave ride.');
+      console.error('Error leaving ride:', e);
     }
   };
 
-  const handleCommunication = (ride) => {
-    setSelectedRide(ride);
-    setShowCommunication(true);
-  };
-
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleString();
-  };
-
-  const initiateCall = (phoneNumber) => {
-    window.open(`tel:${phoneNumber}`, '_blank');
-  };
-
-  const initiateVideoCall = (userId) => {
-    alert(`Initiating video call with user ${userId}`);
-  };
-
-  const sendMessage = (userId) => {
-    alert(`Opening chat with user ${userId}`);
-  };
-
-  const shareLocation = (ride) => {
-    // Only copy to clipboard, do not use navigator.share
-    navigator.clipboard.writeText(`${ride.currentLocation.address} to ${ride.destination.address}`);
-    alert('Location copied to clipboard!');
-  };
-
-  // Geocode destination address to coordinates
-  const geocodeDestination = async (address) => {
-    setDestinationLoading(true);
+  const handleCancelRide = async (rideId) => {
     try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`
-      );
-      const data = await response.json();
-      if (data && data.length > 0) {
-        const { lat, lon, display_name } = data[0];
-        setFormData((prev) => ({
-          ...prev,
-          destination: {
-            address: display_name || address,
-            coordinates: [parseFloat(lat), parseFloat(lon)]
-          }
-        }));
-        setError('');
-      } else {
-        setFormData((prev) => ({
-          ...prev,
-          destination: {
-            ...prev.destination,
-            coordinates: []
-          }
-        }));
-        setError('Could not find destination coordinates.');
-      }
-    } catch (err) {
-      setError('Error finding destination coordinates.');
-    } finally {
-      setDestinationLoading(false);
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API_URL}/${rideId}`, { headers: { Authorization: `Bearer ${token}` } });
+      fetchRides();
+    } catch (e) {
+      setError('Failed to cancel ride.');
+      console.error('Error canceling ride:', e);
     }
   };
 
-  // Handle destination address change
-  const handleDestinationChange = (e) => {
-    const address = e.target.value;
-    setFormData((prev) => ({
-      ...prev,
-      destination: {
-        ...prev.destination,
-        address,
-        coordinates: [] // reset coordinates until found
-      }
-    }));
-    setError('');
+  const getWeatherIcon = (weatherCode) => {
+    const icons = {
+      '01': '☀️', '02': '⛅', '03': '☁️', '04': '☁️',
+      '09': '🌧️', '10': '🌦️', '11': '⛈️', '13': '🌨️', '50': '🌫️'
+    };
+    return icons[weatherCode.substring(0, 2)] || '🌤️';
   };
 
-  // Handle Find button click for destination
-  const handleFindDestination = (e) => {
-    e.preventDefault();
-    if (formData.destination.address.length > 3) {
-      geocodeDestination(formData.destination.address);
-    } else {
-      setError('Please enter a more specific destination address.');
+  const calculateDistance = (from, to) => {
+    const R = 6371; // Earth's radius in km
+    const dLat = (to.lat - from.lat) * Math.PI / 180;
+    const dLon = (to.lng - from.lng) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(from.lat * Math.PI / 180) * Math.cos(to.lat * Math.PI / 180) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  };
+
+  const getRideDistance = (ride) => {
+    if (!userLocation || !ride.currentLocation?.coordinates || ride.currentLocation.coordinates.length !== 2) {
+      return null;
     }
+    
+    const rideCoords = {
+      lat: ride.currentLocation.coordinates[0],
+      lng: ride.currentLocation.coordinates[1]
+    };
+    
+    return calculateDistance(userLocation, rideCoords).toFixed(1);
   };
 
-  // Helper to open Google Maps directions
-  const openGoogleMapsRoute = (ride) => {
-    const origin = ride.currentLocation?.coordinates;
-    const destination = ride.destination?.coordinates;
-    if (
-      Array.isArray(origin) && origin.length === 2 &&
-      Array.isArray(destination) && destination.length === 2
-    ) {
-      const url = `https://www.google.com/maps/dir/?api=1&origin=${origin[0]},${origin[1]}&destination=${destination[0]},${destination[1]}`;
-      window.open(url, '_blank');
+  const getRideRouteDistance = (ride) => {
+    if (!ride.currentLocation?.coordinates || !ride.destination?.coordinates ||
+        ride.currentLocation.coordinates.length !== 2 || ride.destination.coordinates.length !== 2) {
+      return null;
     }
-  };
-
-  const renderRideCards = () => {
-    return rides.map((ride, index) => (
-      <motion.div
-        key={ride._id}
-        className="location-ride-card"
-        variants={cardVariants}
-        whileHover="hover"
-        transition={{ delay: index * 0.1 }}
-      >
-        <div className="ride-header">
-          <div className="user-info">
-            <motion.img 
-              src={ride.user.profilePhoto || '/peerpath.png'} 
-              alt={ride.user.username}
-              whileHover={{ scale: 1.1, rotate: 5 }}
-              transition={{ duration: 0.2 }}
-            />
-            <h3>{ride.user.username}</h3>
-          </div>
-          <div className="ride-status">
-            <span className={`status ${ride.isActive ? 'active' : 'inactive'}`}>{ride.isActive ? 'Active' : 'Inactive'}</span>
-          </div>
-        </div>
-        <div className="ride-details">
-          <div className="location-info">
-            <p><strong>From:</strong> {ride.currentLocation.address}</p>
-            <RideCardMap coordinates={ride.currentLocation.coordinates} label="Start Location" />
-            <p><strong>To:</strong> {ride.destination.address}</p>
-            <RideCardMap coordinates={ride.destination.coordinates} label="Destination" />
-          </div>
-          <div className="time-info">
-            <p><strong>Departure:</strong> {formatDate(ride.departureTime)}</p>
-          </div>
-          <div className="passenger-info">
-            <p><strong>Passengers:</strong> {ride.currentPassengers}/{ride.maxPassengers}</p>
-            {ride.passengers && ride.passengers.length > 0 && (
-              <div className="passenger-list">
-                {ride.passengers.map((p) => (
-                  <motion.div 
-                    className="passenger-list-item" 
-                    key={p.user._id}
-                    whileHover={{ scale: 1.05 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <img src={p.user.profilePhoto || '/peerpath.png'} alt={p.user.username} />
-                    <span>{p.user.username}</span>
-                  </motion.div>
-                ))}
-              </div>
-            )}
-          </div>
-          {ride.notice && (
-            <div className="notice">
-              <p><strong>Notice:</strong> {ride.notice}</p>
-            </div>
-          )}
-        </div>
-        <div className="ride-actions">
-          <button 
-            className="route-btn" 
-            onClick={() => openGoogleMapsRoute(ride)}
-          >
-            View Route
-          </button>
-          {ride.user._id === currentUser._id ? (
-            <button 
-              className="cancel-btn" 
-              onClick={() => handleCancelRide(ride._id)}
-            >
-              Cancel Ride
-            </button>
-          ) : (
-            <>
-              {ride.passengers.some(p => p.user._id === currentUser._id) ? (
-                <button 
-                  className="leave-btn" 
-                  onClick={() => handleLeaveRide(ride._id)}
-                >
-                  Leave Ride
-                </button>
-              ) : (
-                <button 
-                  className="join-btn" 
-                  onClick={() => handleJoinRide(ride._id)} 
-                  disabled={ride.currentPassengers >= ride.maxPassengers}
-                >
-                  Join Ride
-                </button>
-              )}
-              <button 
-                className="contact-btn" 
-                onClick={() => handleCommunication(ride)}
-              >
-                Contact
-              </button>
-            </>
-          )}
-          <button 
-            className="share-btn" 
-            onClick={() => { handleJoinRide(ride._id); shareLocation(ride); }}
-          >
-            Share
-          </button>
-        </div>
-      </motion.div>
-    ));
-  };
-
-  const renderMapView = () => {
-    // Only show rides with valid coordinates
-    const ridesWithCoords = rides.filter(
-      ride => Array.isArray(ride.currentLocation.coordinates) && ride.currentLocation.coordinates.length === 2 &&
-        typeof ride.currentLocation.coordinates[0] === 'number' && typeof ride.currentLocation.coordinates[1] === 'number'
-    );
-    console.log('ridesWithCoords:', ridesWithCoords);
-    try {
-      return (
-        <div className="map-container">
-          <MapContainer
-            center={mapCenter}
-            zoom={mapZoom}
-            style={{ height: '500px', width: '100%' }}
-            ref={mapRef}
-          >
-            <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            />
-            <MapUpdater center={mapCenter} zoom={mapZoom} />
-            {userLocation && (
-              <Marker position={[userLocation.lat, userLocation.lng]}>
-                <Popup>
-                  <div>
-                    <h4>Your Location</h4>
-                    <p>You are here</p>
-                  </div>
-                </Popup>
-              </Marker>
-            )}
-            {ridesWithCoords.length === 0 && (
-              <Popup position={mapCenter}>
-                <div>No rides with valid coordinates to display on the map.<br/>Try creating a new ride with a full address.<br/>Check browser console for map errors if this persists.</div>
-              </Popup>
-            )}
-            {ridesWithCoords.map((ride) => (
-              <Marker
-                key={ride._id}
-                position={[ride.currentLocation.coordinates[0], ride.currentLocation.coordinates[1]]}
-              >
-                <Popup>
-                  <div className="ride-popup">
-                    <h4>{ride.user.username}'s Ride</h4>
-                    <p><strong>From:</strong> {ride.currentLocation.address}</p>
-                    <p><strong>To:</strong> {ride.destination.address}</p>
-                    <p><strong>Departure:</strong> {formatDate(ride.departureTime)}</p>
-                    <p><strong>Passengers:</strong> {ride.currentPassengers}/{ride.maxPassengers}</p>
-                    <button className="popup-contact-btn" onClick={() => handleCommunication(ride)}>Contact</button>
-                  </div>
-                </Popup>
-              </Marker>
-            ))}
-          </MapContainer>
-        </div>
-      );
-    } catch (err) {
-      console.error('Map rendering error:', err);
-      return <div className="error-message">Map failed to load. Check the browser console for details.</div>;
-    }
+    
+    const fromCoords = {
+      lat: ride.currentLocation.coordinates[0],
+      lng: ride.currentLocation.coordinates[1]
+    };
+    
+    const toCoords = {
+      lat: ride.destination.coordinates[0],
+      lng: ride.destination.coordinates[1]
+    };
+    
+    return calculateDistance(fromCoords, toCoords).toFixed(1);
   };
 
   return (
-    <motion.div 
-      className="location-page"
-      initial="initial"
-      animate="in"
-      exit="out"
-      variants={pageVariants}
-      transition={pageTransition}
-    >
+    <div className="location-page">
       <NavigationBar 
-        currentUser={currentUser}
-        onLogout={onLogout}
+        currentUser={currentUser} 
+        onLogout={onLogout} 
         showUserInfo={true}
         showNotifications={true}
         showSearch={false}
       />
+      
+      {/* Hero Animation Section */}
+      <motion.div className="location-hero" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+        <div className="hero-animation">
+          <motion.div className="car car-1" animate={{ x: [0, 100, 0] }} transition={{ duration: 3, repeat: Infinity }}>
+            🚗
+          </motion.div>
+          <motion.div className="connection-line" animate={{ scaleX: [0, 1, 0] }} transition={{ duration: 2, repeat: Infinity }}>
+            <div className="line"></div>
+            <div className="peer-icon">👥</div>
+          </motion.div>
+          <motion.div className="car car-2" animate={{ x: [0, -100, 0] }} transition={{ duration: 3, repeat: Infinity, delay: 1 }}>
+            🚗
+          </motion.div>
+        </div>
+        <h1 className="hero-title">Connect & Travel Together</h1>
+        <p className="hero-subtitle">Find rides, share journeys, and make new connections</p>
+      </motion.div>
 
-      <div className="location-main-content">
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', marginBottom: '2.5rem' }}>
-          <button
-            style={{
-              background: 'linear-gradient(120deg, #ede9fe 0%, #c7d2fe 100%)',
-              color: '#7c3aed',
-              borderRadius: '10px',
-              padding: '0.8rem 1.5rem',
-              fontSize: '1.04rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(168, 85, 247, 0.08)',
-              border: '1px solid #e9d5ff',
-              transition: 'background 0.18s, box-shadow 0.18s, transform 0.18s, color 0.18s',
-            }}
-            onClick={() => setShowCreateForm(true)}
-          >
-            Create New Ride
-          </button>
-          <button
-            style={{
-              background: 'linear-gradient(120deg, #ede9fe 0%, #c7d2fe 100%)',
-              color: '#7c3aed',
-              borderRadius: '10px',
-              padding: '0.8rem 1.5rem',
-              fontSize: '1.04rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(168, 85, 247, 0.08)',
-              border: '1px solid #e9d5ff',
-              transition: 'background 0.18s, box-shadow 0.18s, transform 0.18s, color 0.18s',
-            }}
-            onClick={() => setMapView(v => !v)}
-          >
-            Map View
+      <motion.div className="location-main" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}>
+        <div className="location-actions">
+          <button className="create-btn" onClick={() => setShowCreate((v) => !v)}>
+            {showCreate ? 'Cancel' : 'Offer a Ride'}
           </button>
         </div>
-        {/* Ride Cards or Map View */}
-        {!mapView ? (
-          <div className="location-cards-wrapper">
-            {renderRideCards()}
-          </div>
-        ) : (
-          renderMapView()
-        )}
-      </div>
 
-      {/* Communication Modal */}
-      <AnimatePresence>
-        {showCommunication && selectedRide && (
-          <motion.div 
-            className="communication-modal"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div 
-              className="modal-content"
-              initial={{ opacity: 0, scale: 0.8, y: 50 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.8, y: 50 }}
-              transition={{ duration: 0.3 }}
-            >
-              <motion.div 
-                className="modal-header"
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-              >
-                <h3>Contact {selectedRide.user.username}</h3>
-                <motion.button 
-                  className="close-btn" 
-                  onClick={() => setShowCommunication(false)}
-                  variants={buttonVariants}
-                  whileHover="hover"
-                  whileTap="tap"
+        {showCreate && (
+          <motion.div className="create-ride-section" initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
+            <form className="location-form" onSubmit={handleCreateRide}>
+              <div className="form-row">
+                <div className="input-group">
+                  <AddressInput
+                    value={form.from}
+                    onChange={handleInput}
+                    placeholder="From (Start typing for suggestions)"
+                    onAddressSelect={(addressData) => handleAddressSelect('from', addressData)}
+                    name="from"
+                    className="location-form-input"
+                  />
+                  {currentLocationAddress && (
+                    <label className="current-location-checkbox">
+                      <input 
+                        type="checkbox" 
+                        checked={useCurrentLocation}
+                        onChange={(e) => setUseCurrentLocation(e.target.checked)}
+                      />
+                      Use my current location
+                    </label>
+                  )}
+                </div>
+                <AddressInput
+                  value={form.to}
+                  onChange={handleInput}
+                  placeholder="To (Start typing for suggestions)"
+                  onAddressSelect={(addressData) => handleAddressSelect('to', addressData)}
+                  name="to"
+                  className="location-form-input"
+                />
+              </div>
+              <div className="form-row">
+                <input name="time" value={form.time} onChange={handleInput} type="datetime-local" required />
+                <input name="seats" value={form.seats} onChange={handleInput} type="number" min={1} max={8} placeholder="Available Seats" required />
+              </div>
+              <input name="note" value={form.note} onChange={handleInput} placeholder="Note (optional)" />
+              
+              {/* Manual route calculation button */}
+              {form.from && form.to && !routeData && (
+                <button 
+                  type="button" 
+                  className="calculate-route-btn"
+                  onClick={() => getRouteData(form.from, form.to)}
                 >
-                  &times;
-                </motion.button>
+                  Calculate Route
+                </button>
+              )}
+              
+              <button type="submit" className="submit-btn" disabled={creatingRide}>
+                {creatingRide ? 'Creating Ride...' : 'Create Ride'}
+              </button>
+            </form>
+
+            {routeData && (
+              <motion.div className="route-map-section" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+                <div className="map-container">
+                  <SimpleMap 
+                    fromAddress={routeData.fromCoords.address}
+                    toAddress={routeData.toCoords.address}
+                  />
+                  <div className="route-info">
+                    <div className="route-detail">
+                      <span className="label">Distance:</span>
+                      <span className="value">{routeData.distance} km</span>
+                    </div>
+                    <div className="route-detail">
+                      <span className="label">Travel Time:</span>
+                      <span className="value">~{routeData.travelTime} min</span>
+                    </div>
+                    {weather && (
+                      <div className="route-detail">
+                        <span className="label">Weather at Destination:</span>
+                        <span className="value">
+                          {getWeatherIcon(weather.weather[0].icon)} {weather.main.temp}°C, {weather.weather[0].main}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </motion.div>
-              <motion.div 
-                className="communication-options"
-                variants={staggerContainer}
-                initial="initial"
-                animate="animate"
-              >
-                <motion.button 
-                  className="comm-btn call-btn" 
-                  onClick={() => initiateCall(selectedRide.user.phoneNumber)}
-                  variants={buttonVariants}
-                  whileHover="hover"
-                  whileTap="tap"
-                >
-                  📞 Call
-                </motion.button>
-                <motion.button 
-                  className="comm-btn video-btn" 
-                  onClick={() => initiateVideoCall(selectedRide.user._id)}
-                  variants={buttonVariants}
-                  whileHover="hover"
-                  whileTap="tap"
-                >
-                  📹 Video Call
-                </motion.button>
-                <motion.button 
-                  className="comm-btn message-btn" 
-                  onClick={() => sendMessage(selectedRide.user._id)}
-                  variants={buttonVariants}
-                  whileHover="hover"
-                  whileTap="tap"
-                >
-                  💬 Message
-                </motion.button>
-                <motion.button 
-                  className="comm-btn location-btn" 
-                  onClick={() => shareLocation(selectedRide)}
-                  variants={buttonVariants}
-                  whileHover="hover"
-                  whileTap="tap"
-                >
-                  📍 Share Location
-                </motion.button>
-              </motion.div>
-            </motion.div>
+            )}
           </motion.div>
         )}
-      </AnimatePresence>
-    </motion.div>
-  );
-};
 
-export default Location; 
+        {error && <div className="location-error">{error}</div>}
+        
+        {loading ? (
+          <div className="location-loading">Loading rides...</div>
+        ) : (
+          <div className="rides-section">
+            <h2 className="rides-title">Available Rides</h2>
+            <div className="rides-list">
+              {rides.length === 0 ? (
+                <div className="no-rides">No rides available. Be the first to offer a ride!</div>
+              ) : (
+                rides.map((ride) => {
+                  const userDistance = getRideDistance(ride);
+                  const routeDistance = getRideRouteDistance(ride);
+                  
+                  return (
+                    <motion.div className="ride-card" key={ride._id} whileHover={{ scale: 1.02, y: -5 }}>
+                      <div className="ride-header">
+                        <div className="ride-creator">
+                          <img src={ride.user?.profilePhoto || '/peerpath.png'} alt={ride.user?.username} />
+                          <span>{ride.user?.username}</span>
+                        </div>
+                        <div className="ride-status">
+                          <span className={`status ${ride.isActive ? 'active' : 'inactive'}`}>
+                            {ride.isActive ? 'Active' : 'Inactive'}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="ride-route">
+                        <div className="route-point">
+                          <span className="point-label">From:</span>
+                          <span className="point-address">{ride.currentLocation?.address}</span>
+                        </div>
+                        <div className="route-arrow">→</div>
+                        <div className="route-point">
+                          <span className="point-label">To:</span>
+                          <span className="point-address">{ride.destination?.address}</span>
+                        </div>
+                      </div>
+
+                      {/* Google Maps Mini Map for each ride */}
+                      <div className="ride-map-container">
+                        <SimpleMap 
+                          fromAddress={ride.currentLocation?.address}
+                          toAddress={ride.destination?.address}
+                        />
+                      </div>
+
+                      <div className="ride-details">
+                        <div className="detail-item">
+                          <span className="detail-label">Departure:</span>
+                          <span className="detail-value">{new Date(ride.departureTime).toLocaleString()}</span>
+                        </div>
+                        <div className="detail-item">
+                          <span className="detail-label">Seats:</span>
+                          <span className="detail-value">{ride.currentPassengers || 1}/{ride.maxPassengers}</span>
+                        </div>
+                        {routeDistance && (
+                          <div className="detail-item">
+                            <span className="detail-label">Route Distance:</span>
+                            <span className="detail-value">{routeDistance} km</span>
+                          </div>
+                        )}
+                        {userDistance && (
+                          <div className="detail-item">
+                            <span className="detail-label">Distance from you:</span>
+                            <span className="detail-value">{userDistance} km</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {ride.notice && (
+                        <div className="ride-note">
+                          <span className="note-label">Note:</span>
+                          <span className="note-text">{ride.notice}</span>
+                        </div>
+                      )}
+
+                      <div className="ride-members">
+                        <h4>Ride Members:</h4>
+                        <div className="members-list">
+                          <div className="member creator">
+                            <img src={ride.user?.profilePhoto || '/peerpath.png'} alt={ride.user?.username} />
+                            <span>{ride.user?.username} (Creator)</span>
+                          </div>
+                          {ride.passengers && ride.passengers.map((passenger) => (
+                            <div className="member" key={passenger.user._id}>
+                              <img src={passenger.user.profilePhoto || '/peerpath.png'} alt={passenger.user.username} />
+                              <span>{passenger.user.username}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="ride-actions">
+                        {ride.user._id === currentUser._id ? (
+                          <button className="cancel-btn" onClick={() => handleCancelRide(ride._id)}>
+                            Cancel Ride
+                          </button>
+                        ) : (
+                          <>
+                            {ride.passengers?.some(p => p.user._id === currentUser._id) ? (
+                              <button className="leave-btn" onClick={() => handleLeaveRide(ride._id)}>
+                                Leave Ride
+                              </button>
+                            ) : (
+                              <button 
+                                className="join-btn" 
+                                onClick={() => handleJoinRide(ride._id)}
+                                disabled={ride.currentPassengers >= ride.maxPassengers}
+                              >
+                                Join Ride
+                              </button>
+                            )}
+                            <button className="contact-btn">Contact</button>
+                          </>
+                        )}
+                      </div>
+                    </motion.div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        )}
+      </motion.div>
+    </div>
+  );
+} 
