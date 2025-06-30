@@ -280,7 +280,7 @@ const Profile = ({ onLogout }) => {
 
       <div className="profile-content">
         <motion.div 
-          className="profile-header fancy-gradient-card"
+          className="profile-header profile-fancy-gradient-card"
           variants={cardVariants}
           initial="initial"
           animate="animate"
@@ -371,7 +371,7 @@ const Profile = ({ onLogout }) => {
           {stats.map((stat, index) => (
             <motion.div 
               key={index} 
-              className="stat-card fancy-gradient-card"
+              className="stat-card profile-fancy-gradient-card"
               variants={statVariants}
               whileHover="hover"
             >
@@ -388,7 +388,7 @@ const Profile = ({ onLogout }) => {
           animate="animate"
         >
           <motion.div 
-            className="profile-section fancy-gradient-card"
+            className="profile-section profile-fancy-gradient-card"
             variants={cardVariants}
             whileHover="hover"
           >
@@ -422,7 +422,7 @@ const Profile = ({ onLogout }) => {
           </motion.div>
 
           <motion.div 
-            className="profile-section fancy-gradient-card"
+            className="profile-section profile-fancy-gradient-card"
             variants={cardVariants}
             whileHover="hover"
           >
@@ -488,7 +488,7 @@ const Profile = ({ onLogout }) => {
           </motion.div>
 
           <motion.div 
-            className="profile-section fancy-gradient-card"
+            className="profile-section profile-fancy-gradient-card"
             variants={cardVariants}
             whileHover="hover"
           >
@@ -554,7 +554,7 @@ const Profile = ({ onLogout }) => {
           </motion.div>
 
           <motion.div 
-            className="profile-section fancy-gradient-card"
+            className="profile-section profile-fancy-gradient-card"
             variants={cardVariants}
             whileHover="hover"
           >

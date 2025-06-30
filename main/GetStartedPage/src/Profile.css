@@ -445,9 +445,13 @@
   position: relative;
   border-radius: 16px;
   padding: 20px;
+  background: #0f0f10; /* Inner card background */
+  color: white;
   z-index: 0;
   overflow: hidden;
-  isolation: isolate; /* keep border behind content */
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  isolation: isolate;
 }
 
 /* Only border (not changing background) */
@@ -481,8 +485,90 @@
   100% { background-position: 0% 50%; }
 }
 .box {
-    width: 100;
-    height: 100;
-    backgroundColor: #9911ff;
-    borderRadius: 5;
+  width: auto;
+  height: auto;
+  background-color: #9911ff;
+  border-radius: 5px;
+}
+
+/* Reduce heights for profile page cards */
+.profile-page .fancy-gradient-card {
+  min-height: 120px !important;
+  padding: 1.2rem !important;
+}
+
+.profile-page .profile-header.fancy-gradient-card {
+  min-height: auto !important;
+  padding: 1.5rem !important;
+}
+
+.profile-page .stat-card.fancy-gradient-card {
+  min-height: 100px !important;
+  padding: 1rem !important;
+}
+
+.profile-fancy-gradient-card {
+  position: relative;
+  border-radius: 16px;
+  padding: 20px;
+  background: #1a1a2e !important; /* Slightly lighter background for testing */
+  background-color: #1a1a2e !important;
+  color: white;
+  z-index: 10;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  isolation: isolate;
+  min-height: 120px; /* Reduced height for profile cards */
+  height: auto; /* Let content determine height */
+}
+
+.profile-fancy-gradient-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  right: 0; bottom: 0;
+  padding: 2px; /* Border thickness */
+  background: linear-gradient(135deg, #8e2de2, #4a00e0, #00c9ff, #92fe9d);
+  background-size: 300% 300%;
+  animation: fancyBorderAnim 6s ease infinite;
+  border-radius: 16px;
+  z-index: -1;
+  mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0); 
+  mask-composite: exclude;
+  -webkit-mask-composite: destination-out;
+  box-sizing: border-box;
+  transition: filter 0.4s ease;
+}
+
+.profile-fancy-gradient-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+}
+
+.profile-fancy-gradient-card:hover::before {
+  filter: brightness(1.5) saturate(1.5) blur(1px);
+}
+
+/* Special styling for profile header card */
+.profile-header.profile-fancy-gradient-card {
+  min-height: auto;
+  height: auto;
+  padding: 1.5rem;
+}
+
+/* Special styling for stat cards */
+.stat-card.profile-fancy-gradient-card {
+  min-height: 100px;
+  height: auto;
+  padding: 1rem;
+}
+
+/* More specific selector to ensure background is applied */
+.profile-page .profile-fancy-gradient-card {
+  background: #1a1a2e !important;
+  background-color: #1a1a2e !important;
+  z-index: 10 !important;
 }

@@ -69,6 +69,22 @@ router.get('/top-helpers', async (req, res) => {
   }
 });
 
+// Get top doubt solvers (users who solved most doubts)
+router.get('/top-solvers', async (req, res) => {
+  try {
+    const topSolvers = await User.find()
+      .sort({ doubtsSolved: -1 })
+      .limit(6)
+      .select('username profilePhoto doubtsSolved expertise bio skills year');
+
+    console.log('Top solvers found:', topSolvers.length);
+    res.json(topSolvers);
+  } catch (error) {
+    console.error('Get top solvers error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 // Get user statistics
 router.get('/stats/:userId', authenticateToken, async (req, res) => {
   try {
@@ -164,6 +180,28 @@ router.post('/upload-profile-photo', authenticateToken, upload.single('profilePh
   } catch (error) {
     console.error('Profile photo upload error:', error);
     console.error('Error stack:', error.stack);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Get most active users (by unique active days)
+router.get('/most-active', async (req, res) => {
+  try {
+    const users = await User.find()
+      .select('username profilePhoto weeklyStats expertise bio skills year')
+      .lean();
+    // Calculate active days for each user
+    const usersWithActiveDays = users.map(user => ({
+      ...user,
+      activeDays: user.weeklyStats ? user.weeklyStats.length : 0
+    }));
+    // Sort by activeDays descending
+    usersWithActiveDays.sort((a, b) => b.activeDays - a.activeDays);
+    // Limit to top 6
+    const topActive = usersWithActiveDays.slice(0, 6);
+    res.json(topActive);
+  } catch (error) {
+    console.error('Get most active users error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });

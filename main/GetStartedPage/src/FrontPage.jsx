@@ -1,96 +1,65 @@
-import React from 'react';
+// ✅ Enhanced FrontPage for PeerPath
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './FrontPage.css';
 import { Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import NavigationBar from './components/NavigationBar.jsx';
+import { motion } from 'framer-motion';
+import StarBackground from './components/StarBackground';
+import TypewriterHeading from './components/TypewriterHeading';
+import FallingText from './components/FallingText';
+import Counter from './components/Counter';
+import InfiniteMenu from './components/InfiniteMenu';
 
 const FrontPage = ({ currentUser, onLogout }) => {
   const navigate = useNavigate();
 
-  // Animation variants
   const pageVariants = {
     initial: { opacity: 0 },
     in: { opacity: 1 },
-    out: { opacity: 0 }
+    out: { opacity: 0 },
   };
 
   const pageTransition = {
-    type: "tween",
-    ease: "anticipate",
-    duration: 0.5
-  };
-
-  const heroVariants = {
-    initial: { opacity: 0, y: 50 },
-    animate: { opacity: 1, y: 0 },
-    transition: { delay: 0.3, duration: 0.8 }
-  };
-
-  const cardVariants = {
-    initial: { opacity: 0, scale: 0.8, y: 50 },
-    animate: { opacity: 1, scale: 1, y: 0 },
-    hover: { 
-      scale: 1.1, 
-      y: -10,
-      transition: { duration: 0.3 }
-    },
-    tap: { scale: 0.9 }
-  };
-
-  const floatingCardVariants = {
-    initial: { opacity: 0, scale: 0.5 },
-    animate: { opacity: 1, scale: 1 },
-    hover: { 
-      scale: 1.2, 
-      rotate: 5,
-      transition: { duration: 0.3 }
-    }
-  };
-
-  const buttonVariants = {
-    initial: { scale: 1 },
-    hover: { scale: 1.05 },
-    tap: { scale: 0.95 }
+    type: 'tween',
+    ease: 'anticipate',
+    duration: 0.5,
   };
 
   const staggerContainer = {
     animate: {
       transition: {
-        staggerChildren: 0.1
-      }
-    }
+        staggerChildren: 0.1,
+      },
+    },
   };
 
-  const handleGetStarted = () => {
-    navigate('/dashboard');
-  };
-
-  const handleProfileClick = () => {
-    navigate('/profile');
-  };
+  // Fetch usernames for falling text
+  const [usernames, setUsernames] = useState([]);
+  useEffect(() => {
+    fetch('http://localhost:5000/api/users')
+      .then(res => {
+        if (!res.ok) throw new Error('Network response was not ok');
+        return res.json();
+      })
+      .then(data => {
+        console.log('Fetched users from http://localhost:5000/api/users:', data);
+        if (Array.isArray(data)) {
+          setUsernames(data.map(u => u.username));
+        }
+      })
+      .catch(err => {
+        console.error('Error fetching users from http://localhost:5000/api/users:', err);
+      });
+  }, []);
 
   const handleFeatureClick = (feature) => {
-    switch (feature) {
-      case 'mentorship':
-        navigate('/mentorship');
-        break;
-      case 'collaboration':
-        navigate('/collaboration');
-        break;
-      case 'resources':
-        navigate('/resources');
-        break;
-      case 'location':
-        navigate('/location');
-        break;
-      default:
-        navigate('/dashboard');
-    }
+    navigate(`/${feature}`);
   };
 
+  const handleGetStarted = () => navigate('/dashboard');
+
   return (
-    <motion.div 
+    <motion.div
       className="front-page"
       initial="initial"
       animate="in"
@@ -98,232 +67,170 @@ const FrontPage = ({ currentUser, onLogout }) => {
       variants={pageVariants}
       transition={pageTransition}
     >
-      <motion.div 
-        className="front-background"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1 }}
-      />
-      
-      {/* Navigation Bar */}
-      <NavigationBar 
-        currentUser={currentUser}
-        onLogout={onLogout}
-        showUserInfo={true}
-        showNotifications={true}
-        showSearch={false}
-      />
+      {/* Star Background */}
+      <StarBackground />
 
-      {/* Main Content */}
-      <motion.div 
-        className="front-content"
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3, duration: 0.8 }}
-      >
-        <motion.div 
-          className="hero-section"
-          variants={heroVariants}
-          initial="initial"
-          animate="animate"
-        >
-          <motion.div 
-            className="hero-text"
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.4, duration: 0.8 }}
-          >
-            <motion.h1 
-              className="hero-title"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-            >
-              Welcome to <motion.span 
-                className="highlight"
-                whileHover={{ scale: 1.1 }}
-                transition={{ duration: 0.2 }}
-              >
-                PeerPath
-              </motion.span>
-            </motion.h1>
-            <motion.p 
-              className="hero-subtitle"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-            >
-              Connect, Collaborate, and Grow Together
-            </motion.p>
-            <motion.p 
-              className="hero-description"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7 }}
-            >
-              Join a community of learners and mentors. Share knowledge, 
-              solve problems, and build amazing projects together.
-            </motion.p>
-            <motion.button 
-              className="get-started-btn" 
-              onClick={handleGetStarted}
-              variants={buttonVariants}
-              initial="initial"
-              whileHover="hover"
-              whileTap="tap"
-              transition={{ delay: 0.8 }}
-            >
-              Get Started
-            </motion.button>
+      {/* Background animation */}
+      <motion.div className="front-background" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1 }} />
+
+      {/* Hero Section */}
+      <motion.div className="front-content" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.8 }}>
+        <motion.div className="hero-section">
+          <motion.div className="hero-text" initial={{ x: -50, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.4 }}>
+            <TypewriterHeading />
+            <p className="hero-subtitle">Connect, Collaborate, and Grow Together</p>
+            <p className="hero-description">Join a community of learners and mentors. Share knowledge, solve problems, and build amazing projects together.</p>
+            <motion.button className="get-started-btn" onClick={handleGetStarted} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>Get Started</motion.button>
           </motion.div>
-          <motion.div 
-            className="hero-visual"
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.6, duration: 0.8 }}
-          >
-            <motion.div 
-              className="floating-cards"
-              variants={staggerContainer}
-              initial="initial"
-              animate="animate"
-            >
-              <motion.div 
-                className="card card-1" 
-                onClick={() => handleFeatureClick('mentorship')}
-                variants={floatingCardVariants}
-                whileHover="hover"
-                whileTap={{ scale: 0.8 }}
-              >
-                <span className="card-icon">🧑‍🏫</span>
-                <span className="card-text">Mentorship</span>
-              </motion.div>
-              <motion.div 
-                className="card card-2" 
-                onClick={() => handleFeatureClick('collaboration')}
-                variants={floatingCardVariants}
-                whileHover="hover"
-                whileTap={{ scale: 0.8 }}
-              >
-                <span className="card-icon">🤝</span>
-                <span className="card-text">Collaboration</span>
-              </motion.div>
-              <motion.div 
-                className="card card-3" 
-                onClick={() => handleFeatureClick('resources')}
-                variants={floatingCardVariants}
-                whileHover="hover"
-                whileTap={{ scale: 0.8 }}
-              >
-                <span className="card-icon">📚</span>
-                <span className="card-text">Resources</span>
-              </motion.div>
-              <motion.div 
-                className="card card-4" 
-                onClick={() => handleFeatureClick('location')}
-                variants={floatingCardVariants}
-                whileHover="hover"
-                whileTap={{ scale: 0.8 }}
-              >
-                <span className="card-icon">💡</span>
-                <span className="card-text">Innovation</span>
-              </motion.div>
+
+          <motion.div className="hero-visual" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.6 }}>
+            <motion.div className="floating-cards" variants={staggerContainer} initial="initial" animate="animate">
+              {[
+                { icon: '🧑‍🏫', text: 'Mentorship', key: 'mentorship' },
+                { icon: '🤝', text: 'Collaboration', key: 'collaboration' },
+                { icon: '📚', text: 'Resources', key: 'resources' },
+                { icon: '💡', text: 'Innovation', key: 'location' },
+              ].map((item, index) => (
+                <motion.div
+                  className={`card card-${index + 1}`}
+                  onClick={() => handleFeatureClick(item.key)}
+                  key={item.key}
+                  whileHover={{ scale: 1.2, rotate: 5 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <span className="card-icon">{item.icon}</span>
+                  <span className="card-text">{item.text}</span>
+                </motion.div>
+              ))}
             </motion.div>
           </motion.div>
         </motion.div>
 
-        <motion.div 
-          className="features-section"
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.9, duration: 0.8 }}
-        >
-          <motion.h2
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.0 }}
-          >
-            What You Can Do
-          </motion.h2>
-          <motion.div 
-            className="features-grid"
-            variants={staggerContainer}
-            initial="initial"
-            animate="animate"
-          >
-            <motion.div 
-              className="feature fancy-gradient-card box" 
-              onClick={() => handleFeatureClick('mentorship')}
-              variants={cardVariants}
-              whileHover="hover"
-              whileTap="tap"
-            >
-              <motion.div 
-                className="feature-icon"
-                whileHover={{ rotate: 360 }}
-                transition={{ duration: 0.6 }}
+        {/* Feature Cards */}
+        <motion.div className="features-section" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.9 }}>
+          <h2>What You Can Do</h2>
+          <motion.div className="features-grid" variants={staggerContainer} initial="initial" animate="animate">
+            {[
+              { icon: '🎯', title: 'Ask Questions', desc: 'Get help from peers and experts on any topic', path: 'mentorship' },
+              { icon: '🚀', title: 'Build Projects', desc: 'Collaborate on exciting projects', path: 'collaboration' },
+              { icon: '📖', title: 'Share Knowledge', desc: 'Contribute to the community', path: 'resources' },
+              { icon: '🗺️', title: 'Find Partners', desc: 'Connect with nearby people', path: 'location' },
+            ].map(({ icon, title, desc, path }) => (
+              <motion.div
+                className="feature fancy-gradient-card box"
+                key={title}
+                onClick={() => handleFeatureClick(path)}
+                whileHover={{ scale: 1.1, y: -10 }}
+                whileTap={{ scale: 0.95 }}
               >
-                🎯
+                <motion.div className="feature-icon" whileHover={{ rotate: 360 }}>{icon}</motion.div>
+                <h3>{title}</h3>
+                <p>{desc}</p>
               </motion.div>
-              <h3>Ask Questions</h3>
-              <p>Get help from peers and experts on any topic</p>
-            </motion.div>
-            <motion.div 
-              className="feature fancy-gradient-card box" 
-              onClick={() => handleFeatureClick('collaboration')}
-              variants={cardVariants}
-              whileHover="hover"
-              whileTap="tap"
-            >
-              <motion.div 
-                className="feature-icon"
-                whileHover={{ rotate: 360 }}
-                transition={{ duration: 0.6 }}
-              >
-                🚀
-              </motion.div>
-              <h3>Build Projects</h3>
-              <p>Collaborate on exciting projects with like-minded people</p>
-            </motion.div>
-            <motion.div 
-              className="feature fancy-gradient-card box" 
-              onClick={() => handleFeatureClick('resources')}
-              variants={cardVariants}
-              whileHover="hover"
-              whileTap="tap"
-            >
-              <motion.div 
-                className="feature-icon"
-                whileHover={{ rotate: 360 }}
-                transition={{ duration: 0.6 }}
-              >
-                📖
-              </motion.div>
-              <h3>Share Knowledge</h3>
-              <p>Contribute to the community by sharing your expertise</p>
-            </motion.div>
-            <motion.div 
-              className="feature fancy-gradient-card box" 
-              onClick={() => handleFeatureClick('location')}
-              variants={cardVariants}
-              whileHover="hover"
-              whileTap="tap"
-            >
-              <motion.div 
-                className="feature-icon"
-                whileHover={{ rotate: 360 }}
-                transition={{ duration: 0.6 }}
-              >
-                🗺️
-              </motion.div>
-              <h3>Find Partners</h3>
-              <p>Connect with people going to the same places</p>
-            </motion.div>
+            ))}
           </motion.div>
+        </motion.div>
+
+        {/* Falling Text Animation Section - Card */}
+        <motion.div className="falling-text-section-card" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.0 }}>
+          <div className="fancy-gradient-card">
+            <h2>Users Already Using</h2>
+            <FallingText
+              text={usernames.join(" ")}
+              highlightWords={[]}
+              trigger="scroll"
+              fontSize="1.2rem"
+              className="falling-text-custom"
+              gravity={0.3}
+              backgroundColor="transparent"
+            />
+          </div>
+        </motion.div>
+
+        {/* Stats Section */}
+        <motion.div className="stats-section" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.1 }}>
+          <h2>Our Impact</h2>
+          <div className="stats-grid">
+            <motion.div className="stat-card" whileHover={{ scale: 1.05 }}>
+              <div className="stat-number"><Counter end={10000} duration={7000} suffix="+" /></div>
+              <div className="stat-label">Active Students</div>
+            </motion.div>
+            <motion.div className="stat-card" whileHover={{ scale: 1.05 }}>
+              <div className="stat-number"><Counter end={500} duration={7000} suffix="+" /></div>
+              <div className="stat-label">Projects Completed</div>
+            </motion.div>
+            <motion.div className="stat-card" whileHover={{ scale: 1.05 }}>
+              <div className="stat-number"><Counter end={95} duration={7000} suffix="%" /></div>
+              <div className="stat-label">Success Rate</div>
+            </motion.div>
+            <motion.div className="stat-card" whileHover={{ scale: 1.05 }}>
+              <div className="stat-number"><Counter end={24} duration={7000} suffix="/7" /></div>
+              <div className="stat-label">Support Available</div>
+            </motion.div>
+          </div>
+        </motion.div>
+
+        {/* Infinite Gallery Section */}
+        <motion.div className="infinite-gallery-section" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.15 }}>
+          <h2>Explore Our Features</h2>
+          <InfiniteMenu />
+        </motion.div>
+
+        {/* How It Works Section */}
+        <motion.div className="how-it-works" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.2 }}>
+          <h2>How It Works</h2>
+          <div className="steps-container">
+            <motion.div className="step" whileHover={{ scale: 1.05 }}>
+              <div className="step-number">1</div>
+              <h3>Sign Up</h3>
+              <p>Create your profile and join our community</p>
+            </motion.div>
+            <motion.div className="step-arrow">→</motion.div>
+            <motion.div className="step" whileHover={{ scale: 1.05 }}>
+              <div className="step-number">2</div>
+              <h3>Connect</h3>
+              <p>Find mentors and collaborators</p>
+            </motion.div>
+            <motion.div className="step-arrow">→</motion.div>
+            <motion.div className="step" whileHover={{ scale: 1.05 }}>
+              <div className="step-number">3</div>
+              <h3>Grow</h3>
+              <p>Learn, build, and achieve together</p>
+            </motion.div>
+          </div>
+        </motion.div>
+
+        {/* ✅ New Section: Testimonials */}
+        <motion.div className="testimonials" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.3 }}>
+          <h2>What Students Say</h2>
+          <div className="testimonial-grid">
+            <motion.div className="testimonial" whileHover={{ scale: 1.02 }}>
+              <p>"PeerPath helped me find my dream project team!"</p>
+              <span>- Riya, Web Dev Enthusiast</span>
+            </motion.div>
+            <motion.div className="testimonial" whileHover={{ scale: 1.02 }}>
+              <p>"The mentorship feature is a game changer."</p>
+              <span>- Aarav, DSA Learner</span>
+            </motion.div>
+            <motion.div className="testimonial" whileHover={{ scale: 1.02 }}>
+              <p>"Amazing community and resources!"</p>
+              <span>- Priya, ML Enthusiast</span>
+            </motion.div>
+          </div>
+        </motion.div>
+
+        {/* ✅ New Section: Animated Partners Banner */}
+        <motion.div className="partners" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.5 }}>
+          <h2>Our Collaborators</h2>
+          <div className="partner-logos">
+            <motion.img src="/logos/github.png" alt="GitHub" whileHover={{ scale: 1.1 }} />
+            <motion.img src="/logos/sanity.png" alt="Sanity" whileHover={{ scale: 1.1 }} />
+            <motion.img src="/logos/vercel.png" alt="Vercel" whileHover={{ scale: 1.1 }} />
+          </div>
         </motion.div>
       </motion.div>
     </motion.div>
   );
 };
 
-export default FrontPage; 
+export default FrontPage;
