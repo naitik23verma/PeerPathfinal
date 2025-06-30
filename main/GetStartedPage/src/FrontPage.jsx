@@ -77,7 +77,9 @@ const FrontPage = ({ currentUser, onLogout }) => {
       <motion.div className="front-content" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.8 }}>
         <motion.div className="hero-section">
           <motion.div className="hero-text" initial={{ x: -50, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.4 }}>
-            <TypewriterHeading />
+            <h1 className="hero-title">
+              Welcome to Peer<span className="path-gradient">Path</span>
+            </h1>
             <p className="hero-subtitle">Connect, Collaborate, and Grow Together</p>
             <p className="hero-description">Join a community of learners and mentors. Share knowledge, solve problems, and build amazing projects together.</p>
             <motion.button className="get-started-btn" onClick={handleGetStarted} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>Get Started</motion.button>

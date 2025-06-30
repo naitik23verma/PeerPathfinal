@@ -5,6 +5,8 @@ import BlurHeading from "./DashboardHeading.jsx";
 import NavigationBar from "./components/NavigationBar.jsx";
 import ScrollVelocity from "./components/ScrollVelocity.jsx";
 import ProfileCard from "./components/ProfileCard.jsx";
+import Squares from "./components/Squares.jsx";
+import Ballpit from "./components/Ballpit.jsx";
 
 import "./Dashboard.css";
 
@@ -167,6 +169,57 @@ export default function Dashboard({ currentUser, onLogout }) {
           velocity={50}
           className="text-white"
         />
+
+        {/* About Us Section */}
+        <motion.section 
+          className="about-us-section"
+          initial={{ opacity: 0, y: 60 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.9, ease: 'easeOut' }}
+        >
+          <div className="about-us-bg">
+            <Ballpit 
+              className="about-us-ballpit-bg"
+              count={80}
+              gravity={0.7}
+              friction={0.8}
+              wallBounce={0.95}
+              followCursor={true}
+              colors={[0x4c1d95, 0x5b21b6, 0x6d28d9, 0x7c3aed, 0x8b5cf6]}
+            />
+            <div className="about-us-gradient-overlay" />
+          </div>
+          <div className="about-us-content">
+            <motion.div 
+              className="about-us-left"
+              initial={{ opacity: 0, x: -40 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3, duration: 0.7 }}
+            >
+              <div className="about-us-image-card">
+                <img src="/PeerPathpurple.jpeg" alt="PeerPath Purple Logo" className="about-us-image" />
+              </div>
+            </motion.div>
+            <motion.div 
+              className="about-us-right"
+              initial={{ opacity: 0, x: 40 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.5, duration: 0.7 }}
+            >
+              <h2>About PeerPath</h2>
+              <p className="about-us-motto">Connect. Learn. Grow. Together.</p>
+              <p>
+                <strong>PeerPath</strong> is a collaborative platform built by students, for students. Our mission is to empower learners to connect, share knowledge, and build projects together. Whether you need mentorship, want to collaborate, or simply seek resources, PeerPath is your go-to community.
+              </p>
+              <p>
+                <strong>Our Goal:</strong> To create a supportive environment where everyone can ask questions, get guidance, and achieve more—together.
+              </p>
+              <p>
+                <strong>Founders:</strong> Satyam Sharma, Naitik Verma
+              </p>
+            </motion.div>
+          </div>
+        </motion.section>
 
         {/* About the Creators section moved from Doubts.jsx */}
         <motion.section 

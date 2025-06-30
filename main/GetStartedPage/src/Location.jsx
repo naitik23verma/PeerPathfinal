@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import './Location.css';
+import './Location.css'
+
 import { motion, AnimatePresence } from 'framer-motion';
 import NavigationBar from './components/NavigationBar.jsx';
 

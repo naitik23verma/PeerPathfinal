@@ -38,7 +38,7 @@ const StarBackground = () => {
       constructor() {
         this.x = Math.random() * canvas.width;
         this.y = Math.random() * canvas.height;
-        this.size = Math.random() * 1.5 + 0.3; // Reduced size range
+        this.size = Math.random() * 0.8 + 0.15; // Further reduced size range
         this.speedX = (Math.random() - 0.5) * 0.3;
         this.speedY = (Math.random() - 0.5) * 0.3;
         this.opacity = Math.random() * 0.4 + 0.1; // Reduced opacity
