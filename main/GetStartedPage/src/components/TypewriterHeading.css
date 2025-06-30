@@ -5,6 +5,7 @@
   min-height: 80px;
   margin-bottom: 1rem;
   margin-left:2rem;
+  text-align: center;
 }
 
 .typewriter-heading {
@@ -67,4 +68,26 @@
   .typewriter-container {
     min-height: 50px;
   }
+}
+
+.focus-heading-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  font-size: 3rem;
+  font-weight: 700;
+  color: #ffffff;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  flex-wrap: nowrap;
+  width: 100%;
+}
+
+.static-text {
+  color: #ffffff;
+  font-size: 3rem;
+  font-weight: 700;
+  white-space: nowrap;
+  margin-right: 0.3em;
 } 

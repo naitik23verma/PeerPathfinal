@@ -9,61 +9,60 @@ export default function InfiniteMenu() {
   const [topSolvers, setTopSolvers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch top doubt solvers from backend
+  // Fetch most active users from backend
   useEffect(() => {
-    const fetchTopSolvers = async () => {
+    const fetchMostActive = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/users/top-solvers');
+        const response = await fetch('http://localhost:5000/api/users/most-active');
         if (!response.ok) {
-          throw new Error('Failed to fetch top solvers');
+          throw new Error('Failed to fetch most active users');
         }
         const data = await response.json();
-        console.log('Fetched top solvers:', data);
         setTopSolvers(data);
       } catch (error) {
-        console.error('Error fetching top solvers:', error);
+        console.error('Error fetching most active users:', error);
         // Fallback to sample data if API fails
         setTopSolvers([
           {
             _id: '1',
             username: 'Alex Chen',
             profilePhoto: 'https://picsum.photos/900/900?random=1',
-            doubtsSolved: 45,
+            activeDays: 45,
             expertise: 'Web Development'
           },
           {
             _id: '2',
             username: 'Sarah Kim',
             profilePhoto: 'https://picsum.photos/900/900?random=2',
-            doubtsSolved: 38,
+            activeDays: 38,
             expertise: 'Data Science'
           },
           {
             _id: '3',
             username: 'Mike Johnson',
             profilePhoto: 'https://picsum.photos/900/900?random=3',
-            doubtsSolved: 32,
+            activeDays: 32,
             expertise: 'Machine Learning'
           },
           {
             _id: '4',
             username: 'Emma Wilson',
             profilePhoto: 'https://picsum.photos/900/900?random=4',
-            doubtsSolved: 28,
+            activeDays: 28,
             expertise: 'Mobile Development'
           },
           {
             _id: '5',
             username: 'David Lee',
             profilePhoto: 'https://picsum.photos/900/900?random=5',
-            doubtsSolved: 25,
+            activeDays: 25,
             expertise: 'Cybersecurity'
           },
           {
             _id: '6',
             username: 'Lisa Park',
             profilePhoto: 'https://picsum.photos/900/900?random=6',
-            doubtsSolved: 22,
+            activeDays: 22,
             expertise: 'UI/UX Design'
           }
         ]);
@@ -72,7 +71,7 @@ export default function InfiniteMenu() {
       }
     };
 
-    fetchTopSolvers();
+    fetchMostActive();
   }, []);
 
   useEffect(() => {
@@ -186,7 +185,7 @@ export default function InfiniteMenu() {
               <div className="item-overlay">
                 <h3 className="item-title">{solver.username}</h3>
                 <p className="item-description">
-                  {solver.doubtsSolved} doubts solved
+                  {solver.activeDays} days active
                   {solver.expertise && ` • ${solver.expertise}`}
                 </p>
               </div>

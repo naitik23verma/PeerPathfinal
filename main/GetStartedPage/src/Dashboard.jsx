@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import BlurHeading from "./DashboardHeading.jsx";
 import NavigationBar from "./components/NavigationBar.jsx";
 import ScrollVelocity from "./components/ScrollVelocity.jsx";
+import ProfileCard from "./components/ProfileCard.jsx";
 
 import "./Dashboard.css";
 
@@ -167,7 +168,49 @@ export default function Dashboard({ currentUser, onLogout }) {
           className="text-white"
         />
 
-        
+        {/* About the Creators section moved from Doubts.jsx */}
+        <motion.section 
+          className="about-creators-section"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.1 }}
+          style={{ marginTop: '10rem' }}
+        >
+          <div className="about-creators-content">
+            <motion.h3
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.2 }}
+            >
+              About the Creators
+            </motion.h3>
+            <motion.div 
+              className="creator-cards"
+              initial="initial"
+              animate="animate"
+            >
+              <ProfileCard 
+                name="Satyam Sharma"
+                title="2nd Year CSE Student, MANIT"
+                handle="satyamsharma"
+                status="Online"
+                contactText="Contact"
+                avatarUrl="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop&crop=face"
+                onContactClick={() => console.log('Contact Satyam')}
+              />
+              <ProfileCard 
+                name="Naitik Verma"
+                title="2nd Year CSE Student, MANIT"
+                handle="naitikverma"
+                status="Online"
+                contactText="Contact"
+                avatarUrl="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=600&fit=crop&crop=face"
+                onContactClick={() => console.log('Contact Naitik')}
+              />
+              
+            </motion.div>
+          </div>
+        </motion.section>
       </motion.div>
     </motion.div>
   );

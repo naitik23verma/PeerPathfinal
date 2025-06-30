@@ -764,69 +764,6 @@ export default function Doubts({ currentUser, onLogout }){
                         <TopHelpers />
                     </motion.div>
                 </motion.div>
-
-                <motion.section 
-                    className="about-creators-section"
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 1.1 }}
-                >
-                    <div className="about-creators-content">
-                        <motion.h3
-                            initial={{ opacity: 0, y: -20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 1.2 }}
-                        >
-                            About the Creators
-                        </motion.h3>
-                        <motion.div 
-                            className="creator-cards"
-                            variants={staggerContainer}
-                            initial="initial"
-                            animate="animate"
-                        >
-                            <motion.div 
-                                className="creator-card"
-                                variants={cardVariants}
-                                whileHover="hover"
-                            >
-                                <div className="creator-image-placeholder" />
-                                <h4>Satyam Sharma</h4>
-                                <p>2nd Year CSE Student, MANIT</p>
-                                <div className="creator-socials">
-                                    <a href="#" aria-label="LinkedIn">L</a>
-                                    <a href="#" aria-label="GitHub">G</a>
-                                </div>
-                            </motion.div>
-                            <motion.div 
-                                className="creator-card"
-                                variants={cardVariants}
-                                whileHover="hover"
-                            >
-                                <div className="creator-image-placeholder" />
-                                <h4>Naitik Verma</h4>
-                                <p>2nd Year CSE Student, MANIT</p>
-                                <div className="creator-socials">
-                                    <a href="#" aria-label="LinkedIn">L</a>
-                                    <a href="#" aria-label="GitHub">G</a>
-                                </div>
-                            </motion.div>
-                            <motion.div 
-                                className="creator-card"
-                                variants={cardVariants}
-                                whileHover="hover"
-                            >
-                                <div className="creator-image-placeholder" />
-                                <h4>Granth Agrawal</h4>
-                                <p>2nd Year CSE Student, MANIT</p>
-                                <div className="creator-socials">
-                                    <a href="#" aria-label="LinkedIn">L</a>
-                                    <a href="#" aria-label="GitHub">G</a>
-                                </div>
-                            </motion.div>
-                        </motion.div>
-                    </div>
-                </motion.section>
             </motion.main>
             
             <footer className="doubts-footer">
