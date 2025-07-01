@@ -4,6 +4,7 @@ import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import './Resources.css';
 import NavigationBar from './components/NavigationBar.jsx';
+import AdvancedFooter from './components/AdvancedFooter.jsx';
 
 const Resources = ({ currentUser, onLogout }) => {
   const [activeTab, setActiveTab] = useState('study-materials');
@@ -748,6 +749,9 @@ const Resources = ({ currentUser, onLogout }) => {
           </AnimatePresence>
         </motion.div>
       </motion.main>
+      
+      {/* Advanced Footer */}
+      <AdvancedFooter />
     </motion.div>
   );
 };

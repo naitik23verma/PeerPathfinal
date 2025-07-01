@@ -4,6 +4,7 @@ import NavigationBar from './components/NavigationBar.jsx';
 import './Location.css';
 import axios from 'axios';
 import DotGrid from "./components/DotGrid.jsx";
+import AdvancedFooter from './components/AdvancedFooter.jsx';
 
 const API_URL = 'http://localhost:5000/api/location';
 const GOOGLE_MAPS_API_KEY = 'AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg';
@@ -786,6 +787,9 @@ export default function Location({ currentUser, onLogout }) {
           </div>
         )}
       </div>
+      
+      {/* Advanced Footer */}
+      <AdvancedFooter />
     </div>
   );
 } 

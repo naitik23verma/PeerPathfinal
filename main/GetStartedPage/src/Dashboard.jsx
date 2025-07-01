@@ -7,6 +7,7 @@ import ScrollVelocity from "./components/ScrollVelocity.jsx";
 import ProfileCard from "./components/ProfileCard.jsx";
 import Squares from "./components/Squares.jsx";
 import Ballpit from "./components/Ballpit.jsx";
+import AdvancedFooter from "./components/AdvancedFooter.jsx";
 
 import "./Dashboard.css";
 
@@ -265,6 +266,7 @@ export default function Dashboard({ currentUser, onLogout }) {
           </div>
         </motion.section>
       </motion.div>
+      <AdvancedFooter />
     </motion.div>
   );
 }

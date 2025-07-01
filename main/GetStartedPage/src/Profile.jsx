@@ -6,6 +6,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaCamera } from 'react-icons/fa';
 import NavigationBar from './components/NavigationBar.jsx';
+import AdvancedFooter from './components/AdvancedFooter.jsx';
 
 const Profile = ({ onLogout }) => {
   const navigate = useNavigate();
@@ -731,6 +732,9 @@ const Profile = ({ onLogout }) => {
           </motion.div>
       )}
       </AnimatePresence>
+      
+      {/* Advanced Footer */}
+      <AdvancedFooter />
     </motion.div>
   );
 };

@@ -8,6 +8,7 @@ import { TrendingDoubts } from './TrendingDoubts.jsx';
 import { TopHelpers } from './TopHelpers.jsx';
 import { AskDoubt } from './AskDoubt.jsx';
 import NavigationBar from './components/NavigationBar.jsx';
+import AdvancedFooter from './components/AdvancedFooter.jsx';
 
 
 // DoubtCard styled like Top Helpers
@@ -766,14 +767,7 @@ export default function Doubts({ currentUser, onLogout }){
                 </motion.div>
             </motion.main>
             
-            <footer className="doubts-footer">
-                <div className="footer-content">
-                    <div className="footer-bottom">
-                        <p>© 2025 PeerPath. All rights reserved.</p>
-                        <p>Made with ❤️ by the PeerPath Team</p>
-                    </div>
-                </div>
-            </footer>
+            <AdvancedFooter />
 
             {/* Solution Accept Modal */}
             <Modal

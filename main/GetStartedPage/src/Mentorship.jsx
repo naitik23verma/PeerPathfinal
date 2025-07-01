@@ -4,6 +4,7 @@ import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import './Collaboration.css';
 import NavigationBar from './components/NavigationBar.jsx';
+import AdvancedFooter from './components/AdvancedFooter.jsx';
 
 const projects = [
   {
@@ -1028,6 +1029,9 @@ const Collaboration = ({ currentUser, onLogout }) => {
           </motion.div>
         )}
       </AnimatePresence>
+      
+      {/* Advanced Footer */}
+      <AdvancedFooter />
     </motion.div>
   );
 };
