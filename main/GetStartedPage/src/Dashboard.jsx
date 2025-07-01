@@ -266,6 +266,7 @@ export default function Dashboard({ currentUser, onLogout }) {
           </div>
         </motion.section>
       </motion.div>
+      {/* Advanced Footer */}
       <AdvancedFooter />
     </motion.div>
   );

@@ -508,6 +508,23 @@ export default function Location({ currentUser, onLogout }) {
     }));
   };
 
+  const createFormRef = useRef(null);
+
+  const handleOfferRideClick = () => {
+    setShowCreate((prev) => {
+      const willOpen = !prev;
+      if (!prev) {
+        // If opening, scroll after a short delay to allow render
+        setTimeout(() => {
+          if (createFormRef.current) {
+            createFormRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 200);
+      }
+      return willOpen;
+    });
+  };
+
   return (
     <div className="location-page" style={{ position: 'relative', overflow: 'hidden' }}>
       {/* Animated DotGrid background */}
@@ -535,25 +552,35 @@ export default function Location({ currentUser, onLogout }) {
       />
 
       <div className="location-container">
-        <motion.div 
-          className="location-header"
-          initial={{ opacity: 0, y: -30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <h1>Find Your Ride</h1>
-          <p>Connect with peers for shared rides and save on travel costs</p>
-        </motion.div>
-
-        <motion.div className="location-actions">
-          <button className="create-btn" onClick={() => setShowCreate((v) => !v)}>
-            {showCreate ? 'Cancel' : 'Offer a Ride'}
-          </button>
-        </motion.div>
+        <div className="location-upper-row">
+          <motion.div 
+            className="location-header-left"
+            initial={{ opacity: 0, y: -30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <h1>Find Your Ride</h1>
+            <p>Connect with peers for shared rides and save on travel costs</p>
+            <div className="location-actions">
+              <button className="create-btn" onClick={handleOfferRideClick}>
+                {showCreate ? 'Cancel' : 'Offer a Ride'}
+              </button>
+            </div>
+          </motion.div>
+          <motion.div 
+            className="location-header-right"
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.7, delay: 0.2 }}
+          >
+            <img src="/WorldMap.png" alt="World Map" className="location-worldmap-img" />
+          </motion.div>
+        </div>
 
         {showCreate && (
           <motion.div 
             className="create-form"
+            ref={createFormRef}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}

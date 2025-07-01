@@ -142,7 +142,7 @@ const AdvancedFooter = () => {
       >
         <div className="footer-bottom-content">
           <p className="copyright">
-            No Copyright - PeerPath
+            © {currentYear} PeerPath. All rights reserved.
           </p>
         </div>
       </motion.div>
