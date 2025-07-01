@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import NavigationBar from './components/NavigationBar.jsx';
 import './Location.css';
 import axios from 'axios';
+import DotGrid from "./components/DotGrid.jsx";
 
 const API_URL = 'http://localhost:5000/api/location';
 const GOOGLE_MAPS_API_KEY = 'AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg';
@@ -421,11 +422,43 @@ export default function Location({ currentUser, onLogout }) {
   }, []);
 
   const handleJoinRide = async (rideId) => {
-    console.log('Joining ride:', rideId);
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      await axios.post(`${API_URL}/${rideId}/join`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      fetchRides();
+    } catch (err) {
+      setError('Failed to join ride.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleLeaveRide = async (rideId) => {
-    console.log('Leaving ride:', rideId);
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      await axios.post(`${API_URL}/${rideId}/leave`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      fetchRides();
+    } catch (err) {
+      setError('Failed to leave ride.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Cancel ride for creator
+  const handleCancelRide = async (rideId) => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      await axios.put(`${API_URL}/${rideId}/cancel`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      fetchRides();
+    } catch (err) {
+      setError('Failed to cancel ride.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Fix: Add form submission handler
@@ -475,7 +508,23 @@ export default function Location({ currentUser, onLogout }) {
   };
 
   return (
-    <div className="location-page">
+    <div className="location-page" style={{ position: 'relative', overflow: 'hidden' }}>
+      {/* Animated DotGrid background */}
+      <DotGrid 
+        className="location-dotgrid-bg"
+        dotSize={5}
+        gap={32}
+        baseColor="#1e293b"
+        activeColor="#6366f1"
+        proximity={150}
+        speedTrigger={100}
+        shockRadius={250}
+        shockStrength={5}
+        maxSpeed={5000}
+        resistance={750}
+        returnDuration={1.5}
+        style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 0, pointerEvents: 'none' }}
+      />
       <NavigationBar 
         currentUser={currentUser}
         onLogout={onLogout}
@@ -591,13 +640,18 @@ export default function Location({ currentUser, onLogout }) {
               >
                 {(rides.length === 0 ? sampleRides : rides).map((ride, index) => {
                   // Handle different possible data structures
-                  const creator = ride.user || ride.creator || { username: 'Unknown', profilePhoto: null };
-                  const members = ride.members || ride.passengers || [creator];
+                  const creator = ride.user || ride.creator || { username: 'Unknown', profilePhoto: null, _id: null };
+                  let members = ride.members || ride.passengers || [];
+                  // Ensure creator is always in the members list
+                  const creatorId = creator._id?.toString() || creator.id?.toString();
+                  if (creatorId && !members.some(m => (m.user?._id || m._id)?.toString() === creatorId)) {
+                    members = [creator, ...members];
+                  }
                   const fromAddress = ride.from || ride.currentLocation?.address || 'Unknown';
                   const toAddress = ride.to || ride.destination?.address || 'Unknown';
                   const departureTime = ride.time || ride.departureTime;
                   const maxSeats = ride.seats || ride.maxPassengers || 1;
-                  const currentSeats = ride.currentPassengers || members.length;
+                  const currentSeats = members.length;
                   const distance = ride.distance || 'N/A';
                   const travelTime = ride.travelTime || 'N/A';
                   const weather = ride.weather || 'N/A';
@@ -688,7 +742,7 @@ export default function Location({ currentUser, onLogout }) {
                             return (
                               <img 
                                 key={idx}
-                                src={memberData.profilePhoto || 'https://via.placeholder.com/32'} 
+                                src={memberData.profilePhoto ? memberData.profilePhoto : 'https://via.placeholder.com/32'}
                                 alt={memberData.username}
                                 className="member-avatar"
                                 title={memberData.username}
@@ -699,7 +753,15 @@ export default function Location({ currentUser, onLogout }) {
                       </div>
 
                       <div className="ride-actions">
-                        {members.some(m => (m.user?._id || m._id) === currentUser?._id) ? (
+                        {/* If current user is the creator, show Cancel Ride */}
+                        {creator._id === currentUser?._id ? (
+                          <button 
+                            className="action-btn leave-btn"
+                            onClick={() => handleCancelRide(ride._id)}
+                          >
+                            Cancel Ride
+                          </button>
+                        ) : members.some(m => (m.user?._id || m._id) === currentUser?._id) ? (
                           <button 
                             className="action-btn leave-btn"
                             onClick={() => handleLeaveRide(ride._id)}
