@@ -10,7 +10,7 @@ import FallingText from './components/FallingText';
 import Counter from './components/Counter';
 import InfiniteMenu from './components/InfiniteMenu';
 import AdvancedFooter from './components/AdvancedFooter.jsx';
-
+import Email from "./Email.jsx"
 const FrontPage = ({ currentUser, onLogout }) => {
   const navigate = useNavigate();
 
@@ -236,6 +236,7 @@ const FrontPage = ({ currentUser, onLogout }) => {
             </motion.div>
           </motion.div>
         </div>
+        <Email/>
       </section>
       
       {/* Advanced Footer */}

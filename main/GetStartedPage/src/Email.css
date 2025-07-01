@@ -1,0 +1,103 @@
+.footer-review {
+  width: 100%;
+  background: rgba(26, 10, 82, 0.95);
+  color: #c4b5fd;
+  padding: 2rem 0 1rem 0;
+  margin-top: 2rem;
+  border-top: 1px solid rgba(196, 181, 253, 0.2);
+  box-shadow: 0 -2px 16px 0 rgba(61, 32, 179, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.footer-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  align-items: center;
+}
+
+.footer-section {
+  padding: 0;
+}
+
+.enhanced-footer {
+  background: #000 !important;
+  border-top: 2px solid rgba(196, 181, 253, 0.3);
+  padding: 0.1rem 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.writeus-section {
+  padding-left: 0;
+  width: 100%;
+  margin-left: 2.5rem;
+}
+
+.footer-write-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.footer-write-form input,
+.footer-write-form textarea {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #444b5a;
+  color: #e0e0e0;
+  font-size: 1.1rem;
+  padding: 0.7rem 0 0.7rem 0;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.2s;
+  resize: none;
+}
+
+.footer-write-form input:focus,
+.footer-write-form textarea:focus {
+  border-bottom: 2px solid #a855f7;
+  box-shadow: 0 2px 0 0 #8b5cf6, 0 4px 12px 0 rgba(139, 92, 246, 0.15);
+  outline: none;
+  background: transparent;
+}
+
+.footer-write-form textarea {
+  min-height: 70px;
+  max-height: 180px;
+}
+
+.footer-submit-btn {
+  background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+  color: #fff;
+  border: none;
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: 2px;
+  margin-top: 1.5rem;
+  cursor: pointer;
+  align-self: flex-start;
+  transition: background 0.2s, color 0.2s;
+  padding: 0.6rem 2.2rem;
+  border-radius: 30px;
+  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.15);
+}
+.footer-submit-btn:hover {
+  background: linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%);
+  color: #fff;
+}
+
+.thank-you {
+  color: #ffb357;
+  margin-top: 1rem;
+  font-size: 1rem;
+  font-weight: 500;
+}
