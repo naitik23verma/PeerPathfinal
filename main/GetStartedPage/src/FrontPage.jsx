@@ -121,9 +121,7 @@ const FrontPage = ({ currentUser, onLogout }) => {
           <motion.div className="front-content" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.8 }}>
             <motion.div className="hero-section">
               <motion.div className="hero-text" initial={{ x: -50, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.4 }}>
-                <h1 className="hero-title">
-                  Welcome to Peer<span className="path-gradient">Path</span>
-                </h1>
+                <h1 className="hero-title">Welcome to Peer<span className="path-gradient">Path</span></h1>
                 <p className="hero-subtitle">Connect, Collaborate, and Grow Together</p>
                 <p className="hero-description">Join a community of learners and mentors. Share knowledge, solve problems, and build amazing projects together.</p>
                 <motion.button className="get-started-btn" onClick={handleGetStarted} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>Get Started</motion.button>
@@ -161,6 +159,7 @@ const FrontPage = ({ currentUser, onLogout }) => {
                   { icon: '🚀', title: 'Build Projects', desc: 'Collaborate on exciting projects', path: 'collaboration' },
                   { icon: '📖', title: 'Share Knowledge', desc: 'Contribute to the community', path: 'resources' },
                   { icon: '🗺️', title: 'Find Partners', desc: 'Connect with nearby people', path: 'location' },
+                  { icon: '💬', title: 'Live Chat', desc: 'Chat instantly with other users in real time', path: 'chat' },
                 ].map(({ icon, title, desc, path }) => (
                   <motion.div
                     className="feature fancy-gradient-card box"
@@ -198,11 +197,11 @@ const FrontPage = ({ currentUser, onLogout }) => {
               <h2>Our Goal</h2>
               <div className="stats-grid">
                 <motion.div className="stat-card" whileHover={{ scale: 1.05 }}>
-                  <div className="stat-number"><Counter end={10000} duration={7000} suffix="+" /></div>
+                  <div className="stat-number"><Counter end={999} duration={7000} suffix="+" /></div>
                   <div className="stat-label">Active Students</div>
                 </motion.div>
                 <motion.div className="stat-card" whileHover={{ scale: 1.05 }}>
-                  <div className="stat-number"><Counter end={500} duration={7000} suffix="+" /></div>
+                  <div className="stat-number"><Counter end={50} duration={7000} suffix="+" /></div>
                   <div className="stat-label">Projects to Complete</div>
                 </motion.div>
                 <motion.div className="stat-card" whileHover={{ scale: 1.05 }}>

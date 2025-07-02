@@ -107,12 +107,12 @@ export default function InfiniteMenu() {
             expertise: 'AR/VR'
           }
         ];
-        // Only keep the top 12 users, fill with fallback if less
+        // Only keep the top 8 users, fill with fallback if less
         if (!Array.isArray(data)) data = [];
-        while (data.length < 12) {
-          data = data.concat(fallbackUsers.slice(0, 12 - data.length));
+        while (data.length < 8) {
+          data = data.concat(fallbackUsers.slice(0, 8 - data.length));
         }
-        data = data.slice(0, 12);
+        data = data.slice(0, 8);
         setTopSolvers(data);
       } catch (error) {
         console.error('Error fetching most active users:', error);
@@ -212,65 +212,18 @@ export default function InfiniteMenu() {
   }, []);
 
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    let isDragging = false;
-    let startX = 0;
-    let startRotation = 0;
-
-    const handleMouseDown = (e) => {
-      isDragging = true;
-      startX = e.clientX;
-      startRotation = rotation;
-      setIsMoving(true);
-    };
-
-    const handleMouseMove = (e) => {
-      if (!isDragging) return;
-      
-      const deltaX = e.clientX - startX;
-      const newRotation = startRotation + (deltaX / 2);
-      setRotation(newRotation);
-      setIsMoving(true);
-    };
-
-    const handleMouseUp = () => {
-      isDragging = false;
-      setTimeout(() => setIsMoving(false), 100);
-    };
-
-    const handleWheel = (e) => {
-      e.preventDefault();
-      const delta = e.deltaY > 0 ? 30 : -30;
-      setRotation(prev => prev + delta);
-      setIsMoving(true);
-      setTimeout(() => setIsMoving(false), 100);
-    };
-
-    container.addEventListener('mousedown', handleMouseDown);
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-    container.addEventListener('wheel', handleWheel);
-
-    return () => {
-      container.removeEventListener('mousedown', handleMouseDown);
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-      container.removeEventListener('wheel', handleWheel);
-    };
-  }, [rotation]);
+    // Remove all event listeners for mouse and touch interactions
+    // Only keep auto-rotation
+  }, []);
 
   // Auto-rotate when not interacting
   useEffect(() => {
-    if (isMoving || loading) return;
-    
+    if (loading) return;
     const interval = setInterval(() => {
       setRotation(prev => prev + 0.5);
     }, 50);
-
     return () => clearInterval(interval);
-  }, [isMoving, loading]);
+  }, [loading]);
 
   const handleItemClick = (index) => {
     setActiveIndex(index);
@@ -321,7 +274,6 @@ export default function InfiniteMenu() {
                 transform: `translate3d(${x}px, 0px, ${z}px) rotateY(${-rotation}deg)`,
                 zIndex: index === activeIndex ? 10 : 1
               }}
-              onClick={() => handleItemClick(index)}
             >
               <div className="item-image">
                 {solver.profilePhoto ? (
