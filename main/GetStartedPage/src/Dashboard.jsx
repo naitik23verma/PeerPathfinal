@@ -224,45 +224,57 @@ export default function Dashboard({ currentUser, onLogout }) {
 
         {/* About the Creators section moved from Doubts.jsx */}
         <motion.section 
-          className="about-creators-section"
+          className="about-creators-section full-width-creators"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.1 }}
-          style={{ marginTop: '10rem' }}
+          style={{ marginTop: '10rem', width: '100vw', position: 'relative', left: '50%', right: '50%', marginLeft: '-50vw', marginRight: '-50vw', background: 'transparent', border: 'none', boxShadow: 'none' }}
         >
-          <div className="about-creators-content">
+          <div className="about-creators-content custom-creators-layout">
             <motion.h3
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.2 }}
+              style={{ textAlign: 'center', width: '100%' }}
             >
               About the Creators
             </motion.h3>
-            <motion.div 
-              className="creator-cards"
-              initial="initial"
-              animate="animate"
-            >
-              <ProfileCard 
-                name="Satyam Sharma"
-                title="2nd Year CSE Student, MANIT"
-                handle="satyamsharma"
-                status="Online"
-                contactText="Contact"
-                avatarUrl="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop&crop=face"
-                onContactClick={() => console.log('Contact Satyam')}
-              />
-              <ProfileCard 
-                name="Naitik Verma"
-                title="2nd Year CSE Student, MANIT"
-                handle="naitikverma"
-                status="Online"
-                contactText="Contact"
-                avatarUrl="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=600&fit=crop&crop=face"
-                onContactClick={() => console.log('Contact Naitik')}
-              />
-              
-            </motion.div>
+            <div className="creators-row" style={{ display: 'flex', alignItems: 'stretch', justifyContent: 'center', gap: '2.5rem', marginTop: '2.5rem', flexWrap: 'wrap' }}>
+              {/* Naitik Verma Card */}
+              <motion.div className="creator-card animated-card naitik-card" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 1.3, type: 'spring', stiffness: 120 }} style={{ minWidth: 260, maxWidth: 320, background: 'linear-gradient(135deg, #4c1d95 0%, #8b5cf6 100%)', borderRadius: '1.5rem', boxShadow: '0 4px 32px 0 #0002', padding: '2rem 1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', color: '#fff', position: 'relative' }}>
+                <div className="creator-photo" style={{ width: 100, height: 100, borderRadius: '50%', overflow: 'hidden', marginBottom: '1rem', border: '3px solid #fff' }}>
+                  <img src="/naitik-photo.jpg" alt="Naitik Verma" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+                <h4 style={{ margin: 0 }}>Naitik Verma</h4>
+                <p style={{ fontSize: '0.95rem', margin: '0.2rem 0 0.7rem 0', opacity: 0.8 }}>Co-Founder, PeerPath</p>
+                <div className="creator-socials" style={{ display: 'flex', gap: '0.7rem', marginTop: '0.5rem' }}>
+                  <a href="#" target="_blank" rel="noopener noreferrer"><i className="fab fa-github"></i></a>
+                  <a href="#" target="_blank" rel="noopener noreferrer"><i className="fab fa-linkedin"></i></a>
+                  <a href="#" target="_blank" rel="noopener noreferrer"><i className="fab fa-twitter"></i></a>
+                </div>
+              </motion.div>
+              {/* Naitik's Views */}
+              <motion.div className="creator-views animated-card naitik-views" initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 1.4, type: 'spring', stiffness: 120 }} style={{ minWidth: 220, maxWidth: 340, background: 'rgba(76,29,149,0.7)', borderRadius: '1.2rem', boxShadow: '0 2px 16px 0 #0002', padding: '1.5rem 1.2rem', color: '#e0e7ff', display: 'flex', alignItems: 'center', fontStyle: 'italic', fontSize: '1.1rem' }}>
+                "PeerPath is a vision for collaborative learning and growth. Proud to build this community!" {/* Replace with your real view later */}
+              </motion.div>
+              {/* Satyam Sharma Card */}
+              <motion.div className="creator-card animated-card satyam-card" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 1.5, type: 'spring', stiffness: 120 }} style={{ minWidth: 260, maxWidth: 320, background: 'linear-gradient(135deg, #1e293b 0%, #6366f1 100%)', borderRadius: '1.5rem', boxShadow: '0 4px 32px 0 #0002', padding: '2rem 1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', color: '#fff', position: 'relative' }}>
+                <div className="creator-photo" style={{ width: 100, height: 100, borderRadius: '50%', overflow: 'hidden', marginBottom: '1rem', border: '3px solid #fff' }}>
+                  <img src="/satyam-photo.jpg" alt="Satyam Sharma" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
+                <h4 style={{ margin: 0 }}>Satyam Sharma</h4>
+                <p style={{ fontSize: '0.95rem', margin: '0.2rem 0 0.7rem 0', opacity: 0.8 }}>Co-Founder, PeerPath</p>
+                <div className="creator-socials" style={{ display: 'flex', gap: '0.7rem', marginTop: '0.5rem' }}>
+                  <a href="#" target="_blank" rel="noopener noreferrer"><i className="fab fa-github"></i></a>
+                  <a href="#" target="_blank" rel="noopener noreferrer"><i className="fab fa-linkedin"></i></a>
+                  <a href="#" target="_blank" rel="noopener noreferrer"><i className="fab fa-twitter"></i></a>
+                </div>
+              </motion.div>
+              {/* Satyam's Views */}
+              <motion.div className="creator-views animated-card satyam-views" initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 1.6, type: 'spring', stiffness: 120 }} style={{ minWidth: 220, maxWidth: 340, background: 'rgba(30,41,59,0.7)', borderRadius: '1.2rem', boxShadow: '0 2px 16px 0 #0002', padding: '1.5rem 1.2rem', color: '#e0e7ff', display: 'flex', alignItems: 'center', fontStyle: 'italic', fontSize: '1.1rem' }}>
+                "PeerPath is a platform where every learner can shine. Excited to see our impact grow!" {/* Replace with Satyam's real view later */}
+              </motion.div>
+            </div>
           </div>
         </motion.section>
       </motion.div>

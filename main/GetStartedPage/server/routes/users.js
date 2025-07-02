@@ -223,4 +223,5 @@ router.post('/visit', authenticateToken, async (req, res) => {
   }
 });
 
-export default router; 
+export default router;
+export { authenticateToken }; 

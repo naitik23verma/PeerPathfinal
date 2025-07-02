@@ -297,20 +297,43 @@ const Chat = ({ currentUser, onLogout }) => {
   };
 
   // Add new group using backend API
-  const handleCreateGroup = () => {
+  const handleCreateGroup = async () => {
     if (!groupName.trim() || groupMembers.length < 2) return;
-    const newGroup = {
+    const token = localStorage.getItem('token');
+    try {
+      const response = await axios.post('http://localhost:5000/api/groups', {
       groupName: groupName.trim(),
-      members: groupMembers.map(id => users.find(u => u._id === id)),
-      roomId: 'group_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
-    };
+        members: groupMembers
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const newGroup = response.data;
     const updatedGroups = [...groups, newGroup];
     setGroups(updatedGroups);
     localStorage.setItem('groups', JSON.stringify(updatedGroups));
     setShowGroupModal(false);
     setGroupName('');
     setGroupMembers([]);
+    } catch (error) {
+      alert('Failed to create group: ' + (error.response?.data?.message || error.message));
+    }
   };
+
+  useEffect(() => {
+    const fetchGroups = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get('http://localhost:5000/api/groups', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setGroups(response.data);
+        localStorage.setItem('groups', JSON.stringify(response.data));
+      } catch (error) {
+        console.error('Error fetching groups:', error);
+      }
+    };
+    fetchGroups();
+  }, []);
 
   return (
     <motion.div 
@@ -430,11 +453,26 @@ const Chat = ({ currentUser, onLogout }) => {
                   className="user-avatar group-avatar"
                   whileHover={{ scale: 1.1, rotate: 5 }}
                   transition={{ duration: 0.2 }}
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: '50%',
+                    background: '#4c1d95',
+                    color: '#fff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '1.5rem',
+                    fontWeight: 600
+                  }}
                 >
-                  📷
+                  {group.groupName.charAt(0).toUpperCase()}
                 </motion.div>
                 <div className="user-info">
                   <span className="user-name">{group.groupName}</span>
+                  <span className="group-members-names" style={{ fontSize: '0.85rem', color: '#c4b5fd', display: 'block', marginTop: 2 }}>
+                    {group.members && group.members.map(m => (m.username || m.name)).join(', ')}
+                  </span>
                 </div>
               </motion.div>
             ))}
@@ -499,14 +537,28 @@ const Chat = ({ currentUser, onLogout }) => {
                 <div className="chat-user-info">
                   {roomId.startsWith('group_') ? (
                     <>
+                      <div
+                        className="user-avatar-main group-avatar-main"
+                        style={{
+                          width: 48,
+                          height: 48,
+                          borderRadius: '50%',
+                          background: '#4c1d95',
+                          color: '#fff',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '2rem',
+                          fontWeight: 700,
+                          marginRight: 16
+                        }}
+                      >
+                        {groups.find(g => g.roomId === roomId)?.groupName.charAt(0).toUpperCase()}
+                      </div>
                       <div>
                         <h3>{groups.find(g => g.roomId === roomId)?.groupName || 'Group Chat'}</h3>
-                        <div className="group-members-list-header">
-                          {groups.find(g => g.roomId === roomId)?.members.map((m, idx) => (
-                            <span className="group-member-header" key={m._id || idx}>
-                              {m.username || m.name}
-                            </span>
-                          ))}
+                        <div className="group-members-list-header" style={{ fontSize: '0.95rem', color: '#c4b5fd', marginTop: 2 }}>
+                          {groups.find(g => g.roomId === roomId)?.members.map(m => (m.username || m.name)).join(', ')}
                         </div>
                       </div>
                     </>
@@ -524,7 +576,16 @@ const Chat = ({ currentUser, onLogout }) => {
                         whileHover={{ scale: 1.1, rotate: 5 }}
                         transition={{ duration: 0.2 }}
                       >
-                        {(selectedUser.name || selectedUser.username || 'U').charAt(0).toUpperCase()}
+                        {selectedUser.profilePhoto ? (
+                          <img 
+                            src={`http://localhost:5000${selectedUser.profilePhoto}`} 
+                            alt={selectedUser.name || selectedUser.username}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+                            onError={e => { e.target.src = '/peerpath.png'; }}
+                          />
+                        ) : (
+                          (selectedUser.name || selectedUser.username || 'U').charAt(0).toUpperCase()
+                        )}
                       </motion.div>
                       <div>
                         <h3>{selectedUser.name || selectedUser.username}</h3>

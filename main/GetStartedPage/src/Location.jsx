@@ -814,7 +814,48 @@ export default function Location({ currentUser, onLogout }) {
           </div>
         )}
       </div>
-      
+      {/* Hardik Pawar Location Idea Card */}
+      <div className="location-idea-card" style={{
+        width: '90vw',
+        marginLeft: 'calc(-45vw + 50%)',
+        marginRight: 'calc(-45vw + 50%)',
+        marginTop: '3rem',
+        marginBottom: '0',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        background: 'linear-gradient(90deg, #232046 0%, #3b2f6b 100%)',
+        borderRadius: '1.2rem',
+        boxShadow: '0 2px 16px 0 #0002',
+        minHeight: '180px',
+        padding: '1.2rem 2.5rem',
+        position: 'relative',
+        overflow: 'hidden',
+      }}>
+        {/* Left: Idea Text */}
+        <div className="location-idea-text" style={{ flex: 1, color: '#e0e7ff', fontStyle: 'italic', fontSize: '1.15rem', lineHeight: 1.6 }}>
+          "The idea for the location page came to me when I realized how many students struggle to find rides and connect with others nearby. I wanted to make it easy for everyone to share rides, save time, and build new friendships. PeerPath's location feature is all about making our journeys together more meaningful."
+        </div>
+        {/* Right: Hardik Pawar Card */}
+        <div className="location-idea-person-card" style={{
+          minWidth: 180,
+          maxWidth: 220,
+          background: 'rgba(76,29,149,0.85)',
+          borderRadius: '1rem',
+          boxShadow: '0 2px 12px 0 #0002',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          padding: '1rem 0.7rem',
+          marginLeft: '2.5rem',
+        }}>
+          <div className="location-idea-photo" style={{ width: 100, height: 100, borderRadius: '0.7rem', overflow: 'hidden', marginBottom: '0.7rem', border: '2px solid #fff' }}>
+            <img src="/hardik-photo.jpg" alt="Hardik Pawar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          </div>
+          <div className="location-idea-name" style={{ color: '#fff', fontWeight: 600, fontSize: '1.1rem' }}>Hardik Pawar</div>
+          <div className="location-idea-role" style={{ color: '#c4b5fd', fontSize: '0.95rem', marginTop: '0.2rem' }}>Idea Contributor</div>
+        </div>
+      </div>
       {/* Advanced Footer */}
       <AdvancedFooter />
     </div>

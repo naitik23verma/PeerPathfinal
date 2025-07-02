@@ -146,6 +146,12 @@ function App() {
               </ProtectedRoute>
             } />
             
+            <Route path="/chat/:roomId" element={
+              <ProtectedRoute>
+                <Chat currentUser={currentUser} onLogout={handleLogout} />
+              </ProtectedRoute>
+            } />
+            
             <Route path="/location" element={
               <ProtectedRoute>
                 <Location currentUser={currentUser} onLogout={handleLogout} />

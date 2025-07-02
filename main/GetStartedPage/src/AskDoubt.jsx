@@ -31,34 +31,23 @@ export function AskDoubt({ currentUser, onDoubtSubmit, onCancel }) {
     setError("");
 
     try {
-      const token = localStorage.getItem('token');
       const doubtPayload = {
         title: doubtData.question,
         content: doubtData.details,
         category: doubtData.category,
         tags: doubtData.tags.split(',').map(tag => tag.trim()).filter(tag => tag)
       };
-
-      const response = await axios.post('http://localhost:5000/api/doubts', doubtPayload, {
-        headers: { 
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+      // Call parent handler with payload, let parent handle API
+      await onDoubtSubmit(doubtPayload);
+      setDoubtData({
+        question: "",
+        details: "",
+        category: "general",
+        tags: ""
       });
-
-      if (response.data.doubt) {
-        onDoubtSubmit(response.data.doubt);
-    setDoubtData({
-      question: "",
-      details: "",
-      category: "general",
-      tags: ""
-    });
-        setError("");
-      }
+      setError("");
     } catch (error) {
-      console.error('Error submitting doubt:', error);
-      setError(error.response?.data?.message || 'Failed to submit doubt. Please try again.');
+      setError('Failed to submit doubt. Please try again.');
     } finally {
       setLoading(false);
     }

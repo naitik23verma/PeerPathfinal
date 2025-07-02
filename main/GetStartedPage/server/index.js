@@ -13,6 +13,7 @@ import userRoutes from './routes/users.js';
 import doubtRoutes from './routes/doubts.js';
 import collaborationRoutes from './routes/collaboration.js';
 import locationRoutes from './routes/location.js';
+import groupRoutes from './routes/groups.js';
 
 // Load environment variables
 dotenv.config();
@@ -90,6 +91,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/doubts', doubtRoutes);
 app.use('/api/collaboration', collaborationRoutes);
 app.use('/api/location', locationRoutes);
+app.use('/api/groups', groupRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

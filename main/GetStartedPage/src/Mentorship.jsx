@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import './Collaboration.css';
@@ -87,6 +87,7 @@ const Collaboration = ({ currentUser, onLogout }) => {
     mentor: currentUser?.name || 'You'
   });
   const [allProjects, setAllProjects] = useState([]);
+  const navigate = useNavigate();
 
   // Animation variants
   const pageVariants = {
@@ -292,6 +293,28 @@ const Collaboration = ({ currentUser, onLogout }) => {
   ).filter(
     (proj) => (proj.members?.length || 1) >= (proj.maxMembers || 5)
   );
+
+  const handleProjectGroupChat = async (project) => {
+    const token = localStorage.getItem('token');
+    const memberIds = project.members.map(m => m.user?._id || m.user?.id || m.user);
+    const groupName = project.title;
+    const roomId = `project_${project._id || project.id}`;
+
+    try {
+      // Try to create the group (if it already exists, backend should handle duplicate roomId)
+      const response = await axios.post('http://localhost:5000/api/groups', {
+        groupName,
+        members: memberIds,
+        roomId
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      // Redirect to chat page with the group roomId
+      navigate(`/chat/${response.data.roomId}`);
+    } catch (error) {
+      alert('Failed to open group chat: ' + (error.response?.data?.message || error.message));
+    }
+  };
 
   return (
     <motion.div 
@@ -570,8 +593,8 @@ const Collaboration = ({ currentUser, onLogout }) => {
                   )}
                   <motion.button 
                     className="chat-btn" 
-                    onClick={() => handleChatWithLeader(project)} 
-                    title={`Chat with ${project.mentor || (project.creator?.username || 'N/A')}`}
+                    onClick={() => handleProjectGroupChat(project)} 
+                    title={`Group Chat for ${project.title}`}
                     variants={buttonVariants}
                     whileHover="hover"
                     whileTap="tap"
@@ -724,8 +747,8 @@ const Collaboration = ({ currentUser, onLogout }) => {
                 >
                   <motion.button 
                     className="chat-btn" 
-                    onClick={() => handleChatWithLeader(project)} 
-                    title={`Chat with ${project.mentor || (project.creator?.username || 'N/A')}`}
+                    onClick={() => handleProjectGroupChat(project)} 
+                    title={`Group Chat for ${project.title}`}
                     variants={buttonVariants}
                     whileHover="hover"
                     whileTap="tap"
