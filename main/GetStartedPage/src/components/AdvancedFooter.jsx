@@ -54,7 +54,7 @@ const AdvancedFooter = () => {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
-            <h4 className="section-title">Developed By</h4>
+            <h3 className="footer-heading peerpath-solid-heading">Developed by</h3>
             <div className="developers-grid">
               {developers.map((dev, index) => (
                 <motion.div 
@@ -121,7 +121,7 @@ const AdvancedFooter = () => {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <h4 className="section-title">Quick Links</h4>
+            <h3 className="footer-heading peerpath-solid-heading">Quick links</h3>
             <ul className="links-list">
               <li><a href="/dashboard">Dashboard</a></li>
               <li><a href="/doubts">Ask Questions</a></li>

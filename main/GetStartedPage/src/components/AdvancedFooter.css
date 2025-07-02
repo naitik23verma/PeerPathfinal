@@ -346,4 +346,10 @@
     width: 10px;
     height: 10px;
   }
+}
+
+/* If the heading in the footer had a specific color or gradient, restore it here. For example: */
+.footer-heading {
+  color: #fff;
+  /* or the previous gradient if it was used */
 } 

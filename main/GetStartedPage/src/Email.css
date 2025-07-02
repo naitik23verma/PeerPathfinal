@@ -1,14 +1,7 @@
-.footer-review {
-  width: 100%;
-  background: rgba(26, 10, 82, 0.95);
-  color: #c4b5fd;
-  padding: 2rem 0 1rem 0;
-  margin-top: 2rem;
-  border-top: 1px solid rgba(196, 181, 253, 0.2);
-  box-shadow: 0 -2px 16px 0 rgba(61, 32, 179, 0.1);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.footer-review, .enhanced-footer, .footer-container {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
 }
 
 .footer-container {
@@ -26,14 +19,6 @@
   padding: 0;
 }
 
-.enhanced-footer {
-  background: #000 !important;
-  border-top: 2px solid rgba(196, 181, 253, 0.3);
-  padding: 0.1rem 0;
-  position: relative;
-  overflow: hidden;
-}
-
 .writeus-section {
   padding-left: 0;
   width: 100%;
@@ -41,33 +26,33 @@
 }
 
 .footer-write-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  width: 100%;
+  background: rgba(20, 20, 40, 0.7);
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(60, 60, 120, 0.10);
+  padding: 2rem 1.5rem;
+  border: 1px solid rgba(144,202,249,0.12);
   margin-top: 0.5rem;
 }
 
 .footer-write-form input,
 .footer-write-form textarea {
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid #444b5a;
+  background: rgba(30, 30, 60, 0.7);
+  border-radius: 8px;
+  border: 1px solid #444b5a;
   color: #e0e0e0;
   font-size: 1.1rem;
-  padding: 0.7rem 0 0.7rem 0;
-  width: 100%;
+  padding: 0.7rem 1rem;
+  margin-bottom: 0.7rem;
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
   resize: none;
 }
 
 .footer-write-form input:focus,
 .footer-write-form textarea:focus {
-  border-bottom: 2px solid #a855f7;
-  box-shadow: 0 2px 0 0 #8b5cf6, 0 4px 12px 0 rgba(139, 92, 246, 0.15);
-  outline: none;
-  background: transparent;
+  border: 1.5px solid #a855f7;
+  box-shadow: 0 2px 8px 0 #8b5cf6, 0 4px 12px 0 rgba(139, 92, 246, 0.10);
+  background: rgba(40, 40, 80, 0.8);
 }
 
 .footer-write-form textarea {
@@ -82,10 +67,10 @@
   font-weight: 700;
   font-size: 1.1rem;
   letter-spacing: 2px;
-  margin-top: 1.5rem;
+  margin-top: 1.2rem;
   cursor: pointer;
   align-self: flex-start;
-  transition: background 0.2s, color 0.2s;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
   padding: 0.6rem 2.2rem;
   border-radius: 30px;
   box-shadow: 0 4px 16px rgba(139, 92, 246, 0.15);
@@ -93,6 +78,7 @@
 .footer-submit-btn:hover {
   background: linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%);
   color: #fff;
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.18);
 }
 
 .thank-you {
@@ -100,4 +86,5 @@
   margin-top: 1rem;
   font-size: 1rem;
   font-weight: 500;
+  text-align: center;
 }

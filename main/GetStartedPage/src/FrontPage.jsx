@@ -11,6 +11,18 @@ import Counter from './components/Counter';
 import InfiniteMenu from './components/InfiniteMenu';
 import AdvancedFooter from './components/AdvancedFooter.jsx';
 import Email from "./Email.jsx"
+import RollingGallery from './RollingGallery.jsx';
+import HowItWorksMasonry from './components/HowItWorksMasonry.jsx';
+import Rating from "./components/Rating.jsx";
+import LottieAnimation from "./components/LottieAnimation.jsx";
+
+// Add this before the FrontPage component definition
+const reviews = [
+  { text: "PeerPath is awesome!", author: "Student A" },
+  { text: "Great platform for collaboration.", author: "Student B" },
+  { text: "Mentorship helped me a lot!", author: "Student C" },
+];
+
 const FrontPage = ({ currentUser, onLogout }) => {
   const navigate = useNavigate();
 
@@ -50,6 +62,34 @@ const FrontPage = ({ currentUser, onLogout }) => {
       })
       .catch(err => {
         console.error('Error fetching users from http://localhost:5000/api/users:', err);
+      });
+  }, []);
+
+  // Track user visits in backend
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    console.log('Token found:', !!token);
+    if (!token) {
+      console.log('No token found, skipping visit count update');
+      return;
+    }
+    console.log('Sending visit count update request...');
+    fetch('http://localhost:5000/api/users/visit', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    })
+      .then(res => {
+        console.log('Visit count response status:', res.status);
+        return res.json();
+      })
+      .then(data => {
+        console.log('Visit count updated successfully:', data);
+      })
+      .catch(err => {
+        console.error('Error updating visit count:', err);
       });
   }, []);
 
@@ -178,37 +218,16 @@ const FrontPage = ({ currentUser, onLogout }) => {
 
             {/* Infinite Gallery Section */}
             <motion.div className="infinite-gallery-section" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.15 }}>
-              <h2>Explore Our Features</h2>
+              <h2>Our Most Often Users</h2>
               <InfiniteMenu />
             </motion.div>
 
             {/* How It Works Section */}
-            <motion.div className="how-it-works" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.2 }}>
-              <h2>How It Works</h2>
-              <div className="steps-container">
-                <motion.div className="step" whileHover={{ scale: 1.05 }}>
-                  <div className="step-number">1</div>
-                  <h3>Sign Up</h3>
-                  <p>Create your profile and join our community</p>
-                </motion.div>
-                <motion.div className="step-arrow">→</motion.div>
-                <motion.div className="step" whileHover={{ scale: 1.05 }}>
-                  <div className="step-number">2</div>
-                  <h3>Connect</h3>
-                  <p>Find mentors and collaborators</p>
-                </motion.div>
-                <motion.div className="step-arrow">→</motion.div>
-                <motion.div className="step" whileHover={{ scale: 1.05 }}>
-                  <div className="step-number">3</div>
-                  <h3>Grow</h3>
-                  <p>Learn, build, and achieve together</p>
-                </motion.div>
-              </div>
-            </motion.div>
+            <HowItWorksMasonry />
 
             {/* ✅ New Section: Testimonials */}
             <motion.div className="testimonials" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.3 }}>
-              <h2>What Students Say</h2>
+              <h2 className="stats-heading">What Students Say</h2>
               <div className="testimonial-grid">
                 <motion.div className="testimonial" whileHover={{ scale: 1.02 }}>
                   <p>"PeerPath helped me find my dream project team!"</p>
@@ -224,21 +243,67 @@ const FrontPage = ({ currentUser, onLogout }) => {
                 </motion.div>
               </div>
             </motion.div>
-
-            {/* ✅ New Section: Animated Partners Banner */}
-            <motion.div className="partners" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.5 }}>
-              <h2>Our Collaborators</h2>
-              <div className="partner-logos">
-                <motion.img src="/logos/github.png" alt="GitHub" whileHover={{ scale: 1.1 }} />
-                <motion.img src="/logos/sanity.png" alt="Sanity" whileHover={{ scale: 1.1 }} />
-                <motion.img src="/logos/vercel.png" alt="Vercel" whileHover={{ scale: 1.1 }} />
-              </div>
-            </motion.div>
           </motion.div>
+          {/* Move feedback-gallery-row outside of .front-content for full width */}
+          <div className="feedback-gallery-row" style={{
+            display: 'flex',
+            gap: '1.5rem',
+            width: 'auto',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexWrap: 'nowrap',
+            paddingRight: 0,
+            paddingBottom:'8rem',
+            margin: '5rem auto',
+          }}>
+            {/* Left: Lottie Animation */}
+            <div style={{
+              flex: '0 0 auto',
+              minWidth: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'center',
+              height: '100%',
+              position: 'relative',
+            }}>
+              <img
+                src={'/ellipse.png'}
+                alt="Ellipse background"
+                style={{
+                  position: 'absolute',
+                  left: '39%',
+                  top: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  width: '150%',
+                  height: 'auto',
+                  zIndex: 0,
+                  pointerEvents: 'none',
+                  userSelect: 'none',
+                }}
+                draggable={false}
+              />
+              <div style={{ position: 'relative', zIndex: 1 }}>
+                <LottieAnimation large />
+              </div>
+            </div>
+            {/* Right: Feedback Form with Rating */}
+            <div style={{
+              flex: '0 0 auto',
+              minWidth: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'flex-end',
+              paddingLeft: '11rem',
+              margin: 0,
+            }}>
+              <Email showRating={true} compact={true} />
+            </div>
+          </div>
         </div>
-        <Email/>
       </section>
-      
+
       {/* Advanced Footer */}
       <AdvancedFooter />
     </motion.div>

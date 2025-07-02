@@ -70,6 +70,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  visitCount: {
+    type: Number,
+    default: 0
+  },
 }, {
   timestamps: true
 });

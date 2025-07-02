@@ -184,25 +184,42 @@ router.post('/upload-profile-photo', authenticateToken, upload.single('profilePh
   }
 });
 
-// Get most active users (by unique active days)
+// Get most active users (by visit count)
 router.get('/most-active', async (req, res) => {
   try {
     const users = await User.find()
-      .select('username profilePhoto weeklyStats expertise bio skills year')
+      .select('username profilePhoto visitCount expertise bio skills year')
       .lean();
-    // Calculate active days for each user
-    const usersWithActiveDays = users.map(user => ({
+    // Add visitCount to each user (default 0 if missing)
+    const usersWithVisitCount = users.map(user => ({
       ...user,
-      activeDays: user.weeklyStats ? user.weeklyStats.length : 0
+      visitCount: user.visitCount || 0
     }));
-    // Sort by activeDays descending
-    usersWithActiveDays.sort((a, b) => b.activeDays - a.activeDays);
+    // Sort by visitCount descending
+    usersWithVisitCount.sort((a, b) => b.visitCount - a.visitCount);
     // Limit to top 6
-    const topActive = usersWithActiveDays.slice(0, 6);
+    const topActive = usersWithVisitCount.slice(0, 6);
     res.json(topActive);
   } catch (error) {
     console.error('Get most active users error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Add after other routes
+router.post('/visit', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    console.log('User ID from token:', userId);
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    user.visitCount = (user.visitCount || 0) + 1;
+    await user.save();
+    console.log('Visit count updated for user:', user.username, 'New count:', user.visitCount);
+    res.json({ visitCount: user.visitCount, activeDays: user.weeklyStats ? user.weeklyStats.length : 0 });
+  } catch (err) {
+    console.error('Visit count update error:', err);
+    res.status(500).json({ error: 'Failed to update visit count' });
   }
 });
 

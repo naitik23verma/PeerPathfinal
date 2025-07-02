@@ -198,7 +198,7 @@ export default function Dashboard({ currentUser, onLogout }) {
               transition={{ delay: 0.3, duration: 0.7 }}
             >
               <div className="about-us-image-card">
-                <img src="/PeerPathpurple.jpeg" alt="PeerPath Purple Logo" className="about-us-image" />
+                <img src="/PeerPathblue.jpeg" alt="PeerPath Purple Logo" className="about-us-image" />
               </div>
             </motion.div>
             <motion.div 

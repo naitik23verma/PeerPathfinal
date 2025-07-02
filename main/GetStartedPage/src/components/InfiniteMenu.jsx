@@ -13,11 +13,67 @@ export default function InfiniteMenu() {
   useEffect(() => {
     const fetchMostActive = async () => {
       try {
+        console.log('Fetching most active users...');
         const response = await fetch('http://localhost:5000/api/users/most-active');
         if (!response.ok) {
           throw new Error('Failed to fetch most active users');
         }
-        const data = await response.json();
+        let data = await response.json();
+        console.log('Most active users data from backend:', data);
+        // Fallback sample users
+        const fallbackUsers = [
+          {
+            _id: '1',
+            username: 'Alex Chen',
+            profilePhoto: 'https://picsum.photos/900/900?random=1',
+            activeDays: 45,
+            expertise: 'Web Development'
+          },
+          {
+            _id: '2',
+            username: 'Sarah Kim',
+            profilePhoto: 'https://picsum.photos/900/900?random=2',
+            activeDays: 38,
+            expertise: 'Data Science'
+          },
+          {
+            _id: '3',
+            username: 'Mike Johnson',
+            profilePhoto: 'https://picsum.photos/900/900?random=3',
+            activeDays: 32,
+            expertise: 'Machine Learning'
+          },
+          {
+            _id: '4',
+            username: 'Emma Wilson',
+            profilePhoto: 'https://picsum.photos/900/900?random=4',
+            activeDays: 28,
+            expertise: 'Mobile Development'
+          },
+          {
+            _id: '5',
+            username: 'David Lee',
+            profilePhoto: 'https://picsum.photos/900/900?random=5',
+            activeDays: 25,
+            expertise: 'Cybersecurity'
+          },
+          {
+            _id: '6',
+            username: 'Lisa Park',
+            profilePhoto: 'https://picsum.photos/900/900?random=6',
+            activeDays: 22,
+            expertise: 'UI/UX Design'
+          }
+        ];
+        // Only keep the top 6 users, fill with fallback if less
+        if (!Array.isArray(data)) data = [];
+        console.log('Data before processing:', data);
+        data = data.slice(0, 6);
+        if (data.length < 6) {
+          console.log('Adding fallback users, current data length:', data.length);
+          data = data.concat(fallbackUsers.slice(data.length, 6));
+        }
+        console.log('Final data to display:', data);
         setTopSolvers(data);
       } catch (error) {
         console.error('Error fetching most active users:', error);
@@ -165,10 +221,20 @@ export default function InfiniteMenu() {
           const radius = 300; // Distance from center
           const x = Math.cos((angle * Math.PI) / 180) * radius;
           const z = Math.sin((angle * Math.PI) / 180) * radius;
-          
+          // Defensive checks for missing fields
+          const username = solver.username || 'Unknown User';
+          let profilePhoto = solver.profilePhoto;
+          if (profilePhoto && profilePhoto.startsWith('/')) {
+            profilePhoto = `http://localhost:5000${profilePhoto}`;
+          } else if (!profilePhoto) {
+            profilePhoto = `https://picsum.photos/900/900?random=${index + 1}`;
+          }
+          const activeDays = solver.activeDays || 0;
+          const expertise = solver.expertise || '';
+          const visitCount = solver.visitCount || 0;
           return (
             <div
-              key={solver._id}
+              key={solver._id || index}
               className={`gallery-item ${index === activeIndex ? 'active' : ''}`}
               style={{
                 transform: `translate3d(${x}px, 0px, ${z}px) rotateY(${-rotation}deg)`,
@@ -177,16 +243,31 @@ export default function InfiniteMenu() {
               onClick={() => handleItemClick(index)}
             >
               <div className="item-image">
-                <img 
-                  src={solver.profilePhoto ? `http://localhost:5000${solver.profilePhoto}` : `https://picsum.photos/900/900?random=${index + 1}`} 
-                  alt={solver.username} 
-                />
+                {solver.profilePhoto ? (
+                  <img 
+                    src={profilePhoto} 
+                    alt={username} 
+                  />
+                ) : (
+                  <div style={{
+                    width: '100%',
+                    height: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '2.5rem',
+                    color: '#c4b5fd',
+                    background: '#1e1b4b',
+                  }}>
+                    {username.charAt(0).toUpperCase()}
+                  </div>
+                )}
               </div>
               <div className="item-overlay">
-                <h3 className="item-title">{solver.username}</h3>
+                <h3 className="item-title">{username}</h3>
                 <p className="item-description">
-                  {solver.activeDays} days active
-                  {solver.expertise && ` • ${solver.expertise}`}
+                  {visitCount} Visits
+                  {expertise && ` • ${expertise}`}
                 </p>
               </div>
             </div>
