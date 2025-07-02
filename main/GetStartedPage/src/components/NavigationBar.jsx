@@ -137,7 +137,7 @@ const NavigationBar = ({
           whileHover={{ scale: 1.05 }}
           transition={{ duration: 0.2 }}
         >
-          <Link to="/dashboard" className="logo-link">
+          <Link to="/front" className="logo-link">
             <img src="/peerpath.png" alt="PeerPath" className="logo-image" />
             <motion.h1 
               className="logo-text"

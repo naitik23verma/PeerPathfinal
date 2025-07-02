@@ -552,16 +552,6 @@ export default function Doubts({ currentUser, onLogout }){
         setAccepting(false);
         setDoubts(prev => prev.filter(d => (d._id || d.id) !== selectedDoubt.id));
         showToast('Doubt marked as solved! Solver credited.', 'success');
-        // Download the solution image if present
-        const acceptedSolution = (selectedDoubt.solutions || []).find(sol => (sol._id === solutionId || sol.id === solutionId) && sol.image);
-        if (acceptedSolution && acceptedSolution.image) {
-          const link = document.createElement('a');
-          link.href = `http://localhost:5000${acceptedSolution.image}`;
-          link.download = 'solution-image.jpg';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-        }
       } catch (error) {
         setAccepting(false);
         showToast('Failed to accept solution.', 'error');
