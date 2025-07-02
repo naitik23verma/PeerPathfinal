@@ -219,7 +219,7 @@ const Resources = ({ currentUser, onLogout }) => {
       id: 2,
       title: "Marks & Grades",
       description: "View detailed marks, grade points, and cumulative performance analysis",
-      link: "https://manit.ac.in/marks",
+      link: "https://iamwsumit.github.io/manit-result/",
       type: "Marks",
       icon: "📊"
     },
@@ -618,14 +618,16 @@ const Resources = ({ currentUser, onLogout }) => {
               <p className="resource-description">{resource.description}</p>
               <div className="resource-action single-button">
                 {resource.id === 2 ? (
-                  <motion.button 
-                    className="recruitment-btn"
-                    variants={buttonVariants}
-                    whileHover="hover"
-                    whileTap="tap"
-                  >
-                    Coming Soon
-                  </motion.button>
+                  <a href="https://iamwsumit.github.io/manit-result/" target="_blank" rel="noopener noreferrer">
+                    <motion.button 
+                      className="access-btn"
+                      variants={buttonVariants}
+                      whileHover="hover"
+                      whileTap="tap"
+                    >
+                      Access Portal
+                    </motion.button>
+                  </a>
                 ) : (
                   <a href={resource.link} target="_blank" rel="noopener noreferrer">
                     <motion.button 
