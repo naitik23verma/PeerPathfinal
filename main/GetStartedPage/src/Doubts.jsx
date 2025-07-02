@@ -55,7 +55,16 @@ function DoubtCard({ doubt, onSolve, onCall, onVideoCall, onChat, onLike, likedB
           whileHover={{ scale: 1.1, rotate: 5 }}
           transition={{ duration: 0.2 }}
         >
-          <span className="avatar-emoji">❓</span>
+          {doubt.user && doubt.user.profilePhoto ? (
+            <img
+              src={`http://localhost:5000${doubt.user.profilePhoto}`}
+              alt={doubt.user.username || 'User'}
+              className="solution-avatar"
+              style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }}
+            />
+          ) : (
+            <span className="avatar-emoji">{(doubt.user?.username || doubt.user || 'U').charAt(0).toUpperCase()}</span>
+          )}
         </motion.div>
         <div className="helper-info">
           <motion.h3 
@@ -175,7 +184,7 @@ function DoubtCard({ doubt, onSolve, onCall, onVideoCall, onChat, onLike, likedB
         transition={{ delay: 0.7 }}
       >
         <motion.button 
-          className="call-btn small-action-btn" 
+          className="call-btn small-rect-btn" 
           onClick={() => onCall(doubt)}
           variants={buttonVariants}
           whileHover="hover"
@@ -195,7 +204,7 @@ function DoubtCard({ doubt, onSolve, onCall, onVideoCall, onChat, onLike, likedB
           </motion.button>
         )}
         <motion.button
-          className="gallery-btn small-action-btn"
+          className="gallery-btn small-rect-btn"
           title="Post Image Solution"
           onClick={() => fileInputRef.current && fileInputRef.current.click()}
           variants={buttonVariants}
@@ -299,7 +308,9 @@ export default function Doubts({ currentUser, onLogout }){
     const [imageModal, setImageModal] = useState({ open: false, image: '', solver: '', profilePhoto: '' });
 
     // Carousel for doubts
-    const [carouselIndex, setCarouselIndex] = useState(0);
+    const [canScrollLeft, setCanScrollLeft] = useState(false);
+    const [canScrollRight, setCanScrollRight] = useState(true);
+    const doubtsCarouselRef = useRef(null);
 
     // Animation variants
     const pageVariants = {
@@ -359,9 +370,36 @@ export default function Doubts({ currentUser, onLogout }){
     // Sort mappedDoubts by like count descending
     const sortedDoubts = [...mappedDoubts].sort((a, b) => (b.likes?.length || 0) - (a.likes?.length || 0));
 
-    // Carousel functions
-    const scrollDoubtsLeft = () => setCarouselIndex(i => Math.max(i - 1, 0));
-    const scrollDoubtsRight = () => setCarouselIndex(i => Math.min(i + 1, Math.max(0, sortedDoubts.length - 3)));
+    // Check scroll position to show/hide buttons
+    const checkScrollButtons = () => {
+      if (doubtsCarouselRef.current) {
+        const { scrollLeft, scrollWidth, clientWidth } = doubtsCarouselRef.current;
+        setCanScrollLeft(scrollLeft > 0);
+        setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 1);
+      }
+    };
+
+    useEffect(() => {
+      checkScrollButtons();
+      const carousel = doubtsCarouselRef.current;
+      if (carousel) {
+        carousel.addEventListener('scroll', checkScrollButtons);
+        return () => carousel.removeEventListener('scroll', checkScrollButtons);
+      }
+    }, [sortedDoubts.length]);
+
+    const scrollDoubtsLeft = () => {
+      if (doubtsCarouselRef.current) {
+        doubtsCarouselRef.current.scrollBy({ left: -350, behavior: 'smooth' });
+        setTimeout(checkScrollButtons, 400);
+      }
+    };
+    const scrollDoubtsRight = () => {
+      if (doubtsCarouselRef.current) {
+        doubtsCarouselRef.current.scrollBy({ left: 350, behavior: 'smooth' });
+        setTimeout(checkScrollButtons, 400);
+      }
+    };
 
     // Call/Video Call handlers
     const handleCall = (doubt) => {
@@ -682,7 +720,7 @@ export default function Doubts({ currentUser, onLogout }){
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.9 }}
                     >
-                      {carouselIndex > 0 && (
+                      {canScrollLeft && (
                         <motion.button 
                             className="scroll-btn scroll-left" 
                             onClick={scrollDoubtsLeft}
@@ -693,8 +731,8 @@ export default function Doubts({ currentUser, onLogout }){
                             ‹
                         </motion.button>
                       )}
-                      <div className="carousel-container">
-                        <div className="carousel-track" style={{ transform: `translateX(-${carouselIndex * 350}px)` }}>
+                      <div className="carousel-container" ref={doubtsCarouselRef} style={{ overflowX: 'auto', scrollBehavior: 'smooth' }}>
+                        <div className="carousel-track" style={{ display: 'flex', gap: '1.5rem', minWidth: '100%' }}>
                           {sortedDoubts.map((doubt, idx) => {
                             // Debug logs
                             console.log('Doubt:', doubt);
@@ -743,7 +781,7 @@ export default function Doubts({ currentUser, onLogout }){
                           })}
                         </div>
                       </div>
-                      {carouselIndex < Math.max(0, sortedDoubts.length - 3) && (
+                      {canScrollRight && (
                         <motion.button 
                             className="scroll-btn scroll-right" 
                             onClick={scrollDoubtsRight}

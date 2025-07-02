@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -88,6 +88,7 @@ const Collaboration = ({ currentUser, onLogout }) => {
   });
   const [allProjects, setAllProjects] = useState([]);
   const navigate = useNavigate();
+  const modalContentRef = useRef(null);
 
   // Animation variants
   const pageVariants = {
@@ -154,9 +155,16 @@ const Collaboration = ({ currentUser, onLogout }) => {
   }, [currentUser]);
 
   // Join project logic
-  const handleJoinProject = async (project) => {
+  const handleJoinProject = (project) => {
     setSelectedProject(project);
     setShowModal(true);
+    setTimeout(() => {
+      if (modalContentRef.current) {
+        modalContentRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }, 100);
   };
 
   const confirmJoin = async () => {
@@ -765,21 +773,25 @@ const Collaboration = ({ currentUser, onLogout }) => {
       {/* Join Project Modal */}
       <AnimatePresence>
       {showModal && selectedProject && (
-          <motion.div 
-            className="modal-overlay" 
-            onClick={() => setShowModal(false)}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+          <motion.div
+            initial={{ opacity: 0, y: 100 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 100 }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
+            style={{
+              zIndex: 1000,
+              position: 'fixed',
+              left: 0,
+              right: 0,
+              bottom: 0,
+              top: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'rgba(0,0,0,0.5)'
+            }}
           >
-            <motion.div 
-              className="modal-content" 
-              onClick={(e) => e.stopPropagation()}
-              variants={modalVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-            >
+            <div className="modal-content" ref={modalContentRef}>
               <motion.button 
                 className="close-btn" 
                 onClick={() => setShowModal(false)}
@@ -859,7 +871,7 @@ const Collaboration = ({ currentUser, onLogout }) => {
                   </motion.button>
                 )}
               </motion.div>
-            </motion.div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

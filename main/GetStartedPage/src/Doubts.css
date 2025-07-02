@@ -432,3 +432,43 @@ body, html {
     justify-content: center;
     margin: 0 0.15em;
 }
+
+.small-rect-btn {
+    padding: 0.3rem 0.7rem;
+    min-width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    color: white;
+    border: none;
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin: 0 0.2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(76,29,149,0.06);
+}
+
+.small-rect-btn:hover, .small-rect-btn:focus {
+    background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);
+    color: #fff;
+    border: none;
+}
+
+/* Make horizontal scroll smooth for doubt cards carousel */
+.doubts-carousel, .doubts-cards-row, .carousel-row {
+  scroll-behavior: smooth;
+}
+
+/* Prevent scroll buttons from translating down on click */
+.scroll-btn, .carousel-scroll-btn {
+  transition: background 0.2s, color 0.2s;
+  transform: none !important;
+}
+
+.scroll-btn:active, .carousel-scroll-btn:active {
+  transform: none !important;
+}
