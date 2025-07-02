@@ -310,9 +310,14 @@ html, body {
 
 .features-grid .feature-icon {
   font-size: 2.5rem;
-  margin-bottom: 1rem;
-  display: block;
-  color: #90caf9;
+  width: 3.5rem;
+  height: 3.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem auto;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 .features-grid .feature h3 {
@@ -513,12 +518,6 @@ html, body {
 
 .fancy-gradient-card:hover::before {
   filter: brightness(1.5) saturate(1.5) blur(1px);
-}
-.box {
-    width: 100;
-    height: 100;
-    backgroundColor: #9911ff;
-    borderRadius: 5;
 }
 
 .testimonials {
