@@ -5,6 +5,7 @@ import './Location.css';
 import axios from 'axios';
 import DotGrid from "./components/DotGrid.jsx";
 import AdvancedFooter from './components/AdvancedFooter.jsx';
+import TypewriterText from './components/TypewriterText.jsx';
 
 const API_URL = 'http://localhost:5000/api/location';
 const GOOGLE_MAPS_API_KEY = 'AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg';
@@ -688,123 +689,127 @@ export default function Location({ currentUser, onLogout }) {
                   return (
                     <motion.div
                       key={ride._id}
-                      className="ride-card"
+                      className="ride-card-border"
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.4, delay: index * 0.1 }}
                       whileHover={{ y: -8, scale: 1.02 }}
                     >
-                      <div className="ride-header">
-                        <div className="ride-creator">
-                          <img 
-                            src={creator.profilePhoto || 'https://via.placeholder.com/40'} 
-                            alt={creator.username}
-                            className="creator-avatar"
-                          />
-                          <div className="creator-info">
-                            <h3>{creator.username}</h3>
-                            <p>@{creator.username}</p>
+                      <div className="ride-card">
+                        <div className="ride-header">
+                          <div className="ride-creator">
+                            <img 
+                              src={
+                                creator.profilePhoto
+                                  ? (creator.profilePhoto.startsWith('/uploads/')
+                                      ? `http://localhost:5000${creator.profilePhoto}`
+                                      : `http://localhost:5000/uploads/${creator.profilePhoto}`)
+                                  : 'https://via.placeholder.com/40'
+                              }
+                              alt={creator.username}
+                              className="creator-avatar"
+                            />
+                            <div className="creator-info">
+                              <h3>{creator.username}</h3>
+                              <p>@{creator.username}</p>
+                            </div>
+                          </div>
+                          <div className="ride-status">
+                            {currentSeats < maxSeats ? 'Available' : 'Full'}
                           </div>
                         </div>
-                        <div className="ride-status">
-                          {currentSeats < maxSeats ? 'Available' : 'Full'}
-                        </div>
-                      </div>
 
-                      <div className="ride-route">
-                        <div className="route-points">
-                          <div className="route-point">{fromAddress}</div>
-                          <div className="route-arrow">→</div>
-                          <div className="route-point">{toAddress}</div>
-                        </div>
-                        <div className="route-info">
-                          <span>{distance} km</span>
-                          <span>{travelTime} min</span>
-                        </div>
-                      </div>
-
-                        {/* Google Maps Mini Map for each ride */}
-                        <div className="mini-map">
-                          <RideCardMap 
-                            fromAddress={fromAddress}
-                            toAddress={toAddress}
-                            rideId={ride._id}
-                          />
+                        <div className="ride-route">
+                          <div className="route-points">
+                            <div className="route-point">{fromAddress}</div>
+                            <div className="route-arrow">→</div>
+                            <div className="route-point">{toAddress}</div>
+                          </div>
+                          <div className="route-info">
+                            <span>{distance} km</span>
+                            <span>{travelTime} min</span>
+                          </div>
                         </div>
 
-                      <div className="ride-details">
-                        <div className="detail-item">
-                          <span className="detail-label">Departure</span>
-                          <span className="detail-value">
-                            {departureTime ? new Date(departureTime).toLocaleString() : 'TBD'}
-                          </span>
-                        </div>
-                        <div className="detail-item">
-                          <span className="detail-label">Seats</span>
-                          <span className="detail-value">{currentSeats}/{maxSeats}</span>
-                        </div>
-                        <div className="detail-item">
-                          <span className="detail-label">Price</span>
-                          <span className="detail-value">
-                            ₹{typeof distance === 'number' ? Math.round(distance * 2) : 'N/A'}
-                          </span>
-                        </div>
-                        <div className="detail-item">
-                          <span className="detail-label">Weather</span>
-                          <span className="detail-value">{weather}</span>
-                        </div>
-                      </div>
+                          {/* Google Maps Mini Map for each ride */}
+                          <div className="mini-map">
+                            <RideCardMap 
+                              fromAddress={fromAddress}
+                              toAddress={toAddress}
+                              rideId={ride._id}
+                            />
+                          </div>
 
-                      {note && (
-                        <div className="ride-note">
-                          <span className="note-label">Note:</span>
-                          <span className="note-text">{note}</span>
+                        <div className="ride-details">
+                          <div className="detail-item">
+                            <span className="detail-label">Departure</span>
+                            <span className="detail-value">
+                              {departureTime ? new Date(departureTime).toLocaleString() : 'TBD'}
+                            </span>
+                          </div>
+                          <div className="detail-item">
+                            <span className="detail-label">Seats</span>
+                            <span className="detail-value">{currentSeats}/{maxSeats}</span>
+                          </div>
                         </div>
-                      )}
 
-                      <div className="ride-members">
-                        <div className="members-title">Members ({members.length})</div>
-                        <div className="members-list">
-                          {members.map((member, idx) => {
-                            const memberData = member.user || member;
-                            return (
-                              <img 
-                                key={idx}
-                                src={memberData.profilePhoto ? memberData.profilePhoto : 'https://via.placeholder.com/32'}
-                                alt={memberData.username}
-                                className="member-avatar"
-                                title={memberData.username}
-                              />
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      <div className="ride-actions">
-                        {/* If current user is the creator, show Cancel Ride */}
-                        {creator._id === currentUser?._id ? (
-                          <button 
-                            className="action-btn leave-btn"
-                            onClick={() => handleCancelRide(ride._id)}
-                          >
-                            Cancel Ride
-                          </button>
-                        ) : members.some(m => (m.user?._id || m._id) === currentUser?._id) ? (
-                          <button 
-                            className="action-btn leave-btn"
-                            onClick={() => handleLeaveRide(ride._id)}
-                          >
-                            Leave Ride
-                          </button>
-                        ) : (
-                          <button 
-                            className="action-btn join-btn"
-                            onClick={() => handleJoinRide(ride._id)}
-                            disabled={currentSeats >= maxSeats}
-                          >
-                            Join Ride
-                          </button>
+                        {note && (
+                          <div className="ride-note">
+                            <span className="note-label">Note:</span>
+                            <span className="note-text">{note}</span>
+                          </div>
                         )}
+
+                        <div className="ride-members">
+                          <div className="members-title">Members ({members.length})</div>
+                          <div className="members-list">
+                            {members.map((member, idx) => {
+                              const memberData = member.user || member;
+                              return (
+                                <img 
+                                  key={idx}
+                                  src={
+                                    memberData.profilePhoto
+                                      ? (memberData.profilePhoto.startsWith('/uploads/')
+                                          ? `http://localhost:5000${memberData.profilePhoto}`
+                                          : `http://localhost:5000/uploads/${memberData.profilePhoto}`)
+                                      : 'https://via.placeholder.com/32'
+                                  }
+                                  alt={memberData.username}
+                                  className="member-avatar"
+                                  title={memberData.username}
+                                />
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        <div className="ride-actions">
+                          {/* If current user is the creator, show Cancel Ride */}
+                          {creator._id === currentUser?._id ? (
+                            <button 
+                              className="action-btn leave-btn"
+                              onClick={() => handleCancelRide(ride._id)}
+                            >
+                              Cancel Ride
+                            </button>
+                          ) : members.some(m => (m.user?._id || m._id) === currentUser?._id) ? (
+                            <button 
+                              className="action-btn leave-btn"
+                              onClick={() => handleLeaveRide(ride._id)}
+                            >
+                              Leave Ride
+                            </button>
+                          ) : (
+                            <button 
+                              className="action-btn join-btn"
+                              onClick={() => handleJoinRide(ride._id)}
+                              disabled={currentSeats >= maxSeats}
+                            >
+                              Join Ride
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </motion.div>
                   );
@@ -834,7 +839,7 @@ export default function Location({ currentUser, onLogout }) {
       }}>
         {/* Left: Idea Text */}
         <div className="location-idea-text" style={{ flex: 1, color: '#e0e7ff', fontStyle: 'italic', fontSize: '1.15rem', lineHeight: 1.6 }}>
-          "The idea for the location page came to me when I realized how many students struggle to find rides and connect with others nearby. I wanted to make it easy for everyone to share rides, save time, and build new friendships. PeerPath's location feature is all about making our journeys together more meaningful."
+          <TypewriterText text={"The idea for the location page came to me when I realized how many students struggle to find rides and connect with others nearby. I wanted to make it easy for everyone to share rides, save time, and build new friendships. PeerPath's location feature is all about making our journeys together more meaningful."} />
         </div>
         {/* Right: Hardik Pawar Card */}
         <div className="location-idea-person-card" style={{

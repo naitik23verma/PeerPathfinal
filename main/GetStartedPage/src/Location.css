@@ -299,16 +299,32 @@ More actions
   margin-top: 2rem;
 }
 
+/* Animated gradient border wrapper for ride cards */
+.ride-card-border {
+  position: relative;
+  border-radius: 20px;
+  padding: 3px; /* Border thickness */
+  background: linear-gradient(270deg, #a78bfa, #8b5cf6, #7c3aed, #ec4899, #a78bfa);
+  background-size: 400% 400%;
+  animation: gradient-border-animate 6s ease infinite;
+  margin-bottom: 1.5rem;
+  box-sizing: border-box;
+}
+@keyframes gradient-border-animate {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
 .ride-card {
   background: rgba(30, 41, 59, 0.8);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(99, 102, 241, 0.2);
   border-radius: 16px;
   padding: 1.5rem;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
-  cursor: pointer;
+  z-index: 1;
+  box-sizing: border-box;
 }
 
 .ride-card::before {
@@ -625,11 +641,12 @@ More actions
 /* Responsive Design */
 @media (max-width: 768px) {
   .location-container {
-    padding-top: 120px !important;
+    padding-top: 320px; /* Increased further to ensure content starts well below navbar on mobile */
   }
 
   .location-header h1 {
-    font-size: 2rem;
+    margin-top: 0;
+    padding-top: 70px;
   }
 
   .form-row {
@@ -643,6 +660,48 @@ More actions
 
   .ride-details {
     grid-template-columns: 1fr;
+  }
+
+  .location-idea-card {
+    flex-direction: column-reverse !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 1.2rem 1rem !important;
+    min-width: 0 !important;
+    width: 95vw !important;
+    margin-left: 2.5vw !important;
+    margin-right: 2.5vw !important;
+    margin-top: 2rem !important;
+    margin-bottom: 1rem !important;
+    text-align: center !important;
+  }
+  .location-idea-text {
+    font-size: 1rem !important;
+    margin-bottom: 1.2rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    text-align: center !important;
+  }
+  .location-idea-person-card {
+    min-width: 0 !important;
+    max-width: 90vw !important;
+    width: 100% !important;
+    margin-left: 0 !important;
+    margin-bottom: 0.5rem !important;
+    border-radius: 1rem !important;
+    padding: 1rem 0.5rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+  .location-idea-photo {
+    width: 80px !important;
+    height: 80px !important;
+    margin-bottom: 0.5rem !important;
+  }
+  .rides-title {
+    margin-top: 2rem !important;
+    margin-bottom: 2rem !important;
   }
 }
 
