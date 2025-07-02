@@ -140,6 +140,32 @@ const Resources = ({ currentUser, onLogout }) => {
         link: 'https://www.instagram.com/evolve_nitb/',
         type: 'Technical',
         logo: '/evolve-logo.svg'
+      },
+      {
+        id: 'astro-alliance',
+        title: 'Astro Alliance (StarLab)',
+        description: "Astro Alliance (StarLab) is MANIT's astronomy club, hosting telescope nights, quizzes, and workshops to explore the universe and inspire space enthusiasts.",
+        link: '', // Add official link if available
+        type: 'Technical',
+        logo: '' // Add logo path if available
+      },
+      {
+        id: 'owasp',
+        title: 'OWASP Chapter MANIT',
+        description: 'OWASP MANIT promotes cybersecurity awareness and skills through hands-on challenges, bug bounty training, and events like Cyber Hunter 1.0.',
+        link: '', // Add official link if available
+        type: 'Technical',
+        logo: '' // Add logo path if available
+      }
+    ],
+    council: [
+      {
+        id: 'students-council',
+        title: "Student's Council MANIT",
+        description: "Official student body representing MANIT students, organizing events, voicing concerns, and enhancing campus life.",
+        link: 'https://www.manit.ac.in/content/students-council',
+        type: 'Council',
+        logo: '' // Add logo path if available
       }
     ],
     cultural: [
@@ -166,6 +192,14 @@ const Resources = ({ currentUser, onLogout }) => {
         link: 'https://www.manit.ac.in/content/spic-macay',
         type: 'Cultural',
         logo: '/spicmacay-logo.svg'
+      },
+      {
+        id: 'ibc',
+        title: "Intellect Browsers' Consortium (IBC)",
+        description: "IBC is MANIT's literary-cum-management society, hosting business, literary, and MUN events to foster critical thinking and leadership.",
+        link: '', // Add official link if available
+        type: 'Literary/Management',
+        logo: '' // Add logo path if available
       }
     ],
     educational: [
@@ -184,6 +218,22 @@ const Resources = ({ currentUser, onLogout }) => {
         link: 'https://www.quizzersclub.in/',
         type: 'Educational',
         logo: '/quizzers-logo.svg'
+      },
+      {
+        id: 'aaroha',
+        title: 'Aaroha',
+        description: "Aaroha is an NGO run by students of MANIT, AIIMS, and IHM Bhopal, empowering underprivileged children through education, health, and community programs.",
+        link: '', // Add official link if available
+        type: 'NGO',
+        logo: '' // Add logo path if available
+      },
+      {
+        id: 'inspire-manit',
+        title: 'INSPIRE MANIT',
+        description: "INSPIRE MANIT is a non-profit nurturing youth with values and wisdom through workshops, seminars, and service, focusing on holistic personal development.",
+        link: '', // Add official link if available
+        type: 'NGO',
+        logo: '' // Add logo path if available
       }
     ],
     sportsAndHobby: [
@@ -485,7 +535,9 @@ const Resources = ({ currentUser, onLogout }) => {
                     />
                     <span className="fallback-icon" style={{display: 'none'}}>
                       {society.title === 'Avantikulam' ? '📚' :
-                       society.title === 'Quizzer\'s Club' ? '❓' : '📚'}
+                       society.title === 'Quizzer\'s Club' ? '❓' :
+                       society.title === 'Aaroha' ? '🏛️' :
+                       society.title === 'INSPIRE MANIT' ? '🏛️' : '📚'}
                     </span>
                   </motion.div>
                   <h3 className="resource-title">{society.title}</h3>

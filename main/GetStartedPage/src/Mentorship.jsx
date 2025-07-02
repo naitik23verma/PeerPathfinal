@@ -479,8 +479,8 @@ const Collaboration = ({ currentUser, onLogout }) => {
                       </motion.button>
                       <motion.div
                         className="chat-btn"
-                        onClick={() => handleProjectGroupChat(project)}
-                        title={`Group Chat for ${project.title}`}
+                        onClick={() => handleChatWithLeader(project)}
+                        title={`Chat with Project Leader of ${project.title}`}
                         variants={buttonVariants}
                         whileHover="hover"
                         whileTap="tap"
@@ -606,8 +606,8 @@ const Collaboration = ({ currentUser, onLogout }) => {
                   )}
                   <motion.div
                     className="chat-btn"
-                    onClick={() => handleProjectGroupChat(project)}
-                    title={`Group Chat for ${project.title}`}
+                    onClick={() => handleChatWithLeader(project)}
+                    title={`Chat with Project Leader of ${project.title}`}
                     variants={buttonVariants}
                     whileHover="hover"
                     whileTap="tap"
@@ -761,8 +761,8 @@ const Collaboration = ({ currentUser, onLogout }) => {
                 >
                   <motion.div
                     className="chat-btn"
-                    onClick={() => handleProjectGroupChat(project)}
-                    title={`Group Chat for ${project.title}`}
+                    onClick={() => handleChatWithLeader(project)}
+                    title={`Chat with Project Leader of ${project.title}`}
                     variants={buttonVariants}
                     whileHover="hover"
                     whileTap="tap"
