@@ -625,7 +625,7 @@ More actions
 /* Responsive Design */
 @media (max-width: 768px) {
   .location-container {
-    padding: 1rem;
+    padding-top: 120px !important;
   }
 
   .location-header h1 {
