@@ -3,7 +3,7 @@ import Lottie from 'lottie-react';
 import animationData from '../assets/Animation.json';
 
 export default function LottieAnimation({ style, large }) {
-  const size = large ? 420 : 320;
+  const size = large ? 650 : 320;
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', ...style }}>
       <Lottie

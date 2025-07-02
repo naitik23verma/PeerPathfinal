@@ -195,7 +195,7 @@ const FrontPage = ({ currentUser, onLogout }) => {
 
             {/* Stats Section */}
             <motion.div className="stats-section" initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.1 }}>
-              <h2>Our Impact</h2>
+              <h2>Our Goal</h2>
               <div className="stats-grid">
                 <motion.div className="stat-card" whileHover={{ scale: 1.05 }}>
                   <div className="stat-number"><Counter end={10000} duration={7000} suffix="+" /></div>
@@ -203,7 +203,7 @@ const FrontPage = ({ currentUser, onLogout }) => {
                 </motion.div>
                 <motion.div className="stat-card" whileHover={{ scale: 1.05 }}>
                   <div className="stat-number"><Counter end={500} duration={7000} suffix="+" /></div>
-                  <div className="stat-label">Projects Completed</div>
+                  <div className="stat-label">Projects to Complete</div>
                 </motion.div>
                 <motion.div className="stat-card" whileHover={{ scale: 1.05 }}>
                   <div className="stat-number"><Counter end={95} duration={7000} suffix="%" /></div>
@@ -265,6 +265,7 @@ const FrontPage = ({ currentUser, onLogout }) => {
               justifyContent: 'center',
               alignItems: 'center',
               height: '100%',
+              marginLeft: '-80px',
             }}>
               <LottieAnimation large />
             </div>
@@ -276,7 +277,7 @@ const FrontPage = ({ currentUser, onLogout }) => {
               flexDirection: 'column',
               justifyContent: 'center',
               alignItems: 'flex-end',
-              paddingLeft: '11rem',
+              paddingLeft: '2rem',
               margin: 0,
             }}>
               <Email showRating={true} compact={true} />
