@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import './Collaboration.css';
 import NavigationBar from './components/NavigationBar.jsx';
 import AdvancedFooter from './components/AdvancedFooter.jsx';
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
+import ChatIcon from '@mui/icons-material/Chat';
 
 const projects = [
   {
@@ -450,7 +452,7 @@ const Collaboration = ({ currentUser, onLogout }) => {
                       <span>⏱️ {project.duration || '3 months'}</span>
                     </div>
                     <div className="meta-item">
-                      <span>👨‍🏫 {project.mentor || (project.creator?.username || 'N/A')}</span>
+                      <span><EmojiEventsIcon style={{ color: '#fbbf24', fontSize: 20, verticalAlign: 'middle', marginRight: 4 }} />{project.mentor || (project.creator?.username || 'N/A')}</span>
                     </div>
                     </motion.div>
                     <motion.div 
@@ -475,14 +477,17 @@ const Collaboration = ({ currentUser, onLogout }) => {
                       >
                         Manage Project
                       </motion.button>
-                      <motion.button 
+                      <motion.div
                         className="chat-btn"
+                        onClick={() => handleProjectGroupChat(project)}
+                        title={`Group Chat for ${project.title}`}
                         variants={buttonVariants}
                         whileHover="hover"
                         whileTap="tap"
+                        style={{ background: '#22105a', color: '#fff', cursor: 'pointer' }}
                       >
-                        💬
-                      </motion.button>
+                        <ChatIcon style={{ fontSize: 22 }} />
+                      </motion.div>
                     </motion.div>
                   </motion.div>
                 ))}
@@ -570,7 +575,7 @@ const Collaboration = ({ currentUser, onLogout }) => {
                     <span>⏱️ {project.duration || '3 months'}</span>
                   </div>
                   <div className="meta-item">
-                    <span>👨‍🏫 {project.mentor || (project.creator?.username || 'N/A')}</span>
+                    <span><EmojiEventsIcon style={{ color: '#fbbf24', fontSize: 20, verticalAlign: 'middle', marginRight: 4 }} />{project.mentor || (project.creator?.username || 'N/A')}</span>
                   </div>
                 </motion.div>
                 <motion.div 
@@ -599,16 +604,17 @@ const Collaboration = ({ currentUser, onLogout }) => {
                       Join Project
                     </motion.button>
                   )}
-                  <motion.button 
-                    className="chat-btn" 
-                    onClick={() => handleProjectGroupChat(project)} 
+                  <motion.div
+                    className="chat-btn"
+                    onClick={() => handleProjectGroupChat(project)}
                     title={`Group Chat for ${project.title}`}
                     variants={buttonVariants}
                     whileHover="hover"
                     whileTap="tap"
+                    style={{ background: '#22105a', color: '#fff', cursor: 'pointer' }}
                   >
-                    💬
-                  </motion.button>
+                    <ChatIcon style={{ fontSize: 22 }} />
+                  </motion.div>
                 </motion.div>
               </motion.div>
             ))}
@@ -736,7 +742,7 @@ const Collaboration = ({ currentUser, onLogout }) => {
                     <span>⏱️ {project.duration || '3 months'}</span>
                   </div>
                   <div className="meta-item">
-                    <span>👨‍🏫 {project.mentor || (project.creator?.username || 'N/A')}</span>
+                    <span><EmojiEventsIcon style={{ color: '#fbbf24', fontSize: 20, verticalAlign: 'middle', marginRight: 4 }} />{project.mentor || (project.creator?.username || 'N/A')}</span>
                   </div>
                 </motion.div>
                 <motion.div 
@@ -753,16 +759,17 @@ const Collaboration = ({ currentUser, onLogout }) => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 1.9 + index * 0.1 }}
                 >
-                  <motion.button 
-                    className="chat-btn" 
-                    onClick={() => handleProjectGroupChat(project)} 
+                  <motion.div
+                    className="chat-btn"
+                    onClick={() => handleProjectGroupChat(project)}
                     title={`Group Chat for ${project.title}`}
                     variants={buttonVariants}
                     whileHover="hover"
                     whileTap="tap"
+                    style={{ background: '#22105a', color: '#fff', cursor: 'pointer' }}
                   >
-                    💬
-                  </motion.button>
+                    <ChatIcon style={{ fontSize: 22 }} />
+                  </motion.div>
                 </motion.div>
               </motion.div>
             ))}

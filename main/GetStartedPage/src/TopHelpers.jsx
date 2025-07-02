@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import './TopHelpers.css';
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 
 export function TopHelpers() {
   const [helpers, setHelpers] = useState([]);
@@ -202,7 +203,7 @@ export function TopHelpers() {
 
                   <div className="helper-stats">
                     <div className="stat-item">
-                      <span className="stat-icon">🏆</span>
+                      <span className="stat-icon"><EmojiEventsIcon style={{ color: '#fbbf24', fontSize: 20, verticalAlign: 'middle' }} /></span>
                       <span className="stat-value">{helper.solved}</span>
                       <span className="stat-label">Solved</span>
                     </div>
@@ -257,9 +258,15 @@ export function TopHelpers() {
                   <span className="avatar-emoji large">{selected.avatar}</span>
                 )}
               </div>
-              <div className="level-badge">{selected.level}</div>
               <div className="modal-info">
-                <h2>{selected.name}</h2>
+                <h2 style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {selected.name}
+                  {selected.level && (
+                    <span className="level-badge" style={{ verticalAlign: 'middle', zIndex: 1, marginLeft: 4, fontSize: '1rem', display: 'inline-block', position: 'relative', background: '#34d399', color: '#fff', padding: '0.12rem 0.5rem', borderRadius: 6, fontWeight: 600 }}>
+                      ({selected.level})
+                    </span>
+                  )}
+                </h2>
                 <div className="modal-rating">
                   <span className="stars">⭐⭐⭐⭐⭐</span>
                   <span className="rating-text">{selected.rating} Rating</span>
@@ -269,7 +276,7 @@ export function TopHelpers() {
 
             <div className="modal-stats">
               <div className="stat-card">
-                <span className="stat-icon">🏆</span>
+                <span className="stat-icon"><EmojiEventsIcon style={{ color: '#fbbf24', fontSize: 20, verticalAlign: 'middle' }} /></span>
                 <div className="stat-details">
                   <span className="stat-value">{selected.solved}</span>
                   <span className="stat-label">Questions Solved</span>

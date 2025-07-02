@@ -850,7 +850,7 @@ export default function Location({ currentUser, onLogout }) {
           marginLeft: '2.5rem',
         }}>
           <div className="location-idea-photo" style={{ width: 100, height: 100, borderRadius: '0.7rem', overflow: 'hidden', marginBottom: '0.7rem', border: '2px solid #fff' }}>
-            <img src="/hardik-photo.jpg" alt="Hardik Pawar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <img src="/Hardik.jpeg" alt="Hardik Pawar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
           <div className="location-idea-name" style={{ color: '#fff', fontWeight: 600, fontSize: '1.1rem' }}>Hardik Pawar</div>
           <div className="location-idea-role" style={{ color: '#c4b5fd', fontSize: '0.95rem', marginTop: '0.2rem' }}>Idea Contributor</div>

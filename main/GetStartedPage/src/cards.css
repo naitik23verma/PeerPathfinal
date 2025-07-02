@@ -168,20 +168,48 @@
   justify-content: space-between;
 }
 
-.like-btn {
-  background: rgba(239, 68, 68, 0.2);
-  color: #fca5a5;
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  padding: 6px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  transition: all 0.3s ease;
+.call-btn, .chat-btn, .gallery-btn, .like-btn {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  max-width: 44px;
+  max-height: 44px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  box-sizing: border-box;
 }
 
-.like-btn:hover {
-  background: rgba(239, 68, 68, 0.3);
-  transform: scale(1.05);
+.call-btn:hover {
+  box-shadow: 0 3px 12px rgba(239, 68, 68, 0.4);
+  border: 2px solid #e53935;
+  transform: translateY(-1px) scale(1.05);
+}
+
+.gallery-btn:hover {
+  box-shadow: 0 3px 12px rgba(139, 92, 246, 0.4);
+  border: 2px solid #7c3aed;
+  transform: translateY(-1px) scale(1.05);
+}
+
+.like-btn {
+  border-radius: 8px !important;
+  aspect-ratio: 1 / 1;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  max-width: 44px;
+  max-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-size: 1.2rem;
+  box-sizing: border-box;
 }
 
 .solve-btn {
@@ -481,8 +509,7 @@
 }
 
 .doubt-card .solutions-header::before {
-  content: '💡';
-  font-size: 1rem;
+  content: '';
 }
 
 @media (max-width: 768px) {

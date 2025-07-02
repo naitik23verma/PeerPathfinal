@@ -515,6 +515,23 @@
   transform: translateY(-2px);
 }
 
+.helper-modal .modal-avatar .level-badge {
+  position: static;
+  display: block;
+  margin: 0.5rem auto 0 auto;
+  background: #34d399;
+  color: #fff;
+  padding: 0.12rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(52, 211, 153, 0.10);
+  text-align: center;
+  line-height: 1.2;
+  white-space: nowrap;
+  z-index: 2;
+}
+
 @media (max-width: 768px) {
   .top-helpers-section {
     padding: 1.5rem 1rem;

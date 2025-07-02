@@ -9,6 +9,12 @@ import { TopHelpers } from './TopHelpers.jsx';
 import { AskDoubt } from './AskDoubt.jsx';
 import NavigationBar from './components/NavigationBar.jsx';
 import AdvancedFooter from './components/AdvancedFooter.jsx';
+import CallIcon from '@mui/icons-material/Call';
+import ChatIcon from '@mui/icons-material/Chat';
+import AddAPhotoIcon from '@mui/icons-material/AddAPhoto';
+import ThumbUpIcon from '@mui/icons-material/ThumbUp';
+import LightbulbIcon from '@mui/icons-material/Lightbulb';
+import EditNoteIcon from '@mui/icons-material/EditNote';
 
 
 // DoubtCard styled like Top Helpers
@@ -120,6 +126,7 @@ function DoubtCard({ doubt, onSolve, onCall, onVideoCall, onChat, onLike, likedB
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.5 }}
             >
+              <LightbulbIcon style={{ fontSize: 22, color: '#fbbf24', marginRight: 8, verticalAlign: 'middle' }} />
               Solutions ({doubt.solutions.length})
             </motion.div>
             {doubt.solutions.map((sol, index) => (
@@ -189,8 +196,9 @@ function DoubtCard({ doubt, onSolve, onCall, onVideoCall, onChat, onLike, likedB
           variants={buttonVariants}
           whileHover="hover"
           whileTap="tap"
+          style={{ background: '#22105a', color: '#fff' }}
         >
-          📞
+          <CallIcon style={{ fontSize: 22, color: '#e53935' }} />
         </motion.button>
         {!isAsker && (
           <motion.button 
@@ -199,8 +207,9 @@ function DoubtCard({ doubt, onSolve, onCall, onVideoCall, onChat, onLike, likedB
             variants={buttonVariants}
             whileHover="hover"
             whileTap="tap"
+            style={{ background: '#22105a', color: '#fff' }}
           >
-            💬
+            <ChatIcon style={{ fontSize: 22 }} />
           </motion.button>
         )}
         <motion.button
@@ -210,32 +219,35 @@ function DoubtCard({ doubt, onSolve, onCall, onVideoCall, onChat, onLike, likedB
           variants={buttonVariants}
           whileHover="hover"
           whileTap="tap"
+          style={{ background: '#22105a', color: '#fff' }}
         >
-          <span role="img" aria-label="gallery">🖼️</span>
+          <AddAPhotoIcon style={{ fontSize: 22, color: '#7c3aed' }} />
         </motion.button>
-        {!doubt.isResolved && (
-          <motion.button
-            className="write-solution-btn small-action-btn"
-            style={{ background: '#7c3aed', color: '#fff', marginLeft: 8, borderRadius: 8, padding: '0.5rem 1rem', fontWeight: 600 }}
-            onClick={() => setShowTextInput(v => !v)}
-            variants={buttonVariants}
-            whileHover="hover"
-            whileTap="tap"
-          >
-            {showTextInput ? 'Cancel' : '✍️ Write Solution'}
-          </motion.button>
-        )}
         <motion.button
           className="like-btn small-action-btn"
-          style={{ fontSize: '1.2rem', color: likedByCurrentUser ? '#fbbf24' : '#a78bfa' }}
+          style={{ fontSize: '1.2rem', background: '#22105a', color: '#fff' }}
           onClick={() => onLike(doubt)}
           title={likedByCurrentUser ? 'Unlike' : 'Like'}
           variants={buttonVariants}
           whileHover="hover"
           whileTap="tap"
         >
-          👍 {Array.isArray(doubt.likes) ? doubt.likes.length : 0}
+          <ThumbUpIcon style={{ fontSize: 22, color: '#fbbf24', marginRight: 6 }} />
+          {Array.isArray(doubt.likes) ? doubt.likes.length : 0}
         </motion.button>
+        {!showTextInput && !doubt.isResolved && (
+          <motion.button
+            type="button"
+            className="write-solution-btn small-action-btn"
+            style={{ background: '#22105a', color: '#fff', marginLeft: 8, borderRadius: 8, padding: '0.5rem 1rem', fontWeight: 600 }}
+            onClick={() => setShowTextInput(true)}
+            variants={buttonVariants}
+            whileHover="hover"
+            whileTap="tap"
+          >
+            <><EditNoteIcon style={{ fontSize: 22, marginRight: 6 }} />Write Solution</>
+          </motion.button>
+        )}
         <input
           type="file"
           accept="image/*"
@@ -259,24 +271,37 @@ function DoubtCard({ doubt, onSolve, onCall, onVideoCall, onChat, onLike, likedB
               style={{ width: '100%', borderRadius: 8, border: '1px solid #a78bfa', padding: 8, resize: 'vertical', fontSize: 16 }}
               disabled={submitting}
             />
-            <motion.button
-              className="submit-solution-btn"
-              style={{ background: '#8b5cf6', color: '#fff', border: 'none', borderRadius: 8, padding: '0.5rem 1.2rem', fontWeight: 700, alignSelf: 'flex-end' }}
-              onClick={async () => {
-                if (!solutionText.trim()) return;
-                setSubmitting(true);
-                await onTextSolution(doubt, solutionText, () => {
-                  setSolutionText("");
-                  setShowTextInput(false);
-                }, () => setSubmitting(false));
-              }}
-              disabled={submitting || !solutionText.trim()}
-              variants={buttonVariants}
-              whileHover="hover"
-              whileTap="tap"
-            >
-              {submitting ? 'Submitting...' : 'Submit Solution'}
-            </motion.button>
+            <div style={{ display: 'flex', flexDirection: 'row', gap: 8, justifyContent: 'flex-end' }}>
+              <motion.button
+                type="button"
+                className="write-solution-btn small-action-btn"
+                style={{ background: '#22105a', color: '#fff', borderRadius: 8, padding: '0.5rem 1rem', fontWeight: 600 }}
+                onClick={() => { setShowTextInput(false); setSolutionText(''); }}
+                variants={buttonVariants}
+                whileHover="hover"
+                whileTap="tap"
+              >
+                Cancel
+              </motion.button>
+              <motion.button
+                className="submit-solution-btn"
+                style={{ background: '#8b5cf6', color: '#fff', border: 'none', borderRadius: 8, padding: '0.5rem 1.2rem', fontWeight: 700 }}
+                onClick={async () => {
+                  if (!solutionText.trim()) return;
+                  setSubmitting(true);
+                  await onTextSolution(doubt, solutionText, () => {
+                    setSolutionText("");
+                    setShowTextInput(false);
+                  }, () => setSubmitting(false));
+                }}
+                disabled={submitting || !solutionText.trim()}
+                variants={buttonVariants}
+                whileHover="hover"
+                whileTap="tap"
+              >
+                {submitting ? 'Submitting...' : 'Submit Solution'}
+              </motion.button>
+            </div>
           </div>
         )}
         {showMarkSolved && !doubt.isResolved && (
