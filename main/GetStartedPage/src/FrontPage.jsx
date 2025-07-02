@@ -265,27 +265,8 @@ const FrontPage = ({ currentUser, onLogout }) => {
               justifyContent: 'center',
               alignItems: 'center',
               height: '100%',
-              position: 'relative',
             }}>
-              <img
-                src={'/ellipse.png'}
-                alt="Ellipse background"
-                style={{
-                  position: 'absolute',
-                  left: '39%',
-                  top: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  width: '150%',
-                  height: 'auto',
-                  zIndex: 0,
-                  pointerEvents: 'none',
-                  userSelect: 'none',
-                }}
-                draggable={false}
-              />
-              <div style={{ position: 'relative', zIndex: 1 }}>
-                <LottieAnimation large />
-              </div>
+              <LottieAnimation large />
             </div>
             {/* Right: Feedback Form with Rating */}
             <div style={{

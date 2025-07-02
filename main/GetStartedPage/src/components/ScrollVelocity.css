@@ -1,15 +1,23 @@
 .parallax {
   position: relative;
   overflow: hidden;
-  margin-top: 7rem;
+  margin-top: 0;
   width: 100vw;
   margin-left: calc(-50vw + 50%);
-  margin-bottom: -0.5rem;
+  margin-bottom: 0.5rem;
   background: linear-gradient(135deg, rgba(26, 10, 82, 0.9) 0%, rgba(61, 32, 179, 0.9) 100%);
   backdrop-filter: blur(10px);
   border-top: 1px solid rgba(196, 181, 253, 0.3);
   border-bottom: 1px solid rgba(196, 181, 253, 0.3);
-  padding: 0.8rem 0;
+  padding: 0.2rem 0;
+}
+
+.parallax:first-of-type {
+  margin-top: 7rem;
+}
+
+.parallax:last-of-type {
+  margin-bottom: 7rem;
 }
 
 .parallax::before {
