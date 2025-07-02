@@ -80,7 +80,6 @@ export default function HowItWorksMasonry() {
             boxSizing: 'border-box',
             fontFamily: 'Inter, sans-serif',
             height: '100%',
-            width: '100%',
             overflow: 'hidden',
             textAlign: 'center',
             position: 'relative',

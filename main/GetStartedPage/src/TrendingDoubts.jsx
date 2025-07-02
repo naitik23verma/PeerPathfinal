@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "./Cards.css";
+import "./cards.css";
 
 // Initial doubts data
 const initialDoubts = [
