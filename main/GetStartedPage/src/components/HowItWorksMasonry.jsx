@@ -172,7 +172,7 @@ export default function HowItWorksMasonry() {
 
   return (
     <div className="circulargallery-wrapper">
-      <h2 className="circulargallery-heading">How PeerPath Works - Complete Guide</h2>
+      <h2 className="stats-section-h2">How PeerPath Works - Complete Guide</h2>
       {galleryItems.length === 0 ? (
         <div style={{ textAlign: 'center', color: '#fff' }}>Loading gallery...</div>
       ) : (

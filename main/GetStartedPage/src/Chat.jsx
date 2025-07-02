@@ -31,6 +31,7 @@ const Chat = ({ currentUser, onLogout }) => {
   const [navbarVisible, setNavbarVisible] = useState(true);
   const [socket, setSocket] = useState(null);
   const [doubtContext, setDoubtContext] = useState(null);
+  const [mobileChatOpen, setMobileChatOpen] = useState(false);
 
   // Animation variants
   const pageVariants = {
@@ -290,9 +291,11 @@ const Chat = ({ currentUser, onLogout }) => {
     if (chat.type === 'user') {
       setSelectedUser(chat);
       setRoomId([currentUser._id, chat._id].sort().join('_'));
+      if (window.innerWidth <= 600) setMobileChatOpen(true);
     } else if (chat.type === 'group') {
       setSelectedUser(null);
       setRoomId(chat.roomId);
+      if (window.innerWidth <= 600) setMobileChatOpen(true);
     }
   };
 
@@ -335,6 +338,9 @@ const Chat = ({ currentUser, onLogout }) => {
     fetchGroups();
   }, []);
 
+  // Responsive: Only show welcome card on desktop
+  const isDesktop = typeof window !== 'undefined' && window.innerWidth > 600;
+
   return (
     <motion.div 
       className="chat-page"
@@ -351,8 +357,9 @@ const Chat = ({ currentUser, onLogout }) => {
         onClick={() => setNavbarVisible(v => !v)}
         style={{
           position: 'fixed',
-          top: navbarVisible ? 130 : 20,
-          left: 20,
+          ...(window.innerWidth <= 600
+            ? { bottom: 64, left: 20, top: 'auto' }
+            : { top: navbarVisible ? 130 : 20, left: 20 }),
           zIndex: 2001,
           background: 'rgba(26,10,82,0.85)',
           border: 'none',
@@ -388,374 +395,353 @@ const Chat = ({ currentUser, onLogout }) => {
         initial="initial"
         animate="animate"
       >
-        <motion.div 
-          className="chat-sidebar"
-          initial={{ opacity: 0, x: -30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          <motion.div 
-            className="chat-header"
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-          >
-            <motion.h2
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-            >
-              💬 Chats
-            </motion.h2>
-            <motion.button 
-              className="new-group-btn" 
-              onClick={() => setShowGroupModal(true)}
-              variants={buttonVariants}
-              whileHover="hover"
-              whileTap="tap"
-              transition={{ delay: 0.7 }}
-            >
-              + New Group
-            </motion.button>
-            <motion.div 
-              className="search-box"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8 }}
-            >
-              <input
-                type="text"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              <span className="search-icon">🔍</span>
-            </motion.div>
-          </motion.div>
-
-          <motion.div 
-            className="users-list"
-            variants={staggerContainer}
-            initial="initial"
-            animate="animate"
-          >
-            {/* List user-created groups */}
-            {groups.filter(g => g.groupName.toLowerCase().includes(searchTerm.toLowerCase())).map((group, index) => (
-              <motion.div
-                key={group.roomId}
-                className={`user-item ${roomId === group.roomId ? 'active' : ''}`}
-                onClick={() => handleSelectChat({ type: 'group', ...group })}
-                variants={messageVariants}
-                whileHover={{ scale: 1.02, x: 5 }}
-                transition={{ delay: index * 0.05 }}
-              >
-                <motion.div 
-                  className="user-avatar group-avatar"
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  transition={{ duration: 0.2 }}
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: '50%',
-                    background: '#4c1d95',
-                    color: '#fff',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '1.5rem',
-                    fontWeight: 600
-                  }}
+        {(!mobileChatOpen || window.innerWidth > 600) && (
+          <div className="chat-sidebar">
+            <div className="sidebar-header-fixed">
+              <div className="chat-header">
+                <motion.h2
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 }}
                 >
-                  {group.groupName.charAt(0).toUpperCase()}
-                </motion.div>
-                <div className="user-info">
-                  <span className="user-name">{group.groupName}</span>
-                  <span className="group-members-names" style={{ fontSize: '0.85rem', color: '#c4b5fd', display: 'block', marginTop: 2 }}>
-                    {group.members && group.members.map(m => (m.username || m.name)).join(', ')}
-                  </span>
-                </div>
-              </motion.div>
-            ))}
-            {/* List one-on-one users */}
-            {sortedUsers.filter(user => (user.name || user.username)?.toLowerCase().includes(searchTerm.toLowerCase())).map((user, index) => (
-              <motion.div
-                key={user._id}
-                className={`user-item ${selectedUser?._id === user._id && !roomId?.startsWith('group_') ? 'active' : ''}`}
-                onClick={() => handleSelectChat({ type: 'user', ...user })}
-                variants={messageVariants}
-                whileHover={{ scale: 1.02, x: 5 }}
-                transition={{ delay: index * 0.05 }}
-              >
-                <motion.div 
-                  className="user-avatar"
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  transition={{ duration: 0.2 }}
+                  💬 Chats
+                </motion.h2>
+                <motion.button 
+                  className="new-group-btn" 
+                  onClick={() => setShowGroupModal(true)}
+                  variants={buttonVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                  transition={{ delay: 0.7 }}
                 >
-                  {user.profilePhoto ? (
-                    <img 
-                      src={`http://localhost:5000${user.profilePhoto}`} 
-                      alt={user.name || user.username}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
-                      onError={e => { e.target.src = '/peerpath.png'; }}
-                    />
-                  ) : (
-                    <div style={{
-                      width: '100%',
-                      height: '100%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '1.5rem',
-                      color: '#c4b5fd'
-                    }}>
-                      {(user.name || user.username || 'U').charAt(0).toUpperCase()}
-                </div>
-                  )}
+                  + New Group
+                </motion.button>
+                <motion.div 
+                  className="search-box"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.8 }}
+                >
+                  <input
+                    type="text"
+                    placeholder="Search..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                  <span className="search-icon">🔍</span>
                 </motion.div>
-                <div className="user-info">
-                  <span className="user-name">{user.name || user.username}</span>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </motion.div>
-
-        <motion.div 
-          className="chat-main"
-          initial={{ opacity: 0, x: 30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.6 }}
-        >
-          {roomId ? (
-            <>
-              <motion.div 
-                className="chat-header-main"
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.7 }}
-              >
-                <div className="chat-user-info">
-                  {roomId.startsWith('group_') ? (
-                    <>
-                      <div
-                        className="user-avatar-main group-avatar-main"
-                        style={{
-                          width: 48,
-                          height: 48,
-                          borderRadius: '50%',
-                          background: '#4c1d95',
-                          color: '#fff',
+              </div>
+            </div>
+            <div className="users-list-scrollable">
+              <div className="users-list">
+                {/* List user-created groups */}
+                {groups.filter(g => g.groupName.toLowerCase().includes(searchTerm.toLowerCase())).map((group, index) => (
+                  <motion.div
+                    key={group.roomId}
+                    className={`user-item ${roomId === group.roomId ? 'active' : ''}`}
+                    onClick={() => handleSelectChat({ type: 'group', ...group })}
+                    variants={messageVariants}
+                    whileHover={{ scale: 1.02, x: 5 }}
+                    transition={{ delay: index * 0.05 }}
+                  >
+                    <motion.div 
+                      className="user-avatar group-avatar"
+                      whileHover={{ scale: 1.1, rotate: 5 }}
+                      transition={{ duration: 0.2 }}
+                      style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: '50%',
+                        background: '#4c1d95',
+                        color: '#fff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '1.5rem',
+                        fontWeight: 600
+                      }}
+                    >
+                      {group.groupName.charAt(0).toUpperCase()}
+                    </motion.div>
+                    <div className="user-info">
+                      <span className="user-name">{group.groupName}</span>
+                      <span className="group-members-names" style={{ fontSize: '0.85rem', color: '#c4b5fd', display: 'block', marginTop: 2 }}>
+                        {group.members && group.members.map(m => (m.username || m.name)).join(', ')}
+                      </span>
+                    </div>
+                  </motion.div>
+                ))}
+                {/* List one-on-one users */}
+                {sortedUsers.filter(user => (user.name || user.username)?.toLowerCase().includes(searchTerm.toLowerCase())).map((user, index) => (
+                  <motion.div
+                    key={user._id}
+                    className={`user-item ${selectedUser?._id === user._id && !roomId?.startsWith('group_') ? 'active' : ''}`}
+                    onClick={() => handleSelectChat({ type: 'user', ...user })}
+                    variants={messageVariants}
+                    whileHover={{ scale: 1.02, x: 5 }}
+                    transition={{ delay: index * 0.05 }}
+                  >
+                    <motion.div 
+                      className="user-avatar"
+                      whileHover={{ scale: 1.1, rotate: 5 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      {user.profilePhoto ? (
+                        <img 
+                          src={`http://localhost:5000${user.profilePhoto}`} 
+                          alt={user.name || user.username}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+                          onError={e => { e.target.src = '/peerpath.png'; }}
+                        />
+                      ) : (
+                        <div style={{
+                          width: '100%',
+                          height: '100%',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          fontSize: '2rem',
-                          fontWeight: 700,
-                          marginRight: 16
-                        }}
-                      >
-                        {groups.find(g => g.roomId === roomId)?.groupName.charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <h3>{groups.find(g => g.roomId === roomId)?.groupName || 'Group Chat'}</h3>
-                        <div className="group-members-list-header" style={{ fontSize: '0.95rem', color: '#c4b5fd', marginTop: 2 }}>
-                          {groups.find(g => g.roomId === roomId)?.members.map(m => (m.username || m.name)).join(', ')}
+                          fontSize: '1.5rem',
+                          color: '#c4b5fd'
+                        }}>
+                          {(user.name || user.username || 'U').charAt(0).toUpperCase()}
                         </div>
-                      </div>
-                    </>
-                  ) : roomId.startsWith('doubt_') ? (
-                    <>
-                      <div>
-                        <h3>Group Chat for Doubt #{roomId.replace('doubt_', '')}</h3>
-                        <span className="status-text online">🟢 Group Chat</span>
-                      </div>
-                    </>
-                  ) : selectedUser ? (
-                    <>
-                      <motion.div 
-                        className="user-avatar-main"
-                        whileHover={{ scale: 1.1, rotate: 5 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        {selectedUser.profilePhoto ? (
-                          <img 
-                            src={`http://localhost:5000${selectedUser.profilePhoto}`} 
-                            alt={selectedUser.name || selectedUser.username}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
-                            onError={e => { e.target.src = '/peerpath.png'; }}
-                          />
-                        ) : (
-                          (selectedUser.name || selectedUser.username || 'U').charAt(0).toUpperCase()
-                        )}
-                      </motion.div>
-                      <div>
-                        <h3>{selectedUser.name || selectedUser.username}</h3>
-                        <span className="status-text online">Online</span>
-                        {doubtContext && (
-                          <motion.div 
-                            className="doubt-context"
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.3 }}
-                            style={{
-                              marginTop: '5px',
-                              padding: '8px 12px',
-                              backgroundColor: 'rgba(196, 181, 253, 0.1)',
-                              borderRadius: '8px',
-                              border: '1px solid rgba(196, 181, 253, 0.3)',
-                              fontSize: '12px',
-                              color: '#c4b5fd'
-                            }}
-                          >
-                            <strong>💬 Chat initiated from doubt:</strong><br />
-                            "{doubtContext.doubtQuestion}"
-                          </motion.div>
-                        )}
-                      </div>
-                    </>
-                  ) : null}
-                </div>
-              </motion.div>
-
-              <motion.div 
-                className="messages-container"
-                variants={staggerContainer}
-                initial="initial"
-                animate="animate"
-              >
-                <AnimatePresence>
-                {messages.map((msg, index) => (
-                    <motion.div
-                    key={index}
-                    className={`message ${msg.sender._id === currentUser._id ? 'own' : 'other'}`}
-                      variants={messageVariants}
-                      initial="initial"
-                      animate="animate"
-                      exit="exit"
-                      transition={{ delay: index * 0.05 }}
-                  >
-                    <div className="message-sender-info">
-                      <span className="chat-message-username">{msg.sender.username}</span>
-                    </div>
-                      <motion.div 
-                        className="message-content"
-                        whileHover={{ scale: 1.02 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                      <p>{msg.content}</p>
-                      <span className="message-time">{msg.time}</span>
-                      </motion.div>
+                      )}
                     </motion.div>
+                    <div className="user-info">
+                      <span className="user-name">{user.name || user.username}</span>
+                    </div>
+                  </motion.div>
                 ))}
-                </AnimatePresence>
-                <div ref={messagesEndRef} />
-              </motion.div>
+              </div>
+            </div>
+          </div>
+        )}
+        {(mobileChatOpen || window.innerWidth > 600) && (
+          <div className={`chat-main${mobileChatOpen && window.innerWidth <= 600 ? ' mobile-open' : ''}`}>
+            {window.innerWidth <= 600 && mobileChatOpen && (
+              <button
+                className="mobile-back-btn"
+                onClick={() => {
+                  setMobileChatOpen(false);
+                  setSelectedUser(null);
+                  setRoomId(null);
+                  setDoubtContext(null);
+                }}
+              >
+                ← Back
+              </button>
+            )}
+            {roomId ? (
+              <>
+                <motion.div 
+                  className="chat-header-main"
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.7 }}
+                >
+                  <div className="chat-user-info">
+                    {roomId.startsWith('group_') ? (
+                      <>
+                        <div
+                          className="user-avatar-main group-avatar-main"
+                          style={{
+                            width: 48,
+                            height: 48,
+                            borderRadius: '50%',
+                            background: '#4c1d95',
+                            color: '#fff',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '2rem',
+                            fontWeight: 700,
+                            marginRight: 16
+                          }}
+                        >
+                          {groups.find(g => g.roomId === roomId)?.groupName.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <h3>{groups.find(g => g.roomId === roomId)?.groupName || 'Group Chat'}</h3>
+                          <div className="group-members-list-header" style={{ fontSize: '0.95rem', color: '#c4b5fd', marginTop: 2 }}>
+                            {groups.find(g => g.roomId === roomId)?.members.map(m => (m.username || m.name)).join(', ')}
+                          </div>
+                        </div>
+                      </>
+                    ) : roomId.startsWith('doubt_') ? (
+                      <>
+                        <div>
+                          <h3>Group Chat for Doubt #{roomId.replace('doubt_', '')}</h3>
+                          <span className="status-text online">🟢 Group Chat</span>
+                        </div>
+                      </>
+                    ) : selectedUser ? (
+                      <>
+                        <motion.div 
+                          className="user-avatar-main"
+                          whileHover={{ scale: 1.1, rotate: 5 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          {selectedUser.profilePhoto ? (
+                            <img 
+                              src={`http://localhost:5000${selectedUser.profilePhoto}`} 
+                              alt={selectedUser.name || selectedUser.username}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+                              onError={e => { e.target.src = '/peerpath.png'; }}
+                            />
+                          ) : (
+                            (selectedUser.name || selectedUser.username || 'U').charAt(0).toUpperCase()
+                          )}
+                        </motion.div>
+                        <div>
+                          <h3>{selectedUser.name || selectedUser.username}</h3>
+                          <span className="status-text online">Online</span>
+                          {doubtContext && (
+                            <motion.div 
+                              className="doubt-context"
+                              initial={{ opacity: 0, y: -10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.3 }}
+                              style={{
+                                marginTop: '5px',
+                                padding: '8px 12px',
+                                backgroundColor: 'rgba(196, 181, 253, 0.1)',
+                                borderRadius: '8px',
+                                border: '1px solid rgba(196, 181, 253, 0.3)',
+                                fontSize: '12px',
+                                color: '#c4b5fd'
+                              }}
+                            >
+                              <strong>💬 Chat initiated from doubt:</strong><br />
+                              "{doubtContext.doubtQuestion}"
+                            </motion.div>
+                          )}
+                        </div>
+                      </>
+                    ) : null}
+                  </div>
+                </motion.div>
 
-              <motion.div 
-                className="message-input-container"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.8 }}
-              >
-                <div className="message-input-wrapper">
-                  <textarea
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder={`Message...`}
-                    rows="1"
-                    style={{
-                      resize: 'none',
-                      border: 'none',
-                      outline: 'none',
-                      background: 'transparent',
-                      color: '#ffffff',
-                      fontSize: '1rem',
-                      width: '100%',
-                      padding: '0.8rem 0'
-                    }}
-                  />
-                  <motion.button
-                    className="send-btn"
-                    onClick={handleSendMessage}
-                    disabled={!message.trim()}
-                    variants={buttonVariants}
-                    whileHover="hover"
-                    whileTap="tap"
-                    style={{
-                      background: message.trim() ? 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%)' : 'rgba(156, 163, 175, 0.5)',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '50%',
-                      width: '40px',
-                      height: '40px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: message.trim() ? 'pointer' : 'not-allowed',
-                      transition: 'all 0.3s ease',
-                      fontSize: '1.2rem'
-                    }}
-                  >
-                    ➤
-                  </motion.button>
+                <motion.div 
+                  className="messages-container"
+                  variants={staggerContainer}
+                  initial="initial"
+                  animate="animate"
+                >
+                  <AnimatePresence>
+                  {messages.map((msg, index) => (
+                      <motion.div
+                      key={index}
+                      className={`message ${msg.sender._id === currentUser._id ? 'own' : 'other'}`}
+                        variants={messageVariants}
+                        initial="initial"
+                        animate="animate"
+                        exit="exit"
+                        transition={{ delay: index * 0.05 }}
+                    >
+                      <div className="message-sender-info">
+                        <span className="chat-message-username">{msg.sender.username}</span>
+                      </div>
+                        <motion.div 
+                          className="message-content"
+                          whileHover={{ scale: 1.02 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                        <p>{msg.content}</p>
+                        <span className="message-time">{msg.time}</span>
+                        </motion.div>
+                      </motion.div>
+                  ))}
+                  </AnimatePresence>
+                  <div ref={messagesEndRef} />
+                </motion.div>
+
+                <motion.div 
+                  className="message-input-container"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.8 }}
+                >
+                  <div className="message-input-wrapper">
+                    <textarea
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      placeholder={`Message...`}
+                      rows="1"
+                      style={{
+                        resize: 'none',
+                        border: 'none',
+                        outline: 'none',
+                        background: 'transparent',
+                        color: '#ffffff',
+                        fontSize: '1rem',
+                        width: '100%',
+                        padding: '0.8rem 0'
+                      }}
+                    />
+                    <motion.button
+                      className="send-btn"
+                      onClick={handleSendMessage}
+                      disabled={!message.trim()}
+                      variants={buttonVariants}
+                      whileHover="hover"
+                      whileTap="tap"
+                      style={{
+                        background: message.trim() ? 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%)' : 'rgba(156, 163, 175, 0.5)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '50%',
+                        width: '40px',
+                        height: '40px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: message.trim() ? 'pointer' : 'not-allowed',
+                        transition: 'all 0.3s ease',
+                        fontSize: '1.2rem'
+                      }}
+                    >
+                      ➤
+                    </motion.button>
+                  </div>
+                </motion.div>
+              </>
+            ) : (
+              isDesktop && (
+                <div className="no-chat-content">
+                  <h2>Welcome to PeerPath Chat! <span role="img" aria-label="chat">💬</span></h2>
+                  <p>Select a chat or create a group to start messaging</p>
+                  <div className="chat-features">
+                    <motion.div 
+                      className="feature"
+                      variants={messageVariants}
+                      whileHover={{ scale: 1.05 }}
+                    >
+                      <span>🔒</span>
+                      <p>Secure messaging</p>
+                    </motion.div>
+                    <motion.div 
+                      className="feature"
+                      variants={messageVariants}
+                      whileHover={{ scale: 1.05 }}
+                    >
+                      <span>⚡</span>
+                      <p>Real-time updates</p>
+                    </motion.div>
+                    <motion.div 
+                      className="feature"
+                      variants={messageVariants}
+                      whileHover={{ scale: 1.05 }}
+                    >
+                      <span>👥</span>
+                      <p>Group & one-on-one chats</p>
+                    </motion.div>
+                  </div>
                 </div>
-              </motion.div>
-            </>
-          ) : (
-            <motion.div 
-              className="no-chat-content"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.9 }}
-            >
-              <motion.h2
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1.0 }}
-              >
-                Welcome to PeerPath Chat! 💬
-              </motion.h2>
-              <motion.p
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1.0 }}
-              >
-                Select a chat or create a group to start messaging
-              </motion.p>
-              <motion.div 
-                className="chat-features"
-                variants={staggerContainer}
-                initial="initial"
-                animate="animate"
-              >
-                <motion.div 
-                  className="feature"
-                  variants={messageVariants}
-                  whileHover={{ scale: 1.05 }}
-                >
-                    <span>🔒</span>
-                    <p>Secure messaging</p>
-                </motion.div>
-                <motion.div 
-                  className="feature"
-                  variants={messageVariants}
-                  whileHover={{ scale: 1.05 }}
-                >
-                    <span>⚡</span>
-                    <p>Real-time updates</p>
-                </motion.div>
-                <motion.div 
-                  className="feature"
-                  variants={messageVariants}
-                  whileHover={{ scale: 1.05 }}
-                >
-                    <span>👥</span>
-                    <p>Group & one-on-one chats</p>
-                </motion.div>
-              </motion.div>
-            </motion.div>
-          )}
-        </motion.div>
+              )
+            )}
+          </div>
+        )}
       </motion.div>
 
       {/* New Group Modal */}

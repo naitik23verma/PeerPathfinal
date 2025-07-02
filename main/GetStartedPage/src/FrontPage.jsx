@@ -266,7 +266,9 @@ const FrontPage = ({ currentUser, onLogout }) => {
               alignItems: 'center',
               height: '100%',
               marginLeft: '-80px',
+              position: 'relative',
             }}>
+              <div className="lottie-bg-image" />
               <LottieAnimation large />
             </div>
             {/* Right: Feedback Form with Rating */}

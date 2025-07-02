@@ -30,21 +30,24 @@ function Email({ showRating, compact }) {
   };
 
   return (
-    <div style={{
-      width: '100%',
-      maxWidth: 400,
-      margin: '0 auto',
-      background: 'rgba(20, 20, 40, 0.7)',
-      borderRadius: 18,
-      boxShadow: '0 4px 24px rgba(60, 60, 120, 0.10)',
-      padding: compact ? '1.2rem 1rem 1rem 1rem' : '2.5rem 2rem 2rem 2rem',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      position: 'relative',
-      minHeight: compact ? 320 : undefined,
-    }}>
+    <div
+      className="emailjs-form-mobile"
+      style={{
+        width: '100%',
+        maxWidth: 400,
+        margin: '0 auto',
+        background: 'rgba(20, 20, 40, 0.7)',
+        borderRadius: 18,
+        boxShadow: '0 4px 24px rgba(60, 60, 120, 0.10)',
+        padding: compact ? '1.2rem 1rem 1rem 1rem' : '2.5rem 2rem 2rem 2rem',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative',
+        minHeight: compact ? 320 : undefined,
+      }}
+    >
       <h2 style={{
         color: '#c7b5fd',
         fontWeight: 700,

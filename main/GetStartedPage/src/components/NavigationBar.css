@@ -424,6 +424,12 @@
   }
 }
 
+@media (max-width: 600px) {
+  .nav-user-section .user-name {
+    display: none !important;
+  }
+}
+
 /* Animation Effects */
 .navigation-bar.fade-in {
   animation: fadeInDown 0.6s ease-out;

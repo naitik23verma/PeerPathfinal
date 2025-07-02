@@ -390,14 +390,24 @@ body {
   }
   
   .heading {
-    font-size: 1.8rem;
-    margin: 2rem 0 2rem 0;
+    display: block !important;
+    width: 100% !important;
+    margin: 1rem 0 2.5rem 0 !important;
+    text-align: center !important;
+    justify-content: unset !important;
+    align-items: unset !important;
+  }
+  .heading > * {
+    display: inline-block !important;
+    text-align: center !important;
+    width: auto !important;
+    margin: 0 auto !important;
+    float: none !important;
   }
   
   .card {
-    padding: 1.2rem;
-    min-height: 160px;
-    max-height: 200px;
+    min-height: 260px !important;
+    max-height: none !important;
   }
   
   .card .icon {

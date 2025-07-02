@@ -119,18 +119,14 @@ export default function Dashboard({ currentUser, onLogout }) {
         transition={{ delay: 0.3, duration: 0.6 }}
       >
         <motion.h1 
-          className="heading"
+          className="heading responsive-welcome"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
-          <BlurHeading
-            text={`Welcome, ${currentUser?.username || 'User'}!`}
-            delay={100}
-            animateBy="words"
-            direction="top"
-            className="text-2xl mb-8"
-          />
+          <span className="welcome-main-text">Welcome,</span>
+          <br className="mobile-welcome-break" />
+          <span className="welcome-username">{currentUser?.username || 'User'}!</span>
         </motion.h1>
         
         <motion.div 

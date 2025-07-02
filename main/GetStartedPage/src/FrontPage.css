@@ -55,6 +55,10 @@ html, body {
 }
 
 .hero-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
   color: #ffffff;
 }
 
@@ -100,7 +104,10 @@ html, body {
   font-weight: 400;
 }
 
-.hero-text .get-started-btn {
+.get-started-btn {
+  margin-left: auto !important;
+  margin-right: auto !important;
+  display: block !important;
   padding: 0.9rem 2.5rem;
   background: linear-gradient(135deg, #4c1d95 0%, #5b21b6 25%, #6d28d9 50%, #7c3aed 75%, #8b5cf6 100%);
   background-size: 200% 200%;
@@ -114,8 +121,6 @@ html, body {
   box-shadow: 
     0 8px 25px rgba(76, 29, 149, 0.4),
     0 0 0 0 rgba(76, 29, 149, 0.7);
-  margin-left: 1rem;
-  display: inline-block;
   transform: translateX(0.5rem);
   position: relative;
   overflow: hidden;
@@ -879,17 +884,12 @@ html, body {
 
 @media (max-width: 480px) {
   .falling-text-section-full {
-    padding: 2rem 0;
-    min-height: 150px;
+    min-height: 300px !important;
+    padding: 2.5rem 0 !important;
   }
-  
-  .falling-text-section-full h2 {
-    font-size: 1.5rem;
-  }
-  
   .falling-text-custom {
-    height: 90px;
-    min-height: 90px;
+    height: 220px !important;
+    min-height: 220px !important;
   }
 }
 
@@ -947,3 +947,263 @@ color: #90caf9;
 }
 
 /* Force feedback and testimonial sections to be transparent so the .front-page background shows through */
+
+@media (max-width: 600px) {
+  .frontpage-hero {
+    padding: 0 !important;
+    min-height: unset !important;
+  }
+  .frontpage-hero-content {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100vw !important;
+    min-width: 0 !important;
+    box-sizing: border-box;
+  }
+  .feedback-gallery-row {
+    flex-direction: column !important;
+    gap: 1rem !important;
+    padding: 0 0.5rem 2rem 0.5rem !important;
+    margin: 2rem 0 0 0 !important;
+    width: 100vw !important;
+    align-items: stretch !important;
+  }
+  .feedback-gallery-row > div {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    align-items: center !important;
+  }
+  .fancy-gradient-card {
+    min-height: 180px !important;
+    height: auto !important;
+    padding: 1rem !important;
+  }
+  .front-content {
+    padding: 0.5rem !important;
+    padding-top: 90px !important;
+    min-height: unset !important;
+  }
+  .hero-section {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+    margin-bottom: 2rem !important;
+    padding: 0.5rem 0 !important;
+  }
+  .hero-title {
+    font-size: 1.3rem !important;
+  }
+  .hero-subtitle {
+    font-size: 1rem !important;
+  }
+  .hero-description {
+    font-size: 0.9rem !important;
+  }
+  .get-started-btn {
+    font-size: 0.9rem !important;
+    padding: 0.6rem 1.2rem !important;
+  }
+  .features-section h2 {
+    font-size: 1.2rem !important;
+    margin-bottom: 1.2rem !important;
+  }
+  .features-grid {
+    gap: 1rem !important;
+    margin-top: 1rem !important;
+  }
+  .features-grid .feature {
+    min-height: 100px !important;
+    padding: 0.7rem !important;
+  }
+  .features-grid .feature-icon {
+    font-size: 1.2rem !important;
+    width: 2.2rem !important;
+    height: 2.2rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+  .features-grid .feature h3 {
+    font-size: 1rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+  .features-grid .feature p {
+    font-size: 0.8rem !important;
+  }
+  .stats-section h2 {
+    font-size: 1.2rem !important;
+    margin-bottom: 1.2rem !important;
+  }
+  .stats-grid {
+    gap: 1rem !important;
+    margin-top: 1rem !important;
+  }
+  .stat-card {
+    padding: 1rem !important;
+    min-width: 0 !important;
+  }
+  .stat-number {
+    font-size: 1.2rem !important;
+  }
+  .stat-label {
+    font-size: 0.8rem !important;
+  }
+  .testimonial-grid {
+    gap: 1rem !important;
+    margin-top: 1rem !important;
+  }
+  .testimonial {
+    padding: 1rem !important;
+    font-size: 0.9rem !important;
+  }
+  .testimonial p {
+    font-size: 0.9rem !important;
+  }
+  .testimonial span {
+    font-size: 0.8rem !important;
+  }
+  .falling-text-section-full {
+    padding: 1rem 0 !important;
+    min-height: 80px !important;
+  }
+  .falling-text-section-full h2 {
+    font-size: 1rem !important;
+    margin-bottom: 0.7rem !important;
+  }
+  .falling-text-custom {
+    height: 40px !important;
+    min-height: 40px !important;
+  }
+  .infinite-gallery-section {
+    padding: 1rem 0 !important;
+    margin-top: 1rem !important;
+  }
+  .infinite-gallery-section h2 {
+    font-size: 1rem !important;
+    margin-bottom: 0.7rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .falling-text-section-card .fancy-gradient-card {
+    min-height: 320px !important;
+    height: 320px !important;
+    padding: 1.5rem 0.5rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+  }
+  .falling-text-custom {
+    flex: 1 1 auto !important;
+    height: 100% !important;
+    min-height: 200px !important;
+  }
+  .feedback-gallery-row {
+    align-items: flex-start !important;
+    min-height: unset !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  .feedback-gallery-row > div {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+    height: auto !important;
+  }
+  .feedback-gallery-row > div:last-child {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+  .feedback-gallery-row .email-form, 
+  .feedback-gallery-row form {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+  .feedback-gallery-row .lottie-animation-container {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+  .emailjs-form-mobile {
+    width: 90vw !important;
+    max-width: 90vw !important;
+    min-height: 420px !important;
+    margin-bottom: 2rem !important;
+  }
+  .feedback-gallery-row {
+    margin-top: 0.2rem !important;
+    margin-bottom: 0.2rem !important;
+    padding-top: 0.2rem !important;
+    padding-bottom: 0.2rem !important;
+  }
+  .feedback-gallery-row > div {
+    margin-top: 0.2rem !important;
+    margin-bottom: 0.2rem !important;
+    padding-top: 0.2rem !important;
+    padding-bottom: 0.2rem !important;
+  }
+  .stats-heading {
+    font-size: 1.3rem !important;
+    margin-bottom: 1rem !important;
+    text-align: center !important;
+  }
+  .testimonial-grid {
+    justify-content: center !important;
+    align-items: center !important;
+    text-align: center !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+  .testimonial {
+    margin-left: auto !important;
+    margin-right: auto !important;
+    text-align: center !important;
+  }
+  .lottie-bg-image {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 400px;
+    height: 400px;
+    z-index: 0;
+    background: url('/ellipse.png') no-repeat center center/contain;
+    opacity: 0.35;
+    pointer-events: none;
+  }
+}
+
+.stats-section-h2 {
+  color: #90caf9;
+  font-size: 2.5rem;
+  margin-bottom: 3rem;
+  font-weight: 600;
+  text-align: center;
+}
+@media (max-width: 768px) {
+  .stats-section-h2 {
+    font-size: 2rem;
+    margin-bottom: 2rem;
+  }
+}
+@media (max-width: 480px) {
+  .stats-section-h2 {
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+  }
+}
+
+.lottie-bg-image {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 400px;
+  height: 400px;
+  z-index: 0;
+  background: url('/ellipse.png') no-repeat center center/contain;
+  opacity: 0.35;
+  pointer-events: none;
+}

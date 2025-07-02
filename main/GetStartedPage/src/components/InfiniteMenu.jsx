@@ -63,17 +63,56 @@ export default function InfiniteMenu() {
             profilePhoto: 'https://picsum.photos/900/900?random=6',
             activeDays: 22,
             expertise: 'UI/UX Design'
+          },
+          {
+            _id: '7',
+            username: 'Priya Singh',
+            profilePhoto: 'https://picsum.photos/900/900?random=7',
+            activeDays: 20,
+            expertise: 'Cloud Computing'
+          },
+          {
+            _id: '8',
+            username: 'Carlos Gomez',
+            profilePhoto: 'https://picsum.photos/900/900?random=8',
+            activeDays: 18,
+            expertise: 'DevOps'
+          },
+          {
+            _id: '9',
+            username: 'Anna Müller',
+            profilePhoto: 'https://picsum.photos/900/900?random=9',
+            activeDays: 16,
+            expertise: 'AI Research'
+          },
+          {
+            _id: '10',
+            username: 'Tom Brown',
+            profilePhoto: 'https://picsum.photos/900/900?random=10',
+            activeDays: 15,
+            expertise: 'Game Development'
+          },
+          {
+            _id: '11',
+            username: 'Sofia Rossi',
+            profilePhoto: 'https://picsum.photos/900/900?random=11',
+            activeDays: 14,
+            expertise: 'Blockchain'
+          },
+          {
+            _id: '12',
+            username: 'Yuki Tanaka',
+            profilePhoto: 'https://picsum.photos/900/900?random=12',
+            activeDays: 13,
+            expertise: 'AR/VR'
           }
         ];
-        // Only keep the top 6 users, fill with fallback if less
+        // Only keep the top 12 users, fill with fallback if less
         if (!Array.isArray(data)) data = [];
-        console.log('Data before processing:', data);
-        data = data.slice(0, 6);
-        if (data.length < 6) {
-          console.log('Adding fallback users, current data length:', data.length);
-          data = data.concat(fallbackUsers.slice(data.length, 6));
+        while (data.length < 12) {
+          data = data.concat(fallbackUsers.slice(0, 12 - data.length));
         }
-        console.log('Final data to display:', data);
+        data = data.slice(0, 12);
         setTopSolvers(data);
       } catch (error) {
         console.error('Error fetching most active users:', error);
@@ -120,6 +159,48 @@ export default function InfiniteMenu() {
             profilePhoto: 'https://picsum.photos/900/900?random=6',
             activeDays: 22,
             expertise: 'UI/UX Design'
+          },
+          {
+            _id: '7',
+            username: 'Priya Singh',
+            profilePhoto: 'https://picsum.photos/900/900?random=7',
+            activeDays: 20,
+            expertise: 'Cloud Computing'
+          },
+          {
+            _id: '8',
+            username: 'Carlos Gomez',
+            profilePhoto: 'https://picsum.photos/900/900?random=8',
+            activeDays: 18,
+            expertise: 'DevOps'
+          },
+          {
+            _id: '9',
+            username: 'Anna Müller',
+            profilePhoto: 'https://picsum.photos/900/900?random=9',
+            activeDays: 16,
+            expertise: 'AI Research'
+          },
+          {
+            _id: '10',
+            username: 'Tom Brown',
+            profilePhoto: 'https://picsum.photos/900/900?random=10',
+            activeDays: 15,
+            expertise: 'Game Development'
+          },
+          {
+            _id: '11',
+            username: 'Sofia Rossi',
+            profilePhoto: 'https://picsum.photos/900/900?random=11',
+            activeDays: 14,
+            expertise: 'Blockchain'
+          },
+          {
+            _id: '12',
+            username: 'Yuki Tanaka',
+            profilePhoto: 'https://picsum.photos/900/900?random=12',
+            activeDays: 13,
+            expertise: 'AR/VR'
           }
         ]);
       } finally {

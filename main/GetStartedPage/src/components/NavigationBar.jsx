@@ -230,7 +230,9 @@ const NavigationBar = ({
                     e.target.src = '/peerpath.png';
                   }}
                 />
-                <span className="user-name">{currentUser.username || 'User'}</span>
+                {typeof window !== 'undefined' && window.innerWidth > 600 && (
+                  <span className="user-name">{currentUser.username || 'User'}</span>
+                )}
               </div>
             </motion.div>
           )}

@@ -521,8 +521,10 @@
   }
   
   .section-header {
-    justify-content: center;
-    text-align: center;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    width: 100% !important;
   }
   
   .helper-card {
@@ -556,5 +558,17 @@
   .section-title {
     font-size: 1.8rem;
     width: 100%;
+  }
+  
+  .scroll-indicator {
+    order: 2 !important;
+    align-self: flex-end !important;
+    margin-top: 0.5rem !important;
+    text-align: right !important;
+    width: auto !important;
+  }
+  .scroll-text {
+    text-align: right !important;
+    width: auto !important;
   }
 }

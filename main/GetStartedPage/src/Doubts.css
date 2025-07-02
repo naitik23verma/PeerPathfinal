@@ -98,6 +98,7 @@ body, html {
     border-radius: 12px;
     margin-bottom: 3rem;
     backdrop-filter: blur(10px);
+    padding-top: 4.5rem !important;
 }
 
 .doubts-hero-section h1 {
@@ -397,6 +398,7 @@ body, html {
     
     .doubts-hero-section {
         padding: 2rem 1rem;
+        padding-top: 6rem !important;
     }
     
     .doubts-hero-section h1 {
@@ -471,4 +473,27 @@ body, html {
 
 .scroll-btn:active, .carousel-scroll-btn:active {
   transform: none !important;
+}
+
+@media (max-width: 768px) {
+  .doubt-card {
+    min-width: 280px !important;
+    max-width: 280px !important;
+    width: 280px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    box-sizing: border-box !important;
+    flex: 0 0 280px !important;
+  }
+  .doubts-cards-row,
+  .carousel-row,
+  .doubts-carousel {
+    flex-wrap: nowrap !important;
+    justify-content: center !important;
+    align-items: flex-start !important;
+    gap: 0 !important;
+    width: 100vw !important;
+    overflow-x: auto !important;
+    box-sizing: border-box !important;
+  }
 }
