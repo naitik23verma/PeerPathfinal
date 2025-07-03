@@ -6,467 +6,118 @@ import axios from 'axios';
 import DotGrid from "./components/DotGrid.jsx";
 import AdvancedFooter from './components/AdvancedFooter.jsx';
 import TypewriterText from './components/TypewriterText.jsx';
+import { MapContainer, TileLayer, Marker, Polyline, useMap } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
 
 const API_URL = 'https://peerpathfinal.onrender.com/api/location';
 const GOOGLE_MAPS_API_KEY = 'AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg';
 
-// Google Maps Mini Map Component for Ride Cards
+// Map display using react-leaflet
 const RideCardMap = ({ fromAddress, toAddress, rideId }) => {
-  const mapRef = useRef(null);
-  const [mapInstance, setMapInstance] = useState(null);
-  const [routeInfo, setRouteInfo] = useState({ distance: '', duration: '' });
-
-  useEffect(() => {
-    // Load Google Maps script
-    const loadGoogleMaps = () => {
-      if (window.google && window.google.maps && window.google.maps.places) {
-        initializeMap();
-        return;
-      }
-
-      // Check if script is already loading
-      if (document.querySelector(`script[src*="maps.googleapis.com"]`)) {
-        // Wait for existing script to load
-        const checkGoogleMaps = setInterval(() => {
-          if (window.google && window.google.maps && window.google.maps.places) {
-            clearInterval(checkGoogleMaps);
-            initializeMap();
-          }
-        }, 100);
-        return;
-      }
-
-      const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`;
-      script.async = true;
-      script.defer = true;
-      script.onload = () => {
-        setTimeout(initializeMap, 100);
-      };
-      script.onerror = () => {
-        console.error('Failed to load Google Maps API');
-      };
-      document.head.appendChild(script);
-    };
-
-    const initializeMap = () => {
-      if (!mapRef.current || !fromAddress || !toAddress) return;
-
-      try {
-        const map = new window.google.maps.Map(mapRef.current, {
-          zoom: 10,
-          center: { lat: 20.5937, lng: 78.9629 }, // Default to India
-          disableDefaultUI: true,
-          zoomControl: false,
-          streetViewControl: false,
-          mapTypeControl: false,
-          fullscreenControl: false,
-          styles: [
-            {
-              featureType: 'all',
-              elementType: 'labels.text.fill',
-              stylers: [{ color: '#ffffff' }]
-            },
-            {
-              featureType: 'all',
-              elementType: 'labels.text.stroke',
-              stylers: [{ color: '#000000' }]
-            },
-            {
-              featureType: 'administrative',
-              elementType: 'geometry.fill',
-              stylers: [{ color: '#000000' }]
-            },
-            {
-              featureType: 'landscape',
-              elementType: 'geometry',
-              stylers: [{ color: '#2c2c2c' }]
-            },
-            {
-              featureType: 'poi',
-              elementType: 'geometry',
-              stylers: [{ color: '#2c2c2c' }]
-            },
-            {
-              featureType: 'road',
-              elementType: 'geometry',
-              stylers: [{ color: '#38414e' }]
-            },
-            {
-              featureType: 'road',
-              elementType: 'geometry.stroke',
-              stylers: [{ color: '#212a37' }]
-            },
-            {
-              featureType: 'road',
-              elementType: 'labels.text.fill',
-              stylers: [{ color: '#9ca5b3' }]
-            },
-            {
-              featureType: 'water',
-              elementType: 'geometry',
-              stylers: [{ color: '#17263c' }]
-            }
-          ]
-        });
-
-        const directionsService = new window.google.maps.DirectionsService();
-        const directionsRenderer = new window.google.maps.DirectionsRenderer({
-          map: map,
-          suppressMarkers: false,
-          polylineOptions: {
-            strokeColor: '#8b5cf6',
-            strokeWeight: 4,
-            strokeOpacity: 0.8
-          }
-        });
-
-        setMapInstance(map);
-
-        // Calculate and display route
-        calculateRoute(directionsService, directionsRenderer, fromAddress, toAddress, map);
-
-      } catch (error) {
-        console.error('Error initializing Google Maps:', error);
-      }
-    };
-
-    const calculateRoute = (service, renderer, origin, destination, map) => {
-      const request = {
-        origin: origin,
-        destination: destination,
-        travelMode: window.google.maps.TravelMode.DRIVING,
-        provideRouteAlternatives: false
-      };
-
-      service.route(request, (result, status) => {
-        if (status === 'OK' && result && result.routes && result.routes.length > 0) {
-          renderer.setDirections(result);
-          
-          // Extract route information
-          const route = result.routes[0];
-          const leg = route.legs[0];
-          setRouteInfo({
-            distance: leg.distance.text,
-            duration: leg.duration.text
-          });
-          
-          // Fit map to show the entire route with padding
-          const bounds = new window.google.maps.LatLngBounds();
-          result.routes[0].legs.forEach(leg => {
-            bounds.extend(leg.start_location);
-            bounds.extend(leg.end_location);
-          });
-          
-          // Add padding to bounds for better view
-          if (map) {
-            map.fitBounds(bounds, {
-              top: 20,
-              right: 20,
-              bottom: 20,
-              left: 20
-            });
-            
-            // Set zoom level if bounds are too small
-            const listener = window.google.maps.event.addListenerOnce(map, 'bounds_changed', () => {
-              if (map.getZoom() > 15) {
-                map.setZoom(15);
-              }
-            });
-          }
-        } else {
-          console.error('Directions request failed due to ' + status);
-          // Fallback: show markers for origin and destination
-          if (map) {
-            const originMarker = new window.google.maps.Marker({
-              position: { lat: 20.5937, lng: 78.9629 }, // Default to India center
-              map: map,
-              title: 'Origin'
-            });
-            
-            const destinationMarker = new window.google.maps.Marker({
-              position: { lat: 20.5937, lng: 78.9629 },
-              map: map,
-              title: 'Destination'
-            });
-          }
-        }
-      });
-    };
-
-    loadGoogleMaps();
-
-    return () => {
-      // Cleanup will be handled by Google Maps
-    };
-  }, [fromAddress, toAddress]);
-
+  // fromAddress and toAddress should have coordinates: [lon, lat]
+  if (!fromAddress?.coordinates || !toAddress?.coordinates) return null;
+  const from = [fromAddress.coordinates[1], fromAddress.coordinates[0]];
+  const to = [toAddress.coordinates[1], toAddress.coordinates[0]];
   return (
-    <div className="ride-card-map-container">
-      <div ref={mapRef} className="ride-card-map" style={{ height: '150px', width: '100%', borderRadius: '8px', backgroundColor: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        {!window.google && <span style={{ color: '#666', fontSize: '14px' }}>Loading map...</span>}
-      </div>
-      {routeInfo.distance && routeInfo.duration && (
-        <div className="route-info-overlay" style={{
-          position: 'absolute',
-          bottom: '8px',
-          left: '8px',
-          background: 'rgba(0, 0, 0, 0.7)',
-          color: 'white',
-          padding: '4px 8px',
-          borderRadius: '4px',
-          fontSize: '12px',
-          display: 'flex',
-          gap: '8px'
-        }}>
-          <span>📏 {routeInfo.distance}</span>
-          <span>⏱️ {routeInfo.duration}</span>
-        </div>
-      )}
-    </div>
+    <MapContainer center={from} zoom={10} scrollWheelZoom={false} style={{ height: '150px', width: '100%', borderRadius: '8px' }}>
+      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+      <Marker position={from} />
+      <Marker position={to} />
+      <Polyline positions={[from, to]} color="#8b5cf6" weight={4} />
+    </MapContainer>
   );
 };
 
-// Simple Map Component
 const SimpleMap = ({ fromAddress, toAddress }) => {
-  const mapRef = useRef(null);
-
-  useEffect(() => {
-    if (!fromAddress || !toAddress) return;
-
-    const loadMap = () => {
-      if (window.google && window.google.maps && window.google.maps.places) {
-        createMap();
-        return;
-      }
-
-      // Check if script is already loading
-      if (document.querySelector(`script[src*="maps.googleapis.com"]`)) {
-        const checkGoogleMaps = setInterval(() => {
-          if (window.google && window.google.maps && window.google.maps.places) {
-            clearInterval(checkGoogleMaps);
-            createMap();
-          }
-        }, 100);
-        return;
-      }
-
-      const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`;
-      script.async = true;
-      script.defer = true;
-      script.onload = () => {
-        setTimeout(createMap, 100);
-      };
-      script.onerror = () => {
-        console.error('Failed to load Google Maps API');
-      };
-      document.head.appendChild(script);
-    };
-
-    const createMap = () => {
-      if (!mapRef.current) return;
-
-      const map = new window.google.maps.Map(mapRef.current, {
-        zoom: 10,
-        center: { lat: 20.5937, lng: 78.9629 },
-        disableDefaultUI: true,
-        zoomControl: false,
-        streetViewControl: false,
-        mapTypeControl: false,
-        fullscreenControl: false
-      });
-
-      const directionsService = new window.google.maps.DirectionsService();
-      const directionsRenderer = new window.google.maps.DirectionsRenderer({
-        map: map,
-        suppressMarkers: false,
-        polylineOptions: {
-          strokeColor: '#8b5cf6',
-          strokeWeight: 4
-        }
-      });
-
-      const request = {
-        origin: fromAddress,
-        destination: toAddress,
-        travelMode: window.google.maps.TravelMode.DRIVING,
-        provideRouteAlternatives: false
-      };
-
-      directionsService.route(request, (result, status) => {
-        if (status === 'OK') {
-          directionsRenderer.setDirections(result);
-        }
-      });
-    };
-
-    loadMap();
-  }, [fromAddress, toAddress]);
-
+  if (!fromAddress?.coordinates || !toAddress?.coordinates) return null;
+  const from = [fromAddress.coordinates[1], fromAddress.coordinates[0]];
+  const to = [toAddress.coordinates[1], toAddress.coordinates[0]];
   return (
-    <div ref={mapRef} style={{ height: '150px', width: '100%', borderRadius: '8px' }} />
+    <MapContainer center={from} zoom={10} scrollWheelZoom={false} style={{ height: '200px', width: '100%', borderRadius: '8px' }}>
+      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+      <Marker position={from} />
+      <Marker position={to} />
+      <Polyline positions={[from, to]} color="#8b5cf6" weight={4} />
+    </MapContainer>
   );
 };
 
-// Address Input Component with Autocomplete
+// Helper for Nominatim autocomplete
+const fetchNominatimSuggestions = async (query) => {
+  if (!query) return [];
+  let url;
+  if (window.location.hostname === 'localhost') {
+    url = `https://corsproxy.io/?https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
+  } else {
+    url = `/api/geocode?q=${encodeURIComponent(query)}`;
+  }
+  const res = await fetch(url);
+  if (!res.ok) return [];
+  const data = await res.json();
+  return data.map(item => ({
+    display_name: item.display_name,
+    lat: parseFloat(item.lat),
+    lon: parseFloat(item.lon),
+    coordinates: [parseFloat(item.lon), parseFloat(item.lat)]
+  }));
+};
+
+// AddressInput component using Nominatim
 const AddressInput = ({ value, onChange, placeholder, onAddressSelect, name, className = '' }) => {
-  const inputRef = useRef(null);
-  const [autocomplete, setAutocomplete] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [inputValue, setInputValue] = useState(value || '');
+  const [inputValue, setInputValue] = useState(value?.address || '');
 
   useEffect(() => {
-    setInputValue(value || '');
+    setInputValue(value?.address || '');
   }, [value]);
 
-  useEffect(() => {
-    const loadGoogleMaps = () => {
-      if (window.google && window.google.maps && window.google.maps.places) {
-        initializeAutocomplete();
-        return;
-      }
-
-      // Check if script is already loading
-      if (document.querySelector(`script[src*="maps.googleapis.com"]`)) {
-        return;
-      }
-
-      const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`;
-      script.async = true;
-      script.defer = true;
-      script.onload = () => {
-        // Wait a bit for Google Maps to fully initialize
-        setTimeout(initializeAutocomplete, 100);
-      };
-      script.onerror = () => {
-        console.error('Failed to load Google Maps API');
-      };
-      document.head.appendChild(script);
-    };
-
-    loadGoogleMaps();
-  }, []);
-
-  const initializeAutocomplete = () => {
-    if (!inputRef.current || !window.google) return;
-
-    const autocompleteInstance = new window.google.maps.places.Autocomplete(inputRef.current, {
-      types: ['geocode', 'establishment'],
-      componentRestrictions: { country: 'IN' }, // Restrict to India
-      fields: ['formatted_address', 'geometry', 'name', 'place_id']
-    });
-
-    setAutocomplete(autocompleteInstance);
-
-    // Handle place selection
-    autocompleteInstance.addListener('place_changed', () => {
-      const place = autocompleteInstance.getPlace();
-      if (place.geometry) {
-        const address = place.formatted_address || place.name;
-        setInputValue(address);
-        onChange({ target: { name: name, value: address } });
-        onAddressSelect({
-          address: address,
-          lat: place.geometry.location.lat(),
-          lng: place.geometry.location.lng(),
-          placeId: place.place_id
-        });
-        setShowSuggestions(false);
-      }
-    });
-  };
-
-  const handleInputChange = (e) => {
-    const newValue = e.target.value;
-    setInputValue(newValue);
-    onChange({ target: { name: name, value: newValue } });
-
-    // Get suggestions if input is long enough
-    if (newValue.length >= 3) {
-      getSuggestions(newValue);
+  const handleInputChange = async (e) => {
+    const val = e.target.value;
+    setInputValue(val);
+    onChange && onChange({ address: val });
+    if (val.length > 2) {
+      const results = await fetchNominatimSuggestions(val);
+      setSuggestions(results);
+      setShowSuggestions(true);
     } else {
       setSuggestions([]);
       setShowSuggestions(false);
     }
   };
 
-  const getSuggestions = async (query) => {
-    try {
-      if (!window.google || !window.google.maps) return;
-
-      const service = new window.google.maps.places.AutocompleteService();
-      service.getPlacePredictions(
-        {
-          input: query,
-          types: ['geocode', 'establishment'],
-          componentRestrictions: { country: 'IN' }
-        },
-        (predictions, status) => {
-          if (status === window.google.maps.places.PlacesServiceStatus.OK && predictions) {
-            setSuggestions(predictions);
-            setShowSuggestions(true);
-          } else {
-            setSuggestions([]);
-            setShowSuggestions(false);
-          }
-        }
-      );
-    } catch (error) {
-      console.error('Error getting place predictions:', error);
-    }
-  };
-
   const handleSuggestionClick = (suggestion) => {
-    const address = suggestion.description;
-    setInputValue(address);
-    onChange({ target: { name: name, value: address } });
-    onAddressSelect({
-      address: address,
-      placeId: suggestion.place_id
-    });
+    setInputValue(suggestion.display_name);
+    setSuggestions([]);
     setShowSuggestions(false);
-  };
-
-  const handleInputBlur = () => {
-    // Delay hiding suggestions to allow for clicks
-    setTimeout(() => setShowSuggestions(false), 200);
-  };
-
-  const handleInputFocus = () => {
-    if (inputValue.length >= 3) {
-      getSuggestions(inputValue);
-    }
+    onAddressSelect && onAddressSelect({
+      address: suggestion.display_name,
+      coordinates: suggestion.coordinates
+    });
   };
 
   return (
-    <div className="address-input-container">
+    <div className={`address-input-container ${className}`.trim()}>
       <input
-        ref={inputRef}
         type="text"
+        className="address-input"
+        placeholder={placeholder}
         value={inputValue}
         onChange={handleInputChange}
-        onFocus={handleInputFocus}
-        placeholder={placeholder}
-        className={`address-input ${className}`}
-        onBlur={handleInputBlur}
         autoComplete="off"
         name={name}
+        onFocus={() => setShowSuggestions(suggestions.length > 0)}
+        onBlur={() => setTimeout(() => setShowSuggestions(false), 100)}
       />
       {showSuggestions && suggestions.length > 0 && (
-        <div className="address-suggestions">
-          {suggestions.map((suggestion, index) => (
-            <div
-              key={index}
-              className="suggestion-item"
-              onClick={() => handleSuggestionClick(suggestion)}
-            >
-              <span className="suggestion-text">{suggestion.description}</span>
-            </div>
+        <ul className="address-suggestions">
+          {suggestions.map((s, idx) => (
+            <li key={idx} className="suggestion-item" onClick={() => handleSuggestionClick(s)}>
+              <span className="suggestion-text">{s.display_name}</span>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </div>
   );
@@ -478,15 +129,12 @@ export default function Location({ currentUser, onLogout }) {
   const [error, setError] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState({
-    from: '',
-    to: '',
+    from: { address: '', coordinates: null },
+    to: { address: '', coordinates: null },
     time: '',
     seats: 1,
     note: ''
   });
-
-  // Fix: Track coordinates for both fields independently
-  const [formCoords, setFormCoords] = useState({ from: null, to: null });
 
   // Add error boundary
   const [hasError, setHasError] = useState(false);
@@ -602,8 +250,7 @@ export default function Location({ currentUser, onLogout }) {
   // Fix: Add form submission handler
   const handleCreateRide = async (e) => {
     e.preventDefault();
-    setError(null);
-    if (!form.from || !form.to || !form.time || !form.seats || !formCoords.from || !formCoords.to) {
+    if (!form.from.address || !form.to.address || !form.time || !form.seats || !form.from.coordinates || !form.to.coordinates) {
       setError('Please fill all required fields and select valid locations.');
       return;
     }
@@ -614,12 +261,12 @@ export default function Location({ currentUser, onLogout }) {
         API_URL,
         {
           currentLocation: {
-            coordinates: [formCoords.from.lng, formCoords.from.lat],
-            address: form.from
+            coordinates: form.from.coordinates,
+            address: form.from.address
           },
           destination: {
-            coordinates: [formCoords.to.lng, formCoords.to.lat],
-            address: form.to
+            coordinates: form.to.coordinates,
+            address: form.to.address
           },
           departureTime: form.time,
           notice: form.note,
@@ -628,8 +275,7 @@ export default function Location({ currentUser, onLogout }) {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setShowCreate(false);
-      setForm({ from: '', to: '', time: '', seats: 1, note: '' });
-      setFormCoords({ from: null, to: null });
+      setForm({ from: { address: '', coordinates: null }, to: { address: '', coordinates: null }, time: '', seats: 1, note: '' });
       fetchRides();
     } catch (err) {
       setError('Failed to create ride. Please try again.');
@@ -641,7 +287,11 @@ export default function Location({ currentUser, onLogout }) {
   const handleAddressSelect = (field, address) => {
     setForm(prev => ({
       ...prev,
-      [field]: address.address
+      [field]: {
+        ...prev[field],
+        address: address.address,
+        coordinates: address.coordinates
+      }
     }));
   };
 
@@ -757,33 +407,27 @@ export default function Location({ currentUser, onLogout }) {
               <div className="form-row">
                 <AddressInput
                   value={form.from}
-                  onChange={(e) => setForm((prev) => ({ ...prev, from: e.target.value }))}
+                  onChange={(e) => setForm((prev) => ({ ...prev, from: { ...prev.from, address: e.address } }))}
                   placeholder="From (e.g., Delhi, India)"
-                  onAddressSelect={(address) => {
-                    setForm((prev) => ({ ...prev, from: address.address }));
-                    setFormCoords((prev) => ({ ...prev, from: address.lat && address.lng ? { lat: address.lat, lng: address.lng } : null }));
-                  }}
+                  onAddressSelect={(address) => setForm((prev) => ({ ...prev, from: { address: address.address, coordinates: address.coordinates } }))}
                   name="from"
                 />
                 <AddressInput
                   value={form.to}
-                  onChange={(e) => setForm((prev) => ({ ...prev, to: e.target.value }))}
+                  onChange={(e) => setForm((prev) => ({ ...prev, to: { ...prev.to, address: e.address } }))}
                   placeholder="To (e.g., Mumbai, India)"
-                  onAddressSelect={(address) => {
-                    setForm((prev) => ({ ...prev, to: address.address }));
-                    setFormCoords((prev) => ({ ...prev, to: address.lat && address.lng ? { lat: address.lat, lng: address.lng } : null }));
-                  }}
+                  onAddressSelect={(address) => setForm((prev) => ({ ...prev, to: { address: address.address, coordinates: address.coordinates } }))}
                   name="to"
                 />
               </div>
               {/* Show mini map if both addresses are filled */}
-              {form.from && form.to && (
+              {form.from.address && form.to.address && form.from.coordinates && form.to.coordinates && (
                 <div className="mini-map" style={{ marginBottom: '1rem' }}>
                   <RideCardMap 
                     fromAddress={form.from} 
                     toAddress={form.to} 
-                    rideId={`create-preview-${form.from}-${form.to}`}
-                    key={`create-preview-${form.from}-${form.to}`}
+                    rideId={`create-preview-${form.from.address}-${form.to.address}`}
+                    key={`create-preview-${form.from.address}-${form.to.address}`}
                   />
                 </div>
               )}

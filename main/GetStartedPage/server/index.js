@@ -14,6 +14,8 @@ import doubtRoutes from './routes/doubts.js';
 import collaborationRoutes from './routes/collaboration.js';
 import locationRoutes from './routes/location.js';
 import groupRoutes from './routes/groups.js';
+import geocodeRoutes from './routes/geocode.js';
+import ratingsRoutes from './routes/ratings.js';
 
 // Load environment variables
 dotenv.config();
@@ -92,6 +94,8 @@ app.use('/api/doubts', doubtRoutes);
 app.use('/api/collaboration', collaborationRoutes);
 app.use('/api/location', locationRoutes);
 app.use('/api/groups', groupRoutes);
+app.use('/api/geocode', geocodeRoutes);
+app.use('/api/ratings', ratingsRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

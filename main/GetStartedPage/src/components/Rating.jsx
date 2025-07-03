@@ -1,20 +1,56 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
 const STAR_COUNT = 5;
-const STORAGE_KEY = 'peerpath_ratings';
-const USER_RATED_KEY = 'peerpath_user_rated';
+const USER_RATED_KEY = 'peerpath_user_rated_email';
 
-function getStoredRatings() {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  return stored ? JSON.parse(stored) : [];
-}
+export default function Rating({ simple, currentUser }) {
+  const [average, setAverage] = useState('0.00');
+  const [count, setCount] = useState(0);
+  const [hovered, setHovered] = useState(0);
+  const [selected, setSelected] = useState(0);
+  const [userRated, setUserRated] = useState(false);
+  const [email, setEmail] = useState(currentUser?.email || '');
+  const [showEmailInput, setShowEmailInput] = useState(false);
 
-export default function Rating({ simple }) {
-  const [ratings, setRatings] = useState(getStoredRatings());
-  const average = ratings.length ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(2) : '0.00';
+  useEffect(() => {
+    fetchAverage();
+    // Check if user has already rated (by email)
+    const ratedEmail = localStorage.getItem(USER_RATED_KEY);
+    if (currentUser?.email && ratedEmail === currentUser.email) {
+      setUserRated(true);
+    }
+  }, [currentUser]);
+
+  const fetchAverage = async () => {
+    try {
+      const res = await axios.get('/api/ratings');
+      setAverage(res.data.average);
+      setCount(res.data.count);
+    } catch (e) {
+      setAverage('0.00');
+      setCount(0);
+    }
+  };
+
+  const handleClick = async (star) => {
+    if (userRated) return;
+    if (!email) {
+      setShowEmailInput(true);
+      return;
+    }
+    setSelected(star);
+    try {
+      await axios.post('/api/ratings', { value: star, email });
+      setUserRated(true);
+      localStorage.setItem(USER_RATED_KEY, email);
+      fetchAverage();
+    } catch (e) {
+      // Optionally show error
+    }
+  };
 
   if (simple) {
-    // Just show the average and non-interactive stars
     const avg = parseFloat(average);
     return (
       <div style={{ marginTop: 18, textAlign: 'center', width: '100%' }}>
@@ -37,25 +73,11 @@ export default function Rating({ simple }) {
         <div style={{ color: '#c7d2fe', fontWeight: 600, fontSize: '1.1rem' }}>
           Site Rating: <span style={{ color: '#ffd700', fontWeight: 700 }}>{average}</span> / 5
         </div>
+        <div style={{ color: '#a78bfa', fontSize: 13, marginTop: 6 }}>
+          {count} rating{count === 1 ? '' : 's'} submitted
+        </div>
       </div>
     );
-  }
-
-  // ...existing interactive rating code...
-  const [hovered, setHovered] = useState(0);
-  const [selected, setSelected] = useState(0);
-  const [userRated, setUserRated] = useState(localStorage.getItem(USER_RATED_KEY) === 'true');
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(ratings));
-  }, [ratings]);
-
-  function handleClick(star) {
-    if (userRated) return;
-    setSelected(star);
-    setRatings([...ratings, star]);
-    setUserRated(true);
-    localStorage.setItem(USER_RATED_KEY, 'true');
   }
 
   return (
@@ -93,11 +115,20 @@ export default function Rating({ simple }) {
           </span>
         ))}
       </div>
+      {showEmailInput && !email && (
+        <input
+          type="email"
+          placeholder="Enter your email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          style={{ marginBottom: 10, padding: 6, borderRadius: 6, border: '1px solid #a78bfa' }}
+        />
+      )}
       <div style={{ color: '#c7d2fe', fontWeight: 600, fontSize: '1.1rem' }}>
         Average: <span style={{ color: '#ffd700', fontWeight: 700 }}>{average}</span> / 5
       </div>
       <div style={{ color: '#a78bfa', fontSize: 13, marginTop: 6 }}>
-        {ratings.length} rating{ratings.length === 1 ? '' : 's'} submitted
+        {count} rating{count === 1 ? '' : 's'} submitted
       </div>
       {userRated && (
         <div style={{ color: '#ffb357', marginTop: 10, fontSize: 14, fontWeight: 500, textAlign: 'center' }}>
