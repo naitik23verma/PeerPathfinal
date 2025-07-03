@@ -229,16 +229,16 @@ const FrontPage = ({ currentUser, onLogout }) => {
               <h2 className="stats-heading">What Students Say</h2>
               <div className="testimonial-grid">
                 <motion.div className="testimonial" whileHover={{ scale: 1.02 }}>
-                  <p>"PeerPath helped me find my dream project team!"</p>
-                  <span>- Riya, Web Dev Enthusiast</span>
+                  <p>"I always wanted to find someone to accompany me!"</p>
+                  <span>- Madhav Manawat, Web Dev Enthusiast</span>
                 </motion.div>
                 <motion.div className="testimonial" whileHover={{ scale: 1.02 }}>
                   <p>"The mentorship feature is a game changer."</p>
-                  <span>- Aarav, DSA Learner</span>
+                  <span>- Harsh Jain, DSA Learner</span>
                 </motion.div>
                 <motion.div className="testimonial" whileHover={{ scale: 1.02 }}>
                   <p>"Amazing community and resources!"</p>
-                  <span>- Priya, ML Enthusiast</span>
+                  <span>- Granth Agarwal, ML Enthusiast</span>
                 </motion.div>
               </div>
             </motion.div>
