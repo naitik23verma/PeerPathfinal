@@ -9,20 +9,54 @@ import TypewriterText from './components/TypewriterText.jsx';
 import { MapContainer, TileLayer, Marker, Polyline, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: markerIcon2x,
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
+});
+
+// Default (blue) icon for current location
+const currentLocationIcon = new L.Icon({
+  iconUrl: markerIcon,
+  iconRetinaUrl: markerIcon2x,
+  shadowUrl: markerShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
+
+// Red icon for destination (SVG data URI)
+const destinationIcon = new L.Icon({
+  iconUrl:
+    'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="25" height="41" viewBox="0 0 25 41"><path d="M12.5 0C6 0 0.5 5.5 0.5 12.5c0 9.5 11.5 27.5 11.5 27.5s11.5-18 11.5-27.5C24.5 5.5 19 0 12.5 0z" fill="%23e11d48"/><circle cx="12.5" cy="12.5" r="5.5" fill="white"/></svg>',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowUrl: markerShadow,
+  shadowSize: [41, 41],
+});
 
 const API_URL = 'https://peerpathfinal.onrender.com/api/location';
 
 // Map display using react-leaflet
 const RideCardMap = ({ fromAddress, toAddress, rideId }) => {
-  // fromAddress and toAddress should have coordinates: [lon, lat]
-  if (!fromAddress?.coordinates || !toAddress?.coordinates) return null;
+  console.log('RideCardMap props:', { fromAddress, toAddress, rideId });
+  if (!fromAddress?.coordinates || !toAddress?.coordinates) {
+    console.warn('RideCardMap: missing coordinates', { fromAddress, toAddress, rideId });
+    return null;
+  }
   const from = [fromAddress.coordinates[1], fromAddress.coordinates[0]];
   const to = [toAddress.coordinates[1], toAddress.coordinates[0]];
   return (
     <MapContainer center={from} zoom={10} scrollWheelZoom={false} style={{ height: '150px', width: '100%', borderRadius: '8px' }}>
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-      <Marker position={from} />
-      <Marker position={to} />
+      <Marker position={from} icon={currentLocationIcon} />
+      <Marker position={to} icon={destinationIcon} />
       <Polyline positions={[from, to]} color="#8b5cf6" weight={4} />
     </MapContainer>
   );
@@ -495,6 +529,12 @@ export default function Location({ currentUser, onLogout }) {
                   const travelTime = ride.travelTime || 'N/A';
                   const weather = ride.weather || 'N/A';
                   const note = ride.note || ride.notice || '';
+                  // Debug log for ride data
+                  console.log('Ride data:', ride);
+                  console.log('Ride coordinates:', {
+                    currentLocation: ride.currentLocation?.coordinates,
+                    destination: ride.destination?.coordinates
+                  });
                   
                   return (
                     <motion.div
@@ -534,6 +574,16 @@ export default function Location({ currentUser, onLogout }) {
                             <span>{travelTime !== 'N/A' ? travelTime : 'Calculating...'}</span>
                           </div>
                         </div>
+                        {/* Show map if coordinates are available */}
+                        {ride.currentLocation?.coordinates && ride.destination?.coordinates && (
+                          <div className="ride-card-map" style={{ margin: '1rem 0' }}>
+                            <RideCardMap
+                              fromAddress={ride.currentLocation}
+                              toAddress={ride.destination}
+                              rideId={ride._id}
+                            />
+                          </div>
+                        )}
 
                         <div className="ride-details">
                           <div className="detail-item">
