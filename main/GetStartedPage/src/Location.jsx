@@ -11,7 +11,6 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
 const API_URL = 'https://peerpathfinal.onrender.com/api/location';
-const GOOGLE_MAPS_API_KEY = 'AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg';
 
 // Map display using react-leaflet
 const RideCardMap = ({ fromAddress, toAddress, rideId }) => {
@@ -535,15 +534,6 @@ export default function Location({ currentUser, onLogout }) {
                             <span>{travelTime !== 'N/A' ? travelTime : 'Calculating...'}</span>
                           </div>
                         </div>
-
-                          {/* Google Maps Mini Map for each ride */}
-                          <div className="mini-map">
-                            <RideCardMap 
-                              fromAddress={fromAddress}
-                              toAddress={toAddress}
-                              rideId={ride._id}
-                            />
-                          </div>
 
                         <div className="ride-details">
                           <div className="detail-item">
