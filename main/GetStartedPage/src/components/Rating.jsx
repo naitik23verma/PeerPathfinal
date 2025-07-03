@@ -4,7 +4,7 @@ import axios from 'axios';
 const STAR_COUNT = 5;
 const USER_RATED_KEY = 'peerpath_user_rated_email';
 
-export default function Rating({ simple, currentUser }) {
+export default function Rating({ simple, currentUser, onSelect }) {
   const [average, setAverage] = useState('0.00');
   const [count, setCount] = useState(0);
   const [hovered, setHovered] = useState(0);
@@ -35,11 +35,12 @@ export default function Rating({ simple, currentUser }) {
 
   const handleClick = async (star) => {
     if (userRated) return;
-    if (!email) {
+    if (!email && !simple) {
       setShowEmailInput(true);
       return;
     }
     setSelected(star);
+    if (onSelect) onSelect(star);
     try {
       await axios.post('/api/ratings', { value: star, email });
       setUserRated(true);
