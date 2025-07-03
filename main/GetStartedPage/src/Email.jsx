@@ -83,7 +83,7 @@ function Email({ showRating, compact }) {
         />
         <button type="submit" className="footer-submit-btn">SUBMIT</button>
         {submitted && <div className="thank-you">Thank you for your message!</div>}
-        {showRating && <Rating simple={true} />}
+        {showRating && <Rating currentUser={{ email }} />}
       </form>
     </div>
   );

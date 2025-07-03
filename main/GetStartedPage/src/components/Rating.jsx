@@ -35,10 +35,6 @@ export default function Rating({ simple, currentUser }) {
 
   const handleClick = async (star) => {
     if (userRated) return;
-    if (!email) {
-      setShowEmailInput(true);
-      return;
-    }
     setSelected(star);
     try {
       await axios.post('/api/ratings', { value: star, email });
@@ -115,15 +111,6 @@ export default function Rating({ simple, currentUser }) {
           </span>
         ))}
       </div>
-      {showEmailInput && !email && (
-        <input
-          type="email"
-          placeholder="Enter your email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          style={{ marginBottom: 10, padding: 6, borderRadius: 6, border: '1px solid #a78bfa' }}
-        />
-      )}
       <div style={{ color: '#c7d2fe', fontWeight: 600, fontSize: '1.1rem' }}>
         Average: <span style={{ color: '#ffd700', fontWeight: 700 }}>{average}</span> / 5
       </div>
