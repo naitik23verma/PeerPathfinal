@@ -7,19 +7,32 @@ import DotGrid from "./components/DotGrid.jsx";
 import AdvancedFooter from './components/AdvancedFooter.jsx';
 import TypewriterText from './components/TypewriterText.jsx';
 
-const API_URL = 'https://peerpathfinal.onrender.com/api';
+const API_URL = 'https://peerpathfinal.onrender.com/api/location';
 const GOOGLE_MAPS_API_KEY = 'AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg';
 
 // Google Maps Mini Map Component for Ride Cards
 const RideCardMap = ({ fromAddress, toAddress, rideId }) => {
   const mapRef = useRef(null);
   const [mapInstance, setMapInstance] = useState(null);
+  const [routeInfo, setRouteInfo] = useState({ distance: '', duration: '' });
 
   useEffect(() => {
     // Load Google Maps script
     const loadGoogleMaps = () => {
-      if (window.google && window.google.maps) {
+      if (window.google && window.google.maps && window.google.maps.places) {
         initializeMap();
+        return;
+      }
+
+      // Check if script is already loading
+      if (document.querySelector(`script[src*="maps.googleapis.com"]`)) {
+        // Wait for existing script to load
+        const checkGoogleMaps = setInterval(() => {
+          if (window.google && window.google.maps && window.google.maps.places) {
+            clearInterval(checkGoogleMaps);
+            initializeMap();
+          }
+        }, 100);
         return;
       }
 
@@ -27,12 +40,17 @@ const RideCardMap = ({ fromAddress, toAddress, rideId }) => {
       script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`;
       script.async = true;
       script.defer = true;
-      script.onload = initializeMap;
+      script.onload = () => {
+        setTimeout(initializeMap, 100);
+      };
+      script.onerror = () => {
+        console.error('Failed to load Google Maps API');
+      };
       document.head.appendChild(script);
     };
 
     const initializeMap = () => {
-      if (!mapRef.current || !fromAddress || !toAddress || mapInstance) return;
+      if (!mapRef.current || !fromAddress || !toAddress) return;
 
       try {
         const map = new window.google.maps.Map(mapRef.current, {
@@ -106,33 +124,72 @@ const RideCardMap = ({ fromAddress, toAddress, rideId }) => {
         setMapInstance(map);
 
         // Calculate and display route
-        calculateRoute(directionsService, directionsRenderer, fromAddress, toAddress);
+        calculateRoute(directionsService, directionsRenderer, fromAddress, toAddress, map);
 
       } catch (error) {
         console.error('Error initializing Google Maps:', error);
       }
     };
 
-    const calculateRoute = (service, renderer, origin, destination) => {
+    const calculateRoute = (service, renderer, origin, destination, map) => {
       const request = {
         origin: origin,
         destination: destination,
-        travelMode: window.google.maps.TravelMode.DRIVING
+        travelMode: window.google.maps.TravelMode.DRIVING,
+        provideRouteAlternatives: false
       };
 
       service.route(request, (result, status) => {
-        if (status === 'OK') {
+        if (status === 'OK' && result && result.routes && result.routes.length > 0) {
           renderer.setDirections(result);
           
-          // Fit map to show the entire route
+          // Extract route information
+          const route = result.routes[0];
+          const leg = route.legs[0];
+          setRouteInfo({
+            distance: leg.distance.text,
+            duration: leg.duration.text
+          });
+          
+          // Fit map to show the entire route with padding
           const bounds = new window.google.maps.LatLngBounds();
           result.routes[0].legs.forEach(leg => {
             bounds.extend(leg.start_location);
             bounds.extend(leg.end_location);
           });
-          mapInstance.fitBounds(bounds);
+          
+          // Add padding to bounds for better view
+          if (map) {
+            map.fitBounds(bounds, {
+              top: 20,
+              right: 20,
+              bottom: 20,
+              left: 20
+            });
+            
+            // Set zoom level if bounds are too small
+            const listener = window.google.maps.event.addListenerOnce(map, 'bounds_changed', () => {
+              if (map.getZoom() > 15) {
+                map.setZoom(15);
+              }
+            });
+          }
         } else {
           console.error('Directions request failed due to ' + status);
+          // Fallback: show markers for origin and destination
+          if (map) {
+            const originMarker = new window.google.maps.Marker({
+              position: { lat: 20.5937, lng: 78.9629 }, // Default to India center
+              map: map,
+              title: 'Origin'
+            });
+            
+            const destinationMarker = new window.google.maps.Marker({
+              position: { lat: 20.5937, lng: 78.9629 },
+              map: map,
+              title: 'Destination'
+            });
+          }
         }
       });
     };
@@ -140,14 +197,33 @@ const RideCardMap = ({ fromAddress, toAddress, rideId }) => {
     loadGoogleMaps();
 
     return () => {
-      if (mapInstance) {
-        // Cleanup will be handled by Google Maps
-      }
+      // Cleanup will be handled by Google Maps
     };
   }, [fromAddress, toAddress]);
 
   return (
-    <div ref={mapRef} className="ride-card-map" style={{ height: '150px', width: '100%', borderRadius: '8px' }}></div>
+    <div className="ride-card-map-container">
+      <div ref={mapRef} className="ride-card-map" style={{ height: '150px', width: '100%', borderRadius: '8px', backgroundColor: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {!window.google && <span style={{ color: '#666', fontSize: '14px' }}>Loading map...</span>}
+      </div>
+      {routeInfo.distance && routeInfo.duration && (
+        <div className="route-info-overlay" style={{
+          position: 'absolute',
+          bottom: '8px',
+          left: '8px',
+          background: 'rgba(0, 0, 0, 0.7)',
+          color: 'white',
+          padding: '4px 8px',
+          borderRadius: '4px',
+          fontSize: '12px',
+          display: 'flex',
+          gap: '8px'
+        }}>
+          <span>📏 {routeInfo.distance}</span>
+          <span>⏱️ {routeInfo.duration}</span>
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -159,14 +235,33 @@ const SimpleMap = ({ fromAddress, toAddress }) => {
     if (!fromAddress || !toAddress) return;
 
     const loadMap = () => {
-      if (window.google && window.google.maps) {
+      if (window.google && window.google.maps && window.google.maps.places) {
         createMap();
-      } else {
-        const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`;
-        script.onload = createMap;
-        document.head.appendChild(script);
+        return;
       }
+
+      // Check if script is already loading
+      if (document.querySelector(`script[src*="maps.googleapis.com"]`)) {
+        const checkGoogleMaps = setInterval(() => {
+          if (window.google && window.google.maps && window.google.maps.places) {
+            clearInterval(checkGoogleMaps);
+            createMap();
+          }
+        }, 100);
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`;
+      script.async = true;
+      script.defer = true;
+      script.onload = () => {
+        setTimeout(createMap, 100);
+      };
+      script.onerror = () => {
+        console.error('Failed to load Google Maps API');
+      };
+      document.head.appendChild(script);
     };
 
     const createMap = () => {
@@ -195,7 +290,8 @@ const SimpleMap = ({ fromAddress, toAddress }) => {
       const request = {
         origin: fromAddress,
         destination: toAddress,
-        travelMode: window.google.maps.TravelMode.DRIVING
+        travelMode: window.google.maps.TravelMode.DRIVING,
+        provideRouteAlternatives: false
       };
 
       directionsService.route(request, (result, status) => {
@@ -226,14 +322,32 @@ const AddressInput = ({ value, onChange, placeholder, onAddressSelect, name, cla
   }, [value]);
 
   useEffect(() => {
-    if (!window.google || !window.google.maps) {
+    const loadGoogleMaps = () => {
+      if (window.google && window.google.maps && window.google.maps.places) {
+        initializeAutocomplete();
+        return;
+      }
+
+      // Check if script is already loading
+      if (document.querySelector(`script[src*="maps.googleapis.com"]`)) {
+        return;
+      }
+
       const script = document.createElement('script');
       script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`;
-      script.onload = initializeAutocomplete;
+      script.async = true;
+      script.defer = true;
+      script.onload = () => {
+        // Wait a bit for Google Maps to fully initialize
+        setTimeout(initializeAutocomplete, 100);
+      };
+      script.onerror = () => {
+        console.error('Failed to load Google Maps API');
+      };
       document.head.appendChild(script);
-    } else {
-      initializeAutocomplete();
-    }
+    };
+
+    loadGoogleMaps();
   }, []);
 
   const initializeAutocomplete = () => {
@@ -374,6 +488,25 @@ export default function Location({ currentUser, onLogout }) {
   // Fix: Track coordinates for both fields independently
   const [formCoords, setFormCoords] = useState({ from: null, to: null });
 
+  // Add error boundary
+  const [hasError, setHasError] = useState(false);
+
+  // Error handling effect
+  useEffect(() => {
+    const handleError = (error) => {
+      console.error('Location page error:', error);
+      setHasError(true);
+    };
+
+    window.addEventListener('error', handleError);
+    window.addEventListener('unhandledrejection', handleError);
+
+    return () => {
+      window.removeEventListener('error', handleError);
+      window.removeEventListener('unhandledrejection', handleError);
+    };
+  }, []);
+
   // Sample data for testing layout
   const sampleRides = [
     {
@@ -407,13 +540,16 @@ export default function Location({ currentUser, onLogout }) {
   const fetchRides = async () => {
     try {
       setLoading(true);
+      setError(null);
       const token = localStorage.getItem('token');
       const res = await axios.get(API_URL, { headers: { Authorization: `Bearer ${token}` } });
       console.log('Fetched rides data:', res.data);
-      setRides(res.data.locations || []);
+      setRides(res.data.locations || res.data || []);
     } catch (e) {
-      setError('Failed to load rides.');
       console.error('Error fetching rides:', e);
+      setError('Failed to load rides. Using sample data.');
+      // Use sample data if API fails
+      setRides(sampleRides);
     } finally {
       setLoading(false);
     }
@@ -525,6 +661,37 @@ export default function Location({ currentUser, onLogout }) {
       return willOpen;
     });
   };
+
+  // Error boundary
+  if (hasError) {
+    return (
+      <div className="location-page" style={{ position: 'relative', overflow: 'hidden' }}>
+        <NavigationBar 
+          currentUser={currentUser}
+          onLogout={onLogout}
+          showUserInfo={true}
+          showNotifications={true}
+          showSearch={false}
+        />
+        <div className="location-container">
+          <div style={{ textAlign: 'center', padding: '2rem' }}>
+            <h2>Something went wrong</h2>
+            <p>Please refresh the page or try again later.</p>
+            <button onClick={() => window.location.reload()} style={{
+              background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+              color: 'white',
+              border: 'none',
+              padding: '0.75rem 1.5rem',
+              borderRadius: '8px',
+              cursor: 'pointer'
+            }}>
+              Refresh Page
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="location-page" style={{ position: 'relative', overflow: 'hidden' }}>
@@ -720,8 +887,8 @@ export default function Location({ currentUser, onLogout }) {
                             <div className="route-point">{toAddress}</div>
                           </div>
                           <div className="route-info">
-                            <span>{distance} km</span>
-                            <span>{travelTime} min</span>
+                            <span>{distance !== 'N/A' ? distance : 'Calculating...'}</span>
+                            <span>{travelTime !== 'N/A' ? travelTime : 'Calculating...'}</span>
                           </div>
                         </div>
 
