@@ -3,7 +3,7 @@ import emailjs from 'emailjs-com';
 import "./Email.css"
 import Rating from "./components/Rating.jsx";
 
-function Email({ showRating, compact, currentUser }) {
+function Email({ showRating, compact }) {
   const [suggestion, setSuggestion] = React.useState("");
   const [name, setName] = React.useState("");
   const [email, setEmail] = React.useState("");
@@ -83,9 +83,8 @@ function Email({ showRating, compact, currentUser }) {
         />
         <button type="submit" className="footer-submit-btn">SUBMIT</button>
         {submitted && <div className="thank-you">Thank you for your message!</div>}
+        {showRating && <Rating simple={true} />}
       </form>
-      {showRating && <Rating currentUser={{ email }} />}
-      <Rating simple={true} />
     </div>
   );
 }
