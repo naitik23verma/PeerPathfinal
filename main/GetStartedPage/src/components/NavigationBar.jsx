@@ -223,7 +223,7 @@ const NavigationBar = ({
                 title="Click to logout"
               >
                 <img 
-                  src={currentUser.profilePhoto ? `http://localhost:5000${currentUser.profilePhoto}` : '/peerpath.png'} 
+                  src={currentUser.profilePhoto ? `${import.meta.env.VITE_API_BASE}${currentUser.profilePhoto}` : '/peerpath.png'} 
                   alt={currentUser.username || 'User'} 
                   className="user-avatar"
                   onError={(e) => {

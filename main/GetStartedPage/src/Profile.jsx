@@ -100,7 +100,7 @@ const Profile = ({ onLogout }) => {
   const fetchUserProfile = async (userId) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`http://localhost:5000/api/users/profile/${userId}`, {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/users/profile/${userId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -129,7 +129,7 @@ const Profile = ({ onLogout }) => {
   const fetchWeeklyDoubts = async (userId, token) => {
     try {
       console.log('Fetching weekly doubts for user:', userId);
-      const response = await axios.get(`http://localhost:5000/api/doubts/weekly/${userId}`, {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/doubts/weekly/${userId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       console.log('Weekly doubts response:', response.data);
@@ -151,7 +151,7 @@ const Profile = ({ onLogout }) => {
   const handleSave = async () => {
     try {
       const token = localStorage.getItem('token');
-      await axios.put('http://localhost:5000/api/auth/profile', 
+      await axios.put(`${import.meta.env.VITE_API_URL}/auth/profile`, 
         {
           bio: profileData.bio,
           year: profileData.year,
@@ -238,7 +238,7 @@ const Profile = ({ onLogout }) => {
       const token = localStorage.getItem('token');
       const formData = new FormData();
       formData.append('profilePhoto', file);
-      const response = await axios.post('http://localhost:5000/api/users/upload-profile-photo', formData, {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/users/upload-profile-photo`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',
@@ -296,7 +296,7 @@ const Profile = ({ onLogout }) => {
             {profileData.profilePhoto ? (
               <>
                 <img 
-                  src={`http://localhost:5000${profileData.profilePhoto}`} 
+                  src={`${import.meta.env.VITE_API_BASE}${profileData.profilePhoto}`} 
                   alt="Profile" 
                   className="avatar-image" 
                 />

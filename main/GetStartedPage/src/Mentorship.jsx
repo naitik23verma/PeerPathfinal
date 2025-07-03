@@ -140,7 +140,7 @@ const Collaboration = ({ currentUser, onLogout }) => {
     const fetchAllProjects = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get('http://localhost:5000/api/collaboration', {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/collaboration`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setAllProjects(response.data.collaborations);
@@ -172,13 +172,13 @@ const Collaboration = ({ currentUser, onLogout }) => {
   const confirmJoin = async () => {
     try {
       const token = localStorage.getItem('token');
-      await axios.post(`http://localhost:5000/api/collaboration/${selectedProject._id}/join`, {}, {
+      await axios.post(`${import.meta.env.VITE_API_URL}/collaboration/${selectedProject._id}/join`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setShowModal(false);
       setSelectedProject(null);
       // Refetch all projects to update members
-      const response = await axios.get('http://localhost:5000/api/collaboration', {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/collaboration`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setAllProjects(response.data.collaborations);
@@ -215,7 +215,7 @@ const Collaboration = ({ currentUser, onLogout }) => {
         skills: formData.skills,
         maxMembers: formData.maxMembers
       };
-      const response = await axios.post('http://localhost:5000/api/collaboration', payload, {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/collaboration`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.data && response.data.collaboration) {
@@ -312,7 +312,7 @@ const Collaboration = ({ currentUser, onLogout }) => {
 
     try {
       // Try to create the group (if it already exists, backend should handle duplicate roomId)
-      const response = await axios.post('http://localhost:5000/api/groups', {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/groups`, {
         groupName,
         members: memberIds,
         roomId

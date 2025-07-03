@@ -63,7 +63,7 @@ function DoubtCard({ doubt, onSolve, onCall, onVideoCall, onChat, onLike, likedB
         >
           {doubt.user && doubt.user.profilePhoto ? (
             <img
-              src={`http://localhost:5000${doubt.user.profilePhoto}`}
+              src={`${import.meta.env.VITE_API_BASE}${doubt.user.profilePhoto}`}
               alt={doubt.user.username || 'User'}
               className="solution-avatar"
               style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }}
@@ -159,7 +159,7 @@ function DoubtCard({ doubt, onSolve, onCall, onVideoCall, onChat, onLike, likedB
               >
                 {sol.user?.profilePhoto && (
                   <motion.img 
-                    src={`http://localhost:5000${sol.user.profilePhoto}`} 
+                    src={`${import.meta.env.VITE_API_BASE}${sol.user.profilePhoto}`} 
                     alt={sol.user?.username} 
                     className="solution-avatar"
                     whileHover={{ scale: 1.1 }}
@@ -170,7 +170,7 @@ function DoubtCard({ doubt, onSolve, onCall, onVideoCall, onChat, onLike, likedB
                   <div className="solution-username">{sol.user?.username || 'Unknown'}</div>
                   {sol.image && (
                     <motion.img 
-                      src={`http://localhost:5000${sol.image}`} 
+                      src={`${import.meta.env.VITE_API_BASE}${sol.image}`} 
                       alt="solution" 
                       className="solution-image"
                       whileHover={{ scale: 1.05 }}
@@ -471,7 +471,7 @@ export default function Doubts({ currentUser, onLogout }){
       try {
         // Mark the doubt as solved in the backend
         const token = localStorage.getItem('token');
-        await axios.put(`http://localhost:5000/api/doubts/${doubt.id}/solve`, {}, {
+        await axios.put(`${import.meta.env.VITE_API_URL}/doubts/${doubt.id}/solve`, {}, {
           headers: { Authorization: `Bearer ${token}` }
         });
         // Remove the solved doubt from the list
@@ -484,7 +484,7 @@ export default function Doubts({ currentUser, onLogout }){
     const handleLike = async (doubt) => {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.post(`http://localhost:5000/api/doubts/${doubt.id}/like`, {}, {
+        const response = await axios.post(`${import.meta.env.VITE_API_URL}/doubts/${doubt.id}/like`, {}, {
           headers: { Authorization: `Bearer ${token}` }
         });
         // Update the local state with the new like count
@@ -502,7 +502,7 @@ export default function Doubts({ currentUser, onLogout }){
     const fetchDoubts = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.get('http://localhost:5000/api/doubts', {
+            const response = await axios.get(`${import.meta.env.VITE_API_URL}/doubts`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setDoubts(response.data.doubts);
@@ -514,7 +514,7 @@ export default function Doubts({ currentUser, onLogout }){
 
     const fetchTopHelpers = async () => {
         try {
-            const response = await axios.get('http://localhost:5000/api/users/top-helpers');
+            const response = await axios.get(`${import.meta.env.VITE_API_URL}/users/top-helpers`);
             setTopHelpers(response.data);
         } catch (error) {
             console.error('Error fetching top helpers:', error);
@@ -524,7 +524,7 @@ export default function Doubts({ currentUser, onLogout }){
     const handleDoubtSubmit = async (newDoubt) => {
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.post('http://localhost:5000/api/doubts', newDoubt, {
+            const response = await axios.post(`${import.meta.env.VITE_API_URL}/doubts`, newDoubt, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             console.log('Doubt posted:', response.data);
@@ -544,7 +544,7 @@ export default function Doubts({ currentUser, onLogout }){
     const fetchSolutions = async (doubtId) => {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get(`http://localhost:5000/api/doubts/${doubtId}`);
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/doubts/${doubtId}`);
         setSolutions(response.data.solutions || []);
       } catch (error) {
         setSolutions([]);
@@ -570,7 +570,7 @@ export default function Doubts({ currentUser, onLogout }){
       setAccepting(true);
       try {
         const token = localStorage.getItem('token');
-        await axios.put(`http://localhost:5000/api/doubts/${selectedDoubt.id}/solutions/${solutionId}/accept`, {}, {
+        await axios.put(`${import.meta.env.VITE_API_URL}/doubts/${selectedDoubt.id}/solutions/${solutionId}/accept`, {}, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setShowSolutionModal(false);
@@ -590,7 +590,7 @@ export default function Doubts({ currentUser, onLogout }){
         const token = localStorage.getItem('token');
         const formData = new FormData();
         formData.append('image', file);
-        await axios.post(`http://localhost:5000/api/doubts/${doubt.id}/solutions`, formData, {
+        await axios.post(`${import.meta.env.VITE_API_URL}/doubts/${doubt.id}/solutions`, formData, {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'multipart/form-data'
@@ -614,7 +614,7 @@ export default function Doubts({ currentUser, onLogout }){
         const token = localStorage.getItem('token');
         const formData = new FormData();
         formData.append('content', text);
-        await axios.post(`http://localhost:5000/api/doubts/${doubt.id}/solutions`, formData, {
+        await axios.post(`${import.meta.env.VITE_API_URL}/doubts/${doubt.id}/solutions`, formData, {
           headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'multipart/form-data'
@@ -840,7 +840,7 @@ export default function Doubts({ currentUser, onLogout }){
                     <div key={sol._id} style={{ background: '#1a0a52', borderRadius: 12, padding: '1rem', border: '1.5px solid #a78bfa', marginBottom: 8 }}>
                       <div style={{ fontWeight: 600, color: '#c4b5fd', marginBottom: 6 }}>By: {sol.user?.username || 'Unknown'}</div>
                       {sol.image && (
-                        <img src={`http://localhost:5000${sol.image}`} alt="solution" style={{ maxWidth: '100%', maxHeight: 200, borderRadius: 8, marginBottom: 8 }} />
+                        <img src={`${import.meta.env.VITE_API_BASE}${sol.image}`} alt="solution" style={{ maxWidth: '100%', maxHeight: 200, borderRadius: 8, marginBottom: 8 }} />
                       )}
                       <div style={{ color: '#a78bfa', marginBottom: 8 }}>{sol.content}</div>
                       <button
@@ -902,10 +902,10 @@ export default function Doubts({ currentUser, onLogout }){
                     setImageModal({ open: false, image: '', solver: '', profilePhoto: '' });
                   }}>&times;</button>
                   {imageModal.profilePhoto && (
-                    <img src={`http://localhost:5000${imageModal.profilePhoto}`} alt={imageModal.solver} style={{ width: 48, height: 48, borderRadius: '50%', objectFit: 'cover', marginBottom: 8 }} />
+                    <img src={`${import.meta.env.VITE_API_BASE}${imageModal.profilePhoto}`} alt={imageModal.solver} style={{ width: 48, height: 48, borderRadius: '50%', objectFit: 'cover', marginBottom: 8 }} />
                   )}
                   <div style={{ color: '#c4b5fd', fontWeight: 600, fontSize: '1.1rem', marginBottom: 12 }}>{imageModal.solver}</div>
-                  <img src={`http://localhost:5000${imageModal.image}`} alt="solution" style={{ maxWidth: '70vw', maxHeight: '60vh', borderRadius: 10, display: 'block', margin: '0 auto' }} />
+                  <img src={`${import.meta.env.VITE_API_BASE}${imageModal.image}`} alt="solution" style={{ maxWidth: '70vw', maxHeight: '60vh', borderRadius: 10, display: 'block', margin: '0 auto' }} />
                 </div>
               </div>
             )}

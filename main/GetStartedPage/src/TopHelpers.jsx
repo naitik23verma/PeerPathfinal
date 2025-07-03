@@ -17,7 +17,7 @@ export function TopHelpers() {
   const fetchTopHelpers = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:5000/api/users/top-helpers');
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/users/top-helpers`);
       console.log('Top helpers data:', response.data);
       
       // Transform the data to match the expected format
@@ -182,7 +182,7 @@ export function TopHelpers() {
                     <div className="helper-avatar">
                       {helper.profilePhoto ? (
                         <img 
-                          src={`http://localhost:5000${helper.profilePhoto}`} 
+                          src={`${import.meta.env.VITE_API_BASE}${helper.profilePhoto}`} 
                           alt={helper.name} 
                           className="avatar-image"
                           style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
@@ -249,7 +249,7 @@ export function TopHelpers() {
               <div className="modal-avatar">
                 {selected.profilePhoto ? (
                   <img 
-                    src={`http://localhost:5000${selected.profilePhoto}`} 
+                    src={`${import.meta.env.VITE_API_BASE}${selected.profilePhoto}`} 
                     alt={selected.name} 
                     className="avatar-image large"
                     style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}

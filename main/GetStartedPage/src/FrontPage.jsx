@@ -49,7 +49,7 @@ const FrontPage = ({ currentUser, onLogout }) => {
   // Fetch usernames for falling text
   const [usernames, setUsernames] = useState([]);
   useEffect(() => {
-    fetch('http://localhost:5000/api/users')
+    fetch(`${import.meta.env.VITE_API_URL}/users`)
       .then(res => {
         if (!res.ok) throw new Error('Network response was not ok');
         return res.json();
@@ -74,7 +74,7 @@ const FrontPage = ({ currentUser, onLogout }) => {
       return;
     }
     console.log('Sending visit count update request...');
-    fetch('http://localhost:5000/api/users/visit', {
+    fetch(`${import.meta.env.VITE_API_URL}/users/visit`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

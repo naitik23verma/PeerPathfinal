@@ -7,7 +7,7 @@ import DotGrid from "./components/DotGrid.jsx";
 import AdvancedFooter from './components/AdvancedFooter.jsx';
 import TypewriterText from './components/TypewriterText.jsx';
 
-const API_URL = 'http://localhost:5000/api/location';
+const API_URL = import.meta.env.VITE_API_URL;
 const GOOGLE_MAPS_API_KEY = 'AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg';
 
 // Google Maps Mini Map Component for Ride Cards
@@ -699,13 +699,7 @@ export default function Location({ currentUser, onLogout }) {
                         <div className="ride-header">
                           <div className="ride-creator">
                             <img 
-                              src={
-                                creator.profilePhoto
-                                  ? (creator.profilePhoto.startsWith('/uploads/')
-                                      ? `http://localhost:5000${creator.profilePhoto}`
-                                      : `http://localhost:5000/uploads/${creator.profilePhoto}`)
-                                  : 'https://via.placeholder.com/40'
-                              }
+                              src={`${import.meta.env.VITE_API_BASE}${creator.profilePhoto}`}
                               alt={creator.username}
                               className="creator-avatar"
                             />
@@ -768,13 +762,7 @@ export default function Location({ currentUser, onLogout }) {
                               return (
                                 <img 
                                   key={idx}
-                                  src={
-                                    memberData.profilePhoto
-                                      ? (memberData.profilePhoto.startsWith('/uploads/')
-                                          ? `http://localhost:5000${memberData.profilePhoto}`
-                                          : `http://localhost:5000/uploads/${memberData.profilePhoto}`)
-                                      : 'https://via.placeholder.com/32'
-                                  }
+                                  src={`${import.meta.env.VITE_API_BASE}${memberData.profilePhoto}`}
                                   alt={memberData.username}
                                   className="member-avatar"
                                   title={memberData.username}

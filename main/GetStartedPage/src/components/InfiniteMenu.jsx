@@ -14,7 +14,7 @@ export default function InfiniteMenu() {
     const fetchMostActive = async () => {
       try {
         console.log('Fetching most active users...');
-        const response = await fetch('http://localhost:5000/api/users/most-active');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/users/most-active`);
         if (!response.ok) {
           throw new Error('Failed to fetch most active users');
         }
@@ -259,7 +259,7 @@ export default function InfiniteMenu() {
           const username = solver.username || 'Unknown User';
           let profilePhoto = solver.profilePhoto;
           if (profilePhoto && profilePhoto.startsWith('/')) {
-            profilePhoto = `http://localhost:5000${profilePhoto}`;
+            profilePhoto = `${import.meta.env.VITE_API_BASE}${profilePhoto}`;
           } else if (!profilePhoto) {
             profilePhoto = `https://picsum.photos/900/900?random=${index + 1}`;
           }

@@ -74,7 +74,7 @@ const Chat = ({ currentUser, onLogout }) => {
 
   // Initialize Socket.IO connection when component mounts
   useEffect(() => {
-    const newSocket = io('http://localhost:5000');
+    const newSocket = io(import.meta.env.VITE_API_BASE);
     setSocket(newSocket);
 
     newSocket.on('connect', () => {
@@ -97,7 +97,7 @@ const Chat = ({ currentUser, onLogout }) => {
     const fetchUsers = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get('http://localhost:5000/api/users', {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/users`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         // Filter out the current user from the list
@@ -159,7 +159,7 @@ const Chat = ({ currentUser, onLogout }) => {
       const sendInitialMessage = async () => {
         try {
           const token = localStorage.getItem('token');
-          await axios.post('http://localhost:5000/api/users/chat', {
+          await axios.post(`${import.meta.env.VITE_API_URL}/users/chat`, {
             roomId: initialMessage.roomId,
             content: initialMessage.content,
             receiver: initialMessage.receiver,
@@ -186,7 +186,7 @@ const Chat = ({ currentUser, onLogout }) => {
       const fetchMessages = async () => {
         try {
           const token = localStorage.getItem('token');
-          const response = await axios.get(`http://localhost:5000/api/users/chat/${newRoomId}`, {
+          const response = await axios.get(`${import.meta.env.VITE_API_URL}/users/chat/${newRoomId}`, {
             headers: { Authorization: `Bearer ${token}` }
           });
           setMessages(response.data);
@@ -214,7 +214,7 @@ const Chat = ({ currentUser, onLogout }) => {
       const fetchMessages = async () => {
         try {
           const token = localStorage.getItem('token');
-          const response = await axios.get(`http://localhost:5000/api/users/chat/doubt_${doubtId}`, {
+          const response = await axios.get(`${import.meta.env.VITE_API_URL}/users/chat/doubt_${doubtId}`, {
             headers: { Authorization: `Bearer ${token}` }
           });
           setMessages(response.data);
@@ -250,7 +250,7 @@ const Chat = ({ currentUser, onLogout }) => {
       // Save to backend
       try {
         const token = localStorage.getItem('token');
-        await axios.post('http://localhost:5000/api/users/chat', {
+        await axios.post(`${import.meta.env.VITE_API_URL}/users/chat`, {
           roomId: messageData.roomId,
           content: messageData.content,
           receiver: messageData.receiver,
@@ -304,7 +304,7 @@ const Chat = ({ currentUser, onLogout }) => {
     if (!groupName.trim() || groupMembers.length < 2) return;
     const token = localStorage.getItem('token');
     try {
-      const response = await axios.post('http://localhost:5000/api/groups', {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/groups`, {
       groupName: groupName.trim(),
         members: groupMembers
       }, {
@@ -326,7 +326,7 @@ const Chat = ({ currentUser, onLogout }) => {
     const fetchGroups = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get('http://localhost:5000/api/groups', {
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/groups`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setGroups(response.data);
@@ -488,7 +488,7 @@ const Chat = ({ currentUser, onLogout }) => {
                     >
                       {user.profilePhoto ? (
                         <img 
-                          src={`http://localhost:5000${user.profilePhoto}`} 
+                          src={`${import.meta.env.VITE_API_BASE}${user.profilePhoto}`} 
                           alt={user.name || user.username}
                           style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
                           onError={e => { e.target.src = '/peerpath.png'; }}
@@ -583,7 +583,7 @@ const Chat = ({ currentUser, onLogout }) => {
                         >
                           {selectedUser.profilePhoto ? (
                             <img 
-                              src={`http://localhost:5000${selectedUser.profilePhoto}`} 
+                              src={`${import.meta.env.VITE_API_BASE}${selectedUser.profilePhoto}`} 
                               alt={selectedUser.name || selectedUser.username}
                               style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
                               onError={e => { e.target.src = '/peerpath.png'; }}
