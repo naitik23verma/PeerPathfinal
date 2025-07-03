@@ -30,14 +30,14 @@ const server = createServer(app);
 // Configure Socket.IO with CORS settings from env
 const io = new Server(server, {
   cors: {
-    origin: process.env.SOCKET_CORS_ORIGIN ? process.env.SOCKET_CORS_ORIGIN.split(',') : ["http://localhost:5173", "http://localhost:5174"],
+    origin: process.env.SOCKET_CORS_ORIGIN ? process.env.SOCKET_CORS_ORIGIN.split(',') : ["http://localhost:5173", "http://localhost:5174", "https://peerpath.vercel.app", "https://peerpath-git-main-natiks-projects.vercel.app"],
     methods: ["GET", "POST"]
   }
 });
 
 // Middleware
 const corsOptions = {
-  origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ["http://localhost:5173", "http://localhost:5174"],
+  origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ["http://localhost:5173", "http://localhost:5174", "https://peerpath.vercel.app", "https://peerpath-git-main-natiks-projects.vercel.app"],
   credentials: true,
   optionsSuccessStatus: 200
 };
@@ -120,14 +120,8 @@ io.on('connection', (socket) => {
   });
 });
 
-// Serve static files in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../dist')));
-  
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../dist/index.html'));
-  });
-}
+// API-only server - frontend is deployed separately on Vercel
+// No static file serving needed for production
 
 
 const PORT = process.env.PORT || 5000;

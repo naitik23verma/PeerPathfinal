@@ -502,7 +502,7 @@ export default function Doubts({ currentUser, onLogout }){
     const fetchDoubts = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.get(`${import.meta.env.VITE_API_URL}/doubts`, {
+            const response = await axios.get(`https://peerpathfinal.onrender.com/api/doubts`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setDoubts(response.data.doubts);
@@ -524,7 +524,7 @@ export default function Doubts({ currentUser, onLogout }){
     const handleDoubtSubmit = async (newDoubt) => {
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.post(`${import.meta.env.VITE_API_URL}/doubts`, newDoubt, {
+            const response = await axios.post(`https://peerpathfinal.onrender.com/api/doubts`, newDoubt, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             console.log('Doubt posted:', response.data);

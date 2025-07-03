@@ -7,7 +7,7 @@ import DotGrid from "./components/DotGrid.jsx";
 import AdvancedFooter from './components/AdvancedFooter.jsx';
 import TypewriterText from './components/TypewriterText.jsx';
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = 'https://peerpathfinal.onrender.com/api';
 const GOOGLE_MAPS_API_KEY = 'AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg';
 
 // Google Maps Mini Map Component for Ride Cards

@@ -71,7 +71,7 @@ const Login = ({ onLogin }) => {
     setError('');
     
     try {
-      const response = await axios.post(`${import.meta.env.VITE_API_URL}/auth/login`, formData);
+      const response = await axios.post(`https://peerpathfinal.onrender.com/api/auth/login`, formData);
       
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
