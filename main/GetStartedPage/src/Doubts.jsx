@@ -586,6 +586,10 @@ export default function Doubts({ currentUser, onLogout }){
     // Image solution upload handler
     const handleImageSolution = async (doubt, file) => {
       if (!file) return;
+      if (file.size > 50 * 1024) {
+        showToast('Image solution must be less than 50KB', 'error');
+        return;
+      }
       try {
         const token = localStorage.getItem('token');
         const formData = new FormData();
