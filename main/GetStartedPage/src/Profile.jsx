@@ -233,6 +233,10 @@ const Profile = ({ onLogout }) => {
   const handleProfilePhotoChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    if (file.size > 50 * 1024) { // 50KB
+      alert('Profile photo must be less than 50KB');
+      return;
+    }
     setUploading(true);
     try {
       const token = localStorage.getItem('token');
@@ -317,7 +321,19 @@ const Profile = ({ onLogout }) => {
               </>
             ) : (
               <>
-                <span className="avatar-text">{profileData.username.charAt(0)}</span>
+                <div style={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '2.5rem',
+                  color: '#c4b5fd',
+                  background: '#ede9fe',
+                  borderRadius: '50%'
+                }}>
+                  {(profileData.username || 'U').charAt(0).toUpperCase()}
+                </div>
                 <motion.label 
                   className="camera-icon-overlay"
                   whileHover={{ scale: 1.1 }}

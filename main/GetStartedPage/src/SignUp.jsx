@@ -83,6 +83,10 @@ const SignUp = ({ onRegister }) => {
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      if (file.size > 50 * 1024) { // 50KB
+        setError('Profile photo must be less than 50KB');
+        return;
+      }
       setProfilePhoto(file);
       const reader = new FileReader();
       reader.onloadend = () => {
